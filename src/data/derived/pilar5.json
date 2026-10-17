@@ -1,0 +1,254 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab2-2_2_11_2_perencanaan-pembangunan-paniradya-kaistimewan-diy.md",
+      "halaman": 800,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_2_11_2_perencanaan-pembangunan-paniradya-kaistimewan-diy.md",
+      "halaman": 800,
+      "tabel": 2
+    },
+    {
+      "berkas": "bab2-2_2_8_5_bantuan-keuangan-khusus-bkk-kalurahan.md",
+      "halaman": 739,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_2_8_5_bantuan-keuangan-khusus-bkk-kalurahan.md",
+      "halaman": 740,
+      "tabel": 1
+    }
+  ],
+  "nilaiAkhir": {
+    "baris": [
+      {
+        "nama": "Rerata capaian fisik dan keuangan semua urusan keistimewaan",
+        "nilai": 99.08,
+        "bobot": 60,
+        "hasil": 59.45
+      },
+      {
+        "nama": "Skor indeks kepuasan masyarakat atas penyebarluasan informasi keistimewaan",
+        "nilai": 74.51,
+        "bobot": 35,
+        "hasil": 26.08
+      },
+      {
+        "nama": "Skor indeks kepuasan Paramparapraja atas pelayanan",
+        "nilai": 90.17,
+        "bobot": 5,
+        "hasil": 4.51
+      }
+    ],
+    "total": 90.04,
+    "rerataCapaian": 99.08
+  },
+  "urusan": {
+    "baris": [
+      {
+        "nama": "Kelembagaan",
+        "anggaran": 43989773850,
+        "realisasi": 42973356957,
+        "keuangan": 97.69,
+        "fisik": 100
+      },
+      {
+        "nama": "Kebudayaan",
+        "anggaran": 1117858933379,
+        "realisasi": 1101870780594,
+        "keuangan": 98.57,
+        "fisik": 99.91
+      },
+      {
+        "nama": "Pertanahan",
+        "anggaran": 28985621575,
+        "realisasi": 26174205308,
+        "keuangan": 90.3,
+        "fisik": 96.51
+      },
+      {
+        "nama": "Tata Ruang",
+        "anggaran": 229165671196,
+        "realisasi": 225145196573,
+        "keuangan": 98.25,
+        "fisik": 99.89
+      }
+    ],
+    "total": {
+      "anggaran": 1420000000000,
+      "realisasi": 1396163539432,
+      "keuangan": 98.32,
+      "fisik": 99.84
+    }
+  },
+  "bkk": {
+    "baris": [
+      {
+        "no": 1,
+        "jenis": "BKK KALURAHAN - PAPAN PENANDA KEISTIMEWAAN BIRO TAPEM DIY",
+        "pagu": 63000000,
+        "realisasi": 63000000,
+        "keuangan": 100,
+        "fisik": 100
+      },
+      {
+        "no": 2,
+        "jenis": "BKK KALURAHAN - BALAI DUSUN KEISTIMEWAAN DPUPESDM DIY",
+        "pagu": 15150000000,
+        "realisasi": 15098975775,
+        "keuangan": 99.66,
+        "fisik": 100
+      },
+      {
+        "no": 3,
+        "jenis": "BKK KALURAHAN - PENGELOLAAN SAMPAH KEISTIMEWAAN DLHK DIY",
+        "pagu": 6000000000,
+        "realisasi": 5985089940,
+        "keuangan": 99.75,
+        "fisik": 100
+      },
+      {
+        "no": 4,
+        "jenis": "BKK - KAMPUNG BERKAH BIRO",
+        "pagu": 200000000,
+        "realisasi": 200000000,
+        "keuangan": 100,
+        "fisik": 100
+      },
+      {
+        "no": 5,
+        "jenis": "BKK KALURAHAN - DEMPLOT JOGJA HIJAU KEISTIMEWAAN DLHK DIY",
+        "pagu": 1000000000,
+        "realisasi": 1000000000,
+        "keuangan": 100,
+        "fisik": 100
+      },
+      {
+        "no": 6,
+        "jenis": "BKK KALURAHAN-PADAT DISNAKERTRAN",
+        "pagu": 21525000000,
+        "realisasi": 21481505124,
+        "keuangan": 99.8,
+        "fisik": 100
+      },
+      {
+        "no": 7,
+        "jenis": "BKK KALURAHAN - BALAI DISBUD DIY",
+        "pagu": 7095406000,
+        "realisasi": 7010967000,
+        "keuangan": 98.81,
+        "fisik": 100
+      },
+      {
+        "no": 8,
+        "jenis": "BKK KALURAHAN - DESA MANDIRI BUDAYA DISBUD DIY",
+        "pagu": 24500000000,
+        "realisasi": 24429824688,
+        "keuangan": 99.71,
+        "fisik": 100
+      },
+      {
+        "no": 9,
+        "jenis": "BKK KALURAHAN - DISBUD DIY",
+        "pagu": 1000000000,
+        "realisasi": 1000000000,
+        "keuangan": 100,
+        "fisik": 100
+      },
+      {
+        "no": 10,
+        "jenis": "BKK KALURAHAN - WBTB DISBUD DIY",
+        "pagu": 1000000000,
+        "realisasi": 993701786,
+        "keuangan": 99.37,
+        "fisik": 100
+      },
+      {
+        "no": 11,
+        "jenis": "BKK KALURAHAN - DESA BAHARI DINAS",
+        "pagu": 3500000000,
+        "realisasi": 3382898500,
+        "keuangan": 96.65,
+        "fisik": 100
+      },
+      {
+        "no": 12,
+        "jenis": "BKK KALURAHAN - DESA DISBUD DIY",
+        "pagu": 4300000000,
+        "realisasi": 4246463478,
+        "keuangan": 98.75,
+        "fisik": 100
+      },
+      {
+        "no": 13,
+        "jenis": "BKK KALURAHAN - DESA MANDIRI PANGAN DPKP DIY",
+        "pagu": 3950000000,
+        "realisasi": 3940065000,
+        "keuangan": 99.75,
+        "fisik": 100
+      },
+      {
+        "no": 14,
+        "jenis": "BKK KALURAHAN - DESA",
+        "pagu": 2250000000,
+        "realisasi": 2239479428,
+        "keuangan": 99.53,
+        "fisik": 100
+      },
+      {
+        "no": 15,
+        "jenis": "BKK KALURAHAN - DESA DINKOP DIY",
+        "pagu": 5698994000,
+        "realisasi": 5660769800,
+        "keuangan": 99.33,
+        "fisik": 100
+      },
+      {
+        "no": 16,
+        "jenis": "BKK KALURAHAN - DESA DISPAR DIY",
+        "pagu": 9600000000,
+        "realisasi": 9600000000,
+        "keuangan": 100,
+        "fisik": 100
+      },
+      {
+        "no": 17,
+        "jenis": "BKK KALURAHAN - OMAH JAGAWARGA KEISTIMEWAAN SATPOL PP",
+        "pagu": 2050000000,
+        "realisasi": 2020194000,
+        "keuangan": 98.55,
+        "fisik": 100
+      },
+      {
+        "no": 18,
+        "jenis": "BKK KALURAHAN - RTLH DPUPESDM DIY",
+        "pagu": 18750000000,
+        "realisasi": 18732961584,
+        "keuangan": 99.91,
+        "fisik": 100
+      },
+      {
+        "no": 19,
+        "jenis": "BKK KALURAHAN - TATA KELOLA PERTANAHAN DPTR DIY",
+        "pagu": 1841825000,
+        "realisasi": 1827681585,
+        "keuangan": 99.23,
+        "fisik": 100
+      },
+      {
+        "no": 20,
+        "jenis": "BKK KALURAHAN - DPTR DIY",
+        "pagu": 1000000000,
+        "realisasi": 994258450,
+        "keuangan": 99.43,
+        "fisik": 100
+      }
+    ],
+    "jumlah": {
+      "pagu": 130474225000,
+      "realisasi": 129907836138
+    }
+  }
+}

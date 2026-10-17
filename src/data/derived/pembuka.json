@@ -1,0 +1,59 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab2-2_1_capaian-kinerja-makro.md",
+      "halaman": 188,
+      "tabel": 2
+    }
+  ],
+  "indikator": [
+    {
+      "nama": "Indeks Pembangunan Manusia",
+      "nilai2022": 80.64,
+      "nilai2023": 81.09,
+      "perubahan": 0.56,
+      "satuan": "poin",
+      "jenis": "ipm"
+    },
+    {
+      "nama": "Angka Kemiskinan",
+      "nilai2022": 11.49,
+      "nilai2023": 11.04,
+      "perubahan": -3.92,
+      "satuan": "persen",
+      "jenis": "kemiskinan"
+    },
+    {
+      "nama": "Angka Pengangguran",
+      "nilai2022": 4.06,
+      "nilai2023": 3.69,
+      "perubahan": -9.11,
+      "satuan": "persen",
+      "jenis": "pengangguran"
+    },
+    {
+      "nama": "Pertumbuhan Ekonomi",
+      "nilai2022": 112898323,
+      "nilai2023": 118626843,
+      "perubahan": 5.07,
+      "satuan": "juta rupiah (ADHK basis 2010)",
+      "jenis": "pertumbuhan"
+    },
+    {
+      "nama": "Pendapatan Per Kapita",
+      "nilai2022": 44.85,
+      "nilai2023": 48.54,
+      "perubahan": 8.23,
+      "satuan": "juta rupiah",
+      "jenis": "perkapita"
+    },
+    {
+      "nama": "Ketimpangan Pendapatan",
+      "nilai2022": 0.459,
+      "nilai2023": 0.449,
+      "perubahan": -2.23,
+      "satuan": "rasio 0–1",
+      "jenis": "gini"
+    }
+  ]
+}

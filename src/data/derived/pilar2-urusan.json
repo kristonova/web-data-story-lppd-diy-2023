@@ -1,0 +1,142 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 64,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 65,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 66,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 67,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 68,
+      "tabel": 1
+    }
+  ],
+  "kelompok": [
+    {
+      "id": "1",
+      "nama": "URUSAN PEMERINTAHAN WAJIB YANG BERKAITAN DENGAN PELAYANAN DASAR",
+      "anggaran": 2599258045081,
+      "realisasi": 2407175428443.2,
+      "perubahan": -192082616637.8,
+      "persen": 92.61
+    },
+    {
+      "id": "2",
+      "nama": "URUSAN PEMERINTAHAN WAJIB YANG TIDAK BERKAITAN DENGAN PELAYANAN DASAR",
+      "anggaran": 1158738241871,
+      "realisasi": 1124678676039,
+      "perubahan": -34059565832,
+      "persen": 97.06
+    },
+    {
+      "id": "3",
+      "nama": "URUSAN PEMERINTAHAN PILIHAN",
+      "anggaran": 200067435106,
+      "realisasi": 193479139256,
+      "perubahan": -6588295850,
+      "persen": 96.71
+    },
+    {
+      "id": "4",
+      "nama": "UNSUR PENDUKUNG URUSAN PEMERINTAHAN",
+      "anggaran": 300608790687,
+      "realisasi": 286467413375,
+      "perubahan": -14141002312,
+      "persen": 95.3
+    },
+    {
+      "id": "5",
+      "nama": "UNSUR PENUNJANG URUSAN PEMERINTAHAN",
+      "anggaran": 1704816626560,
+      "realisasi": 1644829226541.21,
+      "perubahan": 59987400018.79,
+      "persen": 96.48
+    },
+    {
+      "id": "6",
+      "nama": "UNSUR PENGAWASAN URUSAN PEMERINTAHAN",
+      "anggaran": 25097426893,
+      "realisasi": 24117893470,
+      "perubahan": -979533423,
+      "persen": 96.1
+    },
+    {
+      "id": "8",
+      "nama": "UNSUR PEMERINTAHAN UMUM",
+      "anggaran": 27956925047,
+      "realisasi": 27333078368,
+      "perubahan": -623846679,
+      "persen": 97.77
+    }
+  ],
+  "dasar": [
+    {
+      "id": "1.01",
+      "nama": "URUSAN PEMERINTAHAN BIDANG PENDIDIKAN",
+      "anggaran": 1529183112122,
+      "realisasi": 1469351478351,
+      "perubahan": -59831633771,
+      "persen": 96.09
+    },
+    {
+      "id": "1.02",
+      "nama": "URUSAN PEMERINTAHAN BIDANG KESEHATAN",
+      "anggaran": 381632480154,
+      "realisasi": 283315920454.2,
+      "perubahan": -98316559699.8,
+      "persen": 74.24
+    },
+    {
+      "id": "1.03",
+      "nama": "URUSAN PEMERINTAHAN BIDANG PEKERJAAN UMUM DAN PENATAAN RUANG",
+      "anggaran": 441592114609,
+      "realisasi": 422332685284,
+      "perubahan": -19259429325,
+      "persen": 95.64
+    },
+    {
+      "id": "1.04",
+      "nama": "URUSAN PEMERINTAHAN BIDANG PERUMAHAN DAN KAWASAN PERMUKIMAN",
+      "anggaran": 119312324400,
+      "realisasi": 107607680444,
+      "perubahan": -11704643956,
+      "persen": 90.19
+    },
+    {
+      "id": "1.05",
+      "nama": "URUSAN PEMERINTAHAN BIDANG KETENTERAMAN DAN KETERTIBAN UMUM SERTA PERLINDUNGAN MASYARAKAT",
+      "anggaran": 40237401811,
+      "realisasi": 39213809072,
+      "perubahan": -1023592739,
+      "persen": 97.46
+    },
+    {
+      "id": "1.06",
+      "nama": "URUSAN PEMERINTAHAN BIDANG SOSIAL",
+      "anggaran": 87300611985,
+      "realisasi": 85353854838,
+      "perubahan": -1946757147,
+      "persen": 97.77
+    }
+  ],
+  "jumlah": {
+    "anggaran": 6016543491245,
+    "realisasi": 5708080855492.41,
+    "persen": 94.87
+  }
+}

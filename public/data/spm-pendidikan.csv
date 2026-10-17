@@ -1,0 +1,29 @@
+﻿jenjang;indikator;satuan;target;capaian;capaian_persen
+SMA;Angka partisipasi kasar;%;99;107,63;100
+SMA;Angka partisipasi sekolah;%;100;91,17;91,17
+SMA;Angka partisipasi murni;%;78;84,35;100
+SMA;Kemampuan literasi;Nilai;77,78;85,73;100
+SMA;Kemampuan numerasi;Nilai;65,41;76,14;100
+SMA;Perbedaan skor literasi;Nilai;4,59;4,59;100
+SMA;Perbedaan skor numerasi;Nilai;2,85;2,85;100
+SMA;Indeks iklim keamanan;Nilai;84,08;70,76;84,16
+SMA;Indeks iklim kebinekaan;Nilai;74,65;72,28;96,83
+SMA;Kecukupan formasi guru;%;17,5;17,5;100
+SMA;Pengalaman pelatihan;%;49;49;100
+SMK;Angka partisipasi sekolah;%;100;91,17;91,17
+SMK;Angka partisipasi murni;%;78;84,35;100
+SMK;Kemampuan literasi;%;71,31;66,41;93,13
+SMK;Kemampuan numerasi;Nilai;56,98;54,83;96,23
+SMK;Kepuasan dunia kerja;Nilai;78,13;76,9;98,43
+SMK;Perbedaan skor literasi;Nilai;3,82;3,82;100
+SMK;Perbedaan skor numerasi;Nilai;1,88;1,88;100
+SMK;Indeks iklim keamanan;Nilai;82,2;70,76;86,08
+SMK;Indeks iklim kebinekaan;Nilai;71,37;68,97;96,64
+SMK;Kecukupan formasi guru;%;20,5;20,5;100
+SMK;Indeks distribusi guru;%;0,41;0,41;100
+SMK;Proporsi PTK bersertifikat;%;91,2;91,2;100
+SMK;Proporsi PTK penggerak;%;0,04;0,04;100
+SMK;Pengalaman pelatihan;%;31,7;31,7;100
+Pendidikan Khusus;Angka partisipasi sekolah;%;100;51,3;51,3
+Pendidikan Khusus;Kemampuan literasi;Nilai;61,41;65,41;100
+Pendidikan Khusus;Kemampuan numerasi;Nilai;58,33;58,33;100

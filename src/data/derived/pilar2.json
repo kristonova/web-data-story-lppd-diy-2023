@@ -1,0 +1,221 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 60,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 61,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 62,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 63,
+      "tabel": 1
+    }
+  ],
+  "pendapatan": {
+    "total": {
+      "anggaran": 5855271928290,
+      "realisasi": 5840561001091.65,
+      "persen": 99.75,
+      "realisasi2022": 5531194851402.3
+    },
+    "pad": {
+      "anggaran": 2368708585703,
+      "realisasi": 2368679166252.65,
+      "persen": 100,
+      "realisasi2022": 2263431316669.58
+    },
+    "pajak": {
+      "anggaran": 2088941497868,
+      "realisasi": 2069612267000.57,
+      "persen": 99.07,
+      "realisasi2022": 1951267446232.85
+    },
+    "retribusi": {
+      "anggaran": 33564359756,
+      "realisasi": 33213267052,
+      "persen": 98.95,
+      "realisasi2022": 38249563473
+    },
+    "kekayaan": {
+      "anggaran": 109070217574,
+      "realisasi": 109790680460.56,
+      "persen": 100.66,
+      "realisasi2022": 108239513315.87
+    },
+    "lainPad": {
+      "anggaran": 137132510505,
+      "realisasi": 156062951739.52,
+      "persen": 113.8,
+      "realisasi2022": 165674793647.86
+    },
+    "transfer": {
+      "anggaran": 3478957842587,
+      "realisasi": 3463926176823,
+      "persen": 99.57,
+      "realisasi2022": 3257721489974
+    },
+    "transferPusat": {
+      "anggaran": 3478121936167,
+      "realisasi": 3463090270403,
+      "persen": 99.57,
+      "realisasi2022": 3256850196484
+    },
+    "transferAntar": {
+      "anggaran": 835906420,
+      "realisasi": 835906420,
+      "persen": 100,
+      "realisasi2022": 871293490
+    },
+    "lainSah": {
+      "anggaran": 7605500000,
+      "realisasi": 7955658016,
+      "persen": 104.6,
+      "realisasi2022": 10042044758.72
+    },
+    "hibah": {
+      "anggaran": 7605500000,
+      "realisasi": 7950630000,
+      "persen": 104.54,
+      "realisasi2022": 7484595000
+    },
+    "sharePad": 40.6
+  },
+  "belanja": {
+    "total": {
+      "anggaran": 6016543491245,
+      "realisasi": 5708080855492.41,
+      "persen": 94.87,
+      "realisasi2022": 5449935625661.56
+    },
+    "operasi": {
+      "anggaran": 3721718798489,
+      "realisasi": 3506378070981.2,
+      "persen": 94.21,
+      "realisasi2022": 3445986585280.31
+    },
+    "pegawai": {
+      "anggaran": 1632174635343,
+      "realisasi": 1572346950277,
+      "persen": 96.33,
+      "realisasi2022": 1604664380912.64
+    },
+    "barangJasa": {
+      "anggaran": 1370269758830,
+      "realisasi": 1246181407244.2,
+      "persen": 90.94,
+      "realisasi2022": 1265180025505.94
+    },
+    "subsidi": {
+      "anggaran": 85553295477,
+      "realisasi": 75470221902,
+      "persen": 88.21,
+      "realisasi2022": 70269681385
+    },
+    "hibah": {
+      "anggaran": 604259784839,
+      "realisasi": 584093037626,
+      "persen": 96.66,
+      "realisasi2022": 474277634446.73
+    },
+    "bansos": {
+      "anggaran": 29461324000,
+      "realisasi": 28286453932,
+      "persen": 96.01,
+      "realisasi2022": 31594863030
+    },
+    "modal": {
+      "anggaran": 787127650315,
+      "realisasi": 745400266545,
+      "persen": 94.7,
+      "realisasi2022": 704882049066.74
+    },
+    "modalTanah": {
+      "anggaran": 177970845828,
+      "realisasi": 169306929192,
+      "persen": 95.13,
+      "realisasi2022": 152171680772
+    },
+    "modalMesin": {
+      "anggaran": 193623864205,
+      "realisasi": 186112683018,
+      "persen": 96.12,
+      "realisasi2022": 174540050841.74
+    },
+    "modalGeuting": {
+      "anggaran": 166710000225,
+      "realisasi": 150930255820,
+      "persen": 90.53,
+      "realisasi2022": 210446091623
+    },
+    "modalJalan": {
+      "anggaran": 234751635170,
+      "realisasi": 225450247009,
+      "persen": 96.04,
+      "realisasi2022": 153970963843
+    },
+    "modalAsetTetap": {
+      "anggaran": 13896669487,
+      "realisasi": 13437651506,
+      "persen": 96.7,
+      "realisasi2022": 13753261987
+    },
+    "modalAsetLain": {
+      "anggaran": 174635400,
+      "realisasi": 162500000,
+      "persen": 93.05,
+      "realisasi2022": 0
+    },
+    "takTerduga": {
+      "anggaran": 21998129613,
+      "realisasi": 198487268,
+      "persen": 0.9,
+      "realisasi2022": 5735041553
+    },
+    "transfer": {
+      "anggaran": 1485698912828,
+      "realisasi": 1456104030698.21,
+      "persen": 98.01,
+      "realisasi2022": 1293331949761.51
+    },
+    "bagiHasil": {
+      "anggaran": 904030830780,
+      "realisasi": 886411063641,
+      "persen": 98.05,
+      "realisasi2022": 839016298042
+    },
+    "bantuanKeuangan": {
+      "anggaran": 581668082048,
+      "realisasi": 569692967057.21,
+      "persen": 97.94,
+      "realisasi2022": 454315651719.51
+    },
+    "surplus": {
+      "anggaran": -161271562955,
+      "realisasi": 132480145599.24,
+      "persen": -82.15,
+      "realisasi2022": 81259225740.74
+    },
+    "pembiayaanNetto": {
+      "anggaran": 161271562955,
+      "realisasi": 160555386955.24,
+      "persen": 99.56,
+      "realisasi2022": 381012337214.5
+    },
+    "slpa": {
+      "anggaran": 0,
+      "realisasi": 293035532554.48,
+      "persen": 0,
+      "realisasi2022": 462271562955.24
+    }
+  }
+}

@@ -1,0 +1,255 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab2-2_1_1_indeks-pembangunan-manusia-ipm.md",
+      "halaman": 189,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_1_2_angka-kemiskinan.md",
+      "halaman": 191,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_1_2_angka-kemiskinan.md",
+      "halaman": 192,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_1_6_ketimpangan-pendapatan.md",
+      "halaman": 198,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_1_capaian-kinerja-makro.md",
+      "halaman": 188,
+      "tabel": 2
+    }
+  ],
+  "ipm": {
+    "nilai2022": 80.64,
+    "nilai2023": 81.09,
+    "komponen": [
+      {
+        "nama": "Umur harapan hidup saat lahir",
+        "satuan": "tahun",
+        "nilai": {
+          "t2020": 74.95,
+          "t2021": 75.04,
+          "t2022": 75.08,
+          "t2023": 75.18
+        }
+      },
+      {
+        "nama": "Harapan lama sekolah",
+        "satuan": "tahun",
+        "nilai": {
+          "t2020": 15.59,
+          "t2021": 15.64,
+          "t2022": 15.65,
+          "t2023": 15.66
+        }
+      },
+      {
+        "nama": "Rata-rata lama sekolah",
+        "satuan": "tahun",
+        "nilai": {
+          "t2020": 9.55,
+          "t2021": 9.64,
+          "t2022": 9.75,
+          "t2023": 9.83
+        }
+      },
+      {
+        "nama": "Pengeluaran per kapita disesuaikan (PPP)",
+        "satuan": "ribu rupiah",
+        "nilai": {
+          "t2020": 14015,
+          "t2021": 14111,
+          "t2022": 14482,
+          "t2023": 14924
+        }
+      }
+    ]
+  },
+  "kemiskinan": {
+    "nilai2022": 11.49,
+    "nilai2023": 11.04,
+    "perDaerah": [
+      {
+        "daerah": "Perkotaan",
+        "periode": "September 2021",
+        "ribu": 331.71,
+        "persen": 11.2
+      },
+      {
+        "daerah": "Perkotaan",
+        "periode": "Maret 2022",
+        "ribu": 315.46,
+        "persen": 10.56
+      },
+      {
+        "daerah": "Perkotaan",
+        "periode": "September 2022",
+        "ribu": 321.07,
+        "persen": 10.64
+      },
+      {
+        "daerah": "Perkotaan",
+        "periode": "Maret 2023",
+        "ribu": 312.83,
+        "persen": 10.27
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "September 2021",
+        "ribu": 142.78,
+        "persen": 13.99
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "Maret 2022",
+        "ribu": 139.3,
+        "persen": 13.65
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "September 2022",
+        "ribu": 142.57,
+        "persen": 14
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "Maret 2023",
+        "ribu": 135.63,
+        "persen": 13.36
+      },
+      {
+        "daerah": "Total",
+        "periode": "September 2021",
+        "ribu": 474.49,
+        "persen": 11.91
+      },
+      {
+        "daerah": "Total",
+        "periode": "Maret 2022",
+        "ribu": 454.76,
+        "persen": 11.34
+      },
+      {
+        "daerah": "Total",
+        "periode": "September 2022",
+        "ribu": 463.63,
+        "persen": 11.49
+      },
+      {
+        "daerah": "Total",
+        "periode": "Maret 2023",
+        "ribu": 448.47,
+        "persen": 11.04
+      }
+    ]
+  },
+  "ketenagakerjaan": {
+    "baris": [
+      {
+        "label": "Penduduk usia kerja",
+        "t2022": 3217.87,
+        "t2023": 2998.93
+      },
+      {
+        "label": "Angkatan kerja",
+        "t2022": 2336.08,
+        "t2023": 2221.69
+      },
+      {
+        "label": "- Bekerja",
+        "t2022": 2241.13,
+        "t2023": 2139.71
+      },
+      {
+        "label": "- Pengangguran",
+        "t2022": 94.95,
+        "t2023": 81.98
+      },
+      {
+        "label": "- Bukan angkatan kerja",
+        "t2022": 881.8,
+        "t2023": 777.23
+      }
+    ],
+    "tpt": {
+      "t2022": 4.06,
+      "t2023": 3.69
+    }
+  },
+  "ketimpangan": {
+    "gini2022": 0.459,
+    "gini2023": 0.449,
+    "perDaerah": [
+      {
+        "daerah": "Perkotaan",
+        "periode": "Maret 2022",
+        "p40Bawah": 15.53,
+        "p40Tengah": 32.11,
+        "p20Atas": 52.36
+      },
+      {
+        "daerah": "Perkotaan",
+        "periode": "September 2022",
+        "p40Bawah": 14.91,
+        "p40Tengah": 30.4,
+        "p20Atas": 54.69
+      },
+      {
+        "daerah": "Perkotaan",
+        "periode": "Maret 2023",
+        "p40Bawah": 15.21,
+        "p40Tengah": 31.43,
+        "p20Atas": 53.36
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "Maret 2022",
+        "p40Bawah": 20.88,
+        "p40Tengah": 36.34,
+        "p20Atas": 42.78
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "September 2022",
+        "p40Bawah": 20.42,
+        "p40Tengah": 35.58,
+        "p20Atas": 44
+      },
+      {
+        "daerah": "Perdesaan",
+        "periode": "Maret 2023",
+        "p40Bawah": 19.76,
+        "p40Tengah": 34.59,
+        "p20Atas": 45.65
+      },
+      {
+        "daerah": "Total",
+        "periode": "Maret 2022",
+        "p40Bawah": 16.07,
+        "p40Tengah": 32.32,
+        "p20Atas": 51.61
+      },
+      {
+        "daerah": "Total",
+        "periode": "September 2022",
+        "p40Bawah": 15.54,
+        "p40Tengah": 30.69,
+        "p20Atas": 53.77
+      },
+      {
+        "daerah": "Total",
+        "periode": "Maret 2023",
+        "p40Bawah": 15.58,
+        "p40Tengah": 31.68,
+        "p20Atas": 52.74
+      }
+    ]
+  }
+}

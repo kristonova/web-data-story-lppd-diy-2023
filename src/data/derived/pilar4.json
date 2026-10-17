@@ -1,0 +1,143 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab2-2_2_2_indikator-kinerja-kunci-hasil.md",
+      "halaman": "333–334",
+      "tabel": "blok rasio partisipasi sekolah (teks)"
+    },
+    {
+      "berkas": "bab2-2_2_2_indikator-kinerja-kunci-hasil.md",
+      "halaman": "335–337",
+      "tabel": "blok ABK & rumah sakit rujukan (teks)"
+    },
+    {
+      "berkas": "bab2-2_2_2_indikator-kinerja-kunci-hasil.md",
+      "halaman": "337–341",
+      "tabel": "blok infrastruktur dasar provinsi (teks)"
+    },
+    {
+      "berkas": "bab2-2_2_6_22_urusan-penanaman-modal-dinas-penanaman-modal-dan-pelayanan.md",
+      "halaman": 585,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab2-2_2_6_22_urusan-penanaman-modal-dinas-penanaman-modal-dan-pelayanan.md",
+      "halaman": 586,
+      "tabel": 1
+    }
+  ],
+  "ikkPendidikan": {
+    "apm": {
+      "rasio": 97.69,
+      "sma": 48924,
+      "smk": 70872,
+      "ma": 16127,
+      "tamat": 15225,
+      "penduduk": 154722
+    },
+    "apk": {
+      "rasio": 109.76,
+      "sma": 61539,
+      "smk": 87704,
+      "ma": 20548,
+      "tambahanTanggungan": 27
+    },
+    "abk": {
+      "slb": 5102,
+      "inklusi": 1437,
+      "tidakDiri": 693,
+      "terlayani": 6539,
+      "total": 7232,
+      "persen": 90.42
+    }
+  },
+  "ikkKesehatan": {
+    "tempatTidurRsRujukan": 8651,
+    "penduduk": 3722296,
+    "rasioPerRibu": 2.32
+  },
+  "ikkPU": {
+    "jalan": {
+      "mantapKm": 476.135,
+      "totalKm": 674.585,
+      "persen": 70.582,
+      "satuan": "Km"
+    },
+    "spal": {
+      "dilayani": 27205,
+      "total": 75000,
+      "persen": 36.27
+    },
+    "airMinum": {
+      "nilai": 199.67,
+      "satuan": "liter/detik",
+      "persen": 100
+    }
+  },
+  "investasi": {
+    "seri": [
+      {
+        "periode": "s.d 2022",
+        "pmdnMiliar": 24.97,
+        "pmaMiliar": 11.44,
+        "totalMiliar": 36.41,
+        "tambahanMiliar": 3.91,
+        "pctStated": 12
+      },
+      {
+        "periode": "s.d 2023",
+        "pmdnMiliar": 29.98,
+        "pmaMiliar": 12.12,
+        "totalMiliar": 42.1,
+        "tambahanMiliar": 5.7,
+        "pctStated": 16
+      }
+    ],
+    "pertumbuhan": {
+      "s2022": 12.03,
+      "s2023": 15.65
+    },
+    "perKab": [
+      {
+        "kabkota": "Bantul",
+        "t2019": 130.88,
+        "t2020": 57.5,
+        "t2021": 112.67,
+        "t2022": 486.38,
+        "t2023": 687.29
+      },
+      {
+        "kabkota": "Gunungkidul",
+        "t2019": 78.41,
+        "t2020": 31.9,
+        "t2021": 290.61,
+        "t2022": 133.83,
+        "t2023": 192.26
+      },
+      {
+        "kabkota": "Kulon Progo",
+        "t2019": 4868.88,
+        "t2020": 1866.54,
+        "t2021": 506.62,
+        "t2022": 339.29,
+        "t2023": 242.39
+      },
+      {
+        "kabkota": "Sleman",
+        "t2019": 902.39,
+        "t2020": 624.2,
+        "t2021": 1920.52,
+        "t2022": 1346.69,
+        "t2023": 3647.99
+      },
+      {
+        "kabkota": "Kota Yogyakarta",
+        "t2019": 537.72,
+        "t2020": 243.23,
+        "t2021": 248.47,
+        "t2022": 1603.19,
+        "t2023": 926.48
+      }
+    ]
+  }
+}

@@ -1,0 +1,285 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab-4-penerapan-standar.md",
+      "halaman": "1046–1105",
+      "tabel": "kategori & indikator SPM per bidang"
+    },
+    {
+      "berkas": "bab-4-penerapan-standar.md",
+      "halaman": 1046,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-4-penerapan-standar.md",
+      "halaman": 1047,
+      "tabel": 1
+    }
+  ],
+  "kategori": [
+    {
+      "bidang": "Pendidikan",
+      "kategori": "UTAMA",
+      "indeks": 98.33
+    },
+    {
+      "bidang": "Kesehatan",
+      "kategori": "PARIPURNA",
+      "indeks": 100
+    },
+    {
+      "bidang": "Pekerjaan Umum dan Penataan Ruang",
+      "kategori": "PARIPURNA",
+      "indeks": 100
+    },
+    {
+      "bidang": "Perumahan Rakyat",
+      "kategori": "PARIPURNA",
+      "indeks": 100
+    },
+    {
+      "bidang": "Ketenteraman, Ketertiban, dan Pelindungan Masyarakat",
+      "kategori": "PARIPURNA",
+      "indeks": 100
+    },
+    {
+      "bidang": "Sosial",
+      "kategori": "PARIPURNA",
+      "indeks": 100
+    }
+  ],
+  "pendidikanIndikator": [
+    {
+      "jenjang": "SMA",
+      "label": "Angka partisipasi kasar",
+      "satuan": "%",
+      "pct": 100,
+      "target": 99,
+      "capaian": 107.63
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Angka partisipasi sekolah",
+      "satuan": "%",
+      "pct": 91.17,
+      "target": 100,
+      "capaian": 91.17
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Angka partisipasi murni",
+      "satuan": "%",
+      "pct": 100,
+      "target": 78,
+      "capaian": 84.35
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Kemampuan literasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 77.78,
+      "capaian": 85.73
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Kemampuan numerasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 65.41,
+      "capaian": 76.14
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Perbedaan skor literasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 4.59,
+      "capaian": 4.59
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Perbedaan skor numerasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 2.85,
+      "capaian": 2.85
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Indeks iklim keamanan",
+      "satuan": "Nilai",
+      "pct": 84.16,
+      "target": 84.08,
+      "capaian": 70.76
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Indeks iklim kebinekaan",
+      "satuan": "Nilai",
+      "pct": 96.83,
+      "target": 74.65,
+      "capaian": 72.28
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Kecukupan formasi guru",
+      "satuan": "%",
+      "pct": 100,
+      "target": 17.5,
+      "capaian": 17.5
+    },
+    {
+      "jenjang": "SMA",
+      "label": "Pengalaman pelatihan",
+      "satuan": "%",
+      "pct": 100,
+      "target": 49,
+      "capaian": 49
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Angka partisipasi sekolah",
+      "satuan": "%",
+      "pct": 91.17,
+      "target": 100,
+      "capaian": 91.17
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Angka partisipasi murni",
+      "satuan": "%",
+      "pct": 100,
+      "target": 78,
+      "capaian": 84.35
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Kemampuan literasi",
+      "satuan": "%",
+      "pct": 93.13,
+      "target": 71.31,
+      "capaian": 66.41
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Kemampuan numerasi",
+      "satuan": "Nilai",
+      "pct": 96.23,
+      "target": 56.98,
+      "capaian": 54.83
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Kepuasan dunia kerja",
+      "satuan": "Nilai",
+      "pct": 98.43,
+      "target": 78.13,
+      "capaian": 76.9
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Perbedaan skor literasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 3.82,
+      "capaian": 3.82
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Perbedaan skor numerasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 1.88,
+      "capaian": 1.88
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Indeks iklim keamanan",
+      "satuan": "Nilai",
+      "pct": 86.08,
+      "target": 82.2,
+      "capaian": 70.76
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Indeks iklim kebinekaan",
+      "satuan": "Nilai",
+      "pct": 96.64,
+      "target": 71.37,
+      "capaian": 68.97
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Kecukupan formasi guru",
+      "satuan": "%",
+      "pct": 100,
+      "target": 20.5,
+      "capaian": 20.5
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Indeks distribusi guru",
+      "satuan": "%",
+      "pct": 100,
+      "target": 0.41,
+      "capaian": 0.41
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Proporsi PTK bersertifikat",
+      "satuan": "%",
+      "pct": 100,
+      "target": 91.2,
+      "capaian": 91.2
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Proporsi PTK penggerak",
+      "satuan": "%",
+      "pct": 100,
+      "target": 0.04,
+      "capaian": 0.04
+    },
+    {
+      "jenjang": "SMK",
+      "label": "Pengalaman pelatihan",
+      "satuan": "%",
+      "pct": 100,
+      "target": 31.7,
+      "capaian": 31.7
+    },
+    {
+      "jenjang": "Pendidikan Khusus",
+      "label": "Angka partisipasi sekolah",
+      "satuan": "%",
+      "pct": 51.3,
+      "target": 100,
+      "capaian": 51.3
+    },
+    {
+      "jenjang": "Pendidikan Khusus",
+      "label": "Kemampuan literasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 61.41,
+      "capaian": 65.41
+    },
+    {
+      "jenjang": "Pendidikan Khusus",
+      "label": "Kemampuan numerasi",
+      "satuan": "Nilai",
+      "pct": 100,
+      "target": 58.33,
+      "capaian": 58.33
+    }
+  ],
+  "pendidikanKhusus": {
+    "harusDilayani": 6319,
+    "terlayani": 6215,
+    "belumTerlayani": 104,
+    "persen": 98.35,
+    "indeksKhusus": 97.68,
+    "indeksPenerimaLD": 78.68
+  }
+}

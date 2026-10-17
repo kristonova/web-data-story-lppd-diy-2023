@@ -1,0 +1,405 @@
+{
+  "sumber": [
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 29,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 30,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 30,
+      "tabel": 2
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 31,
+      "tabel": 1
+    },
+    {
+      "berkas": "bab-1-pendahuluan.md",
+      "halaman": 31,
+      "tabel": 4
+    },
+    {
+      "berkas": "markdown-per-bab/bab-1-pendahuluan.md",
+      "baris": "baris 388–396 (teks luas wilayah)"
+    }
+  ],
+  "administrasi": {
+    "perKab": [
+      {
+        "nama": "Kulon Progo",
+        "kapanewonKemantren": 12,
+        "kalurahan": 87,
+        "kelurahan": 1
+      },
+      {
+        "nama": "Bantul",
+        "kapanewonKemantren": 17,
+        "kalurahan": 75,
+        "kelurahan": null
+      },
+      {
+        "nama": "Gunungkidul",
+        "kapanewonKemantren": 18,
+        "kalurahan": 144,
+        "kelurahan": null
+      },
+      {
+        "nama": "Sleman",
+        "kapanewonKemantren": 17,
+        "kalurahan": 86,
+        "kelurahan": null
+      },
+      {
+        "nama": "Kota Yogyakarta",
+        "kapanewonKemantren": 14,
+        "kalurahan": null,
+        "kelurahan": 45
+      }
+    ],
+    "kapanewon": 78,
+    "kalurahan": 392,
+    "kelurahan": 46
+  },
+  "luas": {
+    "perKab": [
+      {
+        "nama": "Kabupaten Kulon Progo",
+        "km2": 586.28,
+        "persen": 18.71
+      },
+      {
+        "nama": "Kabupaten Bantul",
+        "km2": 508.13,
+        "persen": 16.22
+      },
+      {
+        "nama": "Kabupaten Gunungkidul",
+        "km2": 1431.42,
+        "persen": 45.69
+      },
+      {
+        "nama": "Kabupaten Sleman",
+        "km2": 574.82,
+        "persen": 18.35
+      },
+      {
+        "nama": "Kota Yogyakarta",
+        "km2": 32.5,
+        "persen": 1.04
+      }
+    ],
+    "total": 3133.15,
+    "persenIndonesia": 0.16
+  },
+  "penduduk": {
+    "total": 3722296,
+    "laki": 1842667,
+    "perempuan": 1879629,
+    "lakiPersen": 49.5,
+    "perempuanPersen": 50.5,
+    "perKab": [
+      {
+        "kode": "3401",
+        "nama": "KAB. KULON PROGO",
+        "laki": 221249,
+        "perempuan": 224943,
+        "jumlah": 446192,
+        "lakiPersen": 5.94,
+        "perempuanPersen": 6.04,
+        "jumlahPersen": 11.99
+      },
+      {
+        "kode": "3402",
+        "nama": "KAB. BANTUL",
+        "laki": 483891,
+        "perempuan": 488270,
+        "jumlah": 972161,
+        "lakiPersen": 13,
+        "perempuanPersen": 13.12,
+        "jumlahPersen": 26.12
+      },
+      {
+        "kode": "3403",
+        "nama": "KAB. GUNUNGKIDUL",
+        "laki": 384550,
+        "perempuan": 392072,
+        "jumlah": 776622,
+        "lakiPersen": 10.33,
+        "perempuanPersen": 10.53,
+        "jumlahPersen": 20.86
+      },
+      {
+        "kode": "3404",
+        "nama": "KAB. SLEMAN",
+        "laki": 550915,
+        "perempuan": 561701,
+        "jumlah": 1112616,
+        "lakiPersen": 14.8,
+        "perempuanPersen": 15.09,
+        "jumlahPersen": 29.89
+      },
+      {
+        "kode": "3471",
+        "nama": "KOTA YOGYAKARTA",
+        "laki": 202062,
+        "perempuan": 212643,
+        "jumlah": 414705,
+        "lakiPersen": 5.43,
+        "perempuanPersen": 5.71,
+        "jumlahPersen": 11.14
+      }
+    ],
+    "perKabRingkas": [
+      {
+        "kode": "3401",
+        "nama": "KAB. KULON PROGO",
+        "jumlah": 446192,
+        "persen": 11.99
+      },
+      {
+        "kode": "3402",
+        "nama": "KAB. BANTUL",
+        "jumlah": 972161,
+        "persen": 26.12
+      },
+      {
+        "kode": "3403",
+        "nama": "KAB. GUNUNGKIDUL",
+        "jumlah": 776622,
+        "persen": 20.86
+      },
+      {
+        "kode": "3404",
+        "nama": "KAB. SLEMAN",
+        "jumlah": 1112616,
+        "persen": 29.89
+      },
+      {
+        "kode": "3471",
+        "nama": "KOTA YOGYAKARTA",
+        "jumlah": 414705,
+        "persen": 11.14
+      }
+    ]
+  },
+  "usia": {
+    "perKelompok": [
+      {
+        "label": "0-4",
+        "jumlah": 211199,
+        "persen": 5.67,
+        "perKab": [
+          24546,
+          57300,
+          41496,
+          65200,
+          22657
+        ]
+      },
+      {
+        "label": "5-9",
+        "jumlah": 247801,
+        "persen": 6.66,
+        "perKab": [
+          29217,
+          66343,
+          46900,
+          77550,
+          27791
+        ]
+      },
+      {
+        "label": "10-14",
+        "jumlah": 271937,
+        "persen": 7.31,
+        "perKab": [
+          31861,
+          72771,
+          51682,
+          84620,
+          31003
+        ]
+      },
+      {
+        "label": "15-19",
+        "jumlah": 263660,
+        "persen": 7.08,
+        "perKab": [
+          31819,
+          68913,
+          51282,
+          79248,
+          32398
+        ]
+      },
+      {
+        "label": "20-24",
+        "jumlah": 266781,
+        "persen": 7.17,
+        "perKab": [
+          31321,
+          68297,
+          53869,
+          81260,
+          32034
+        ]
+      },
+      {
+        "label": "25-29",
+        "jumlah": 262501,
+        "persen": 7.05,
+        "perKab": [
+          31482,
+          67884,
+          52890,
+          79823,
+          30422
+        ]
+      },
+      {
+        "label": "30-34",
+        "jumlah": 254381,
+        "persen": 6.83,
+        "perKab": [
+          29365,
+          68179,
+          51096,
+          76929,
+          28812
+        ]
+      },
+      {
+        "label": "35-39",
+        "jumlah": 251530,
+        "persen": 6.76,
+        "perKab": [
+          28782,
+          68885,
+          48310,
+          76628,
+          28925
+        ]
+      },
+      {
+        "label": "40-44",
+        "jumlah": 285962,
+        "persen": 7.68,
+        "perKab": [
+          32366,
+          76730,
+          55346,
+          88934,
+          32586
+        ]
+      },
+      {
+        "label": "45-49",
+        "jumlah": 267843,
+        "persen": 7.2,
+        "perKab": [
+          30861,
+          70703,
+          52747,
+          83431,
+          30101
+        ]
+      },
+      {
+        "label": "50-54",
+        "jumlah": 264638,
+        "persen": 7.11,
+        "perKab": [
+          30626,
+          67973,
+          56904,
+          80126,
+          29009
+        ]
+      },
+      {
+        "label": "55-59",
+        "jumlah": 241763,
+        "persen": 6.49,
+        "perKab": [
+          30490,
+          63389,
+          50835,
+          70340,
+          26709
+        ]
+      },
+      {
+        "label": "60-64",
+        "jumlah": 209294,
+        "persen": 5.62,
+        "perKab": [
+          26734,
+          55099,
+          46986,
+          57526,
+          22949
+        ]
+      },
+      {
+        "label": "65-69",
+        "jumlah": 163841,
+        "persen": 4.4,
+        "perKab": [
+          20765,
+          41080,
+          39276,
+          45194,
+          17526
+        ]
+      },
+      {
+        "label": "70-74",
+        "jumlah": 107229,
+        "persen": 2.88,
+        "perKab": [
+          14312,
+          24808,
+          29429,
+          28053,
+          10627
+        ]
+      },
+      {
+        "label": "75 ke atas",
+        "jumlah": 151936,
+        "persen": 4.08,
+        "perKab": [
+          21645,
+          33807,
+          47574,
+          37754,
+          11156
+        ]
+      }
+    ],
+    "ikhtisar": [
+      {
+        "nama": "usia 0-14",
+        "jumlah": 730937,
+        "persen": 19.6
+      },
+      {
+        "nama": "usia produktif 15-59",
+        "jumlah": 2359059,
+        "persen": 63.4
+      },
+      {
+        "nama": "usia 60+",
+        "jumlah": 632300,
+        "persen": 17
+      }
+    ]
+  }
+}

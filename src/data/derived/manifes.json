@@ -1,0 +1,165 @@
+{
+  "dibuat": "2026-10-17T12:12:36.099Z",
+  "sumber": {
+    "dokumen": "Laporan Penyelenggaraan Pemerintahan Daerah (LPPD) DIY Tahun 2023",
+    "teks": "data-story/source/*.md dan markdown-per-bab/*.md (konversi PDF asli)"
+  },
+  "catatanCelah": [
+    "Perubahan Gini yang dicantumkan LPPD (−2,23%) tak cocok dengan rasio turunannya (0,459→0,449 = −2,18%); nilai langsung dari tabel dipertahankan.",
+    "Rincian belanja bidang pangan (urusan 2.09) tidak dapat diolah: sel realisasinya rusak akibat OCR (\"1 . 2 9 3 . 784.193,00\"). Analisis urusan tetap memakai tingkat kelompok, yang jumlahnya terverifikasi.",
+    "Persentase ABK terlayani dihitung dari penjumlahan baris sumber: 6.539 dari 7.232 (90,42%). Teks LPPD mencantumkan angka '6.132' pada rumus — ralat '7.232'; hasil pembagiannya (90,42%) tetap benar.",
+    "Rasio tempat tidur RS rujukan '2,32' pada LPPD adalah rasio kasur per 1.000 penduduk (8.651/3.722.296 × 1.000 = 2,32), bukan persen; cerita menampilkannya sebagai rasio.",
+    "Pertumbuhan investasi kumulatif 2023 dihitung +15,65% (tambahan 5,70 T atas kumpulan 36,41 T); LPPD menuliskannya dibulatkan +16%.",
+    "Investasi per kabupaten (t2022): penjumlahan nilai 5 kab/kota menghasilkan Rp3.909.367.815.054, berbeda Rp2 dari angka terverifikasi 3.909.367.815.056 — selisih pembulatan Rp000 pada baris sumber.",
+    "Jumlah realisasi BKK: penjumlahan 20 baris rincian menghasilkan Rp129.907.836.138, sedangkan LPPD mencantumkan Rp129.907.836.137 pada baris Total (selisih pembulatan Rp1).",
+    "Baris SPM SMA \"Indeks distribusi guru\" dilepas: pasangan capaian 0/target 0.46 tidak konsisten dengan persentase terbaca 100% — salah satu sel rusak OCR.",
+    "Baris SPM SMA \"Proporsi PTK bersertifikat\" dilepas: pasangan capaian 0/target 87.55 tidak konsisten dengan persentase terbaca 100% — salah satu sel rusak OCR.",
+    "Baris SPM SMA \"Proporsi PTK penggerak\" dilepas: pasangan capaian 0/target 0.17 tidak konsisten dengan persentase terbaca 100% — salah satu sel rusak OCR.",
+    "Baris SPM SMK \"Angka partisipasi kasar\" dilepas dari data: sel capaian tidak terbaca mesin (format desimal berubah akibat OCR, mis. \"0.46\"); hubungan target–capaian tidak dapat diverifikasi.",
+    "Baris SPM SMK \"Tingkat penyerapan\" dilepas dari data: sel capaian tidak terbaca mesin (format desimal berubah akibat OCR, mis. \"0.46\"); hubungan target–capaian tidak dapat diverifikasi."
+  ],
+  "unduhan": [
+    {
+      "berkas": "makro.csv",
+      "tentang": "Enam indikator kinerja makro DIY 2022 vs 2023",
+      "sumber": "LPPD DIY 2023, halaman 188, tabel ke-2"
+    },
+    {
+      "berkas": "wilayah-administrasi.csv",
+      "tentang": "Struktur wilayah administratif DIY",
+      "sumber": "LPPD DIY 2023, halaman 31, tabel ke-4"
+    },
+    {
+      "berkas": "penduduk-wilayah.csv",
+      "tentang": "Penduduk DIY per wilayah dan jenis kelamin",
+      "sumber": "LPPD DIY 2023, halaman 30, tabel ke-1"
+    },
+    {
+      "berkas": "penduduk-usia.csv",
+      "tentang": "Penduduk DIY menurut kelompok usia",
+      "sumber": "LPPD DIY 2023, halaman 30 (tabel ke-2) dan halaman 31 (tabel ke-1)"
+    },
+    {
+      "berkas": "apbd-pendapatan.csv",
+      "tentang": "Laporan Realisasi APBD DIY 2023 — sisi pendapatan (Rp)",
+      "sumber": "LPPD DIY 2023, halaman 60, tabel ke-1"
+    },
+    {
+      "berkas": "apbd-belanja.csv",
+      "tentang": "Laporan Realisasi APBD DIY 2023 — belanja menurut jenis (Rp)",
+      "sumber": "LPPD DIY 2023, halaman 61–62, tabel ke-1"
+    },
+    {
+      "berkas": "apbd-urusan.csv",
+      "tentang": "Belanja APBD DIY 2023 menurut kelompok urusan (Rp)",
+      "sumber": "LPPD DIY 2023, halaman 64–68, tabel ke-1 tiap halaman"
+    },
+    {
+      "berkas": "ipm-komponen.csv",
+      "tentang": "Komponen IPM DIY 2020–2023",
+      "sumber": "LPPD DIY 2023, halaman 189, tabel ke-1"
+    },
+    {
+      "berkas": "kemiskinan.csv",
+      "tentang": "Kemiskinan DIY menurut wilayah dan periode",
+      "sumber": "LPPD DIY 2023, halaman 191, tabel ke-1"
+    },
+    {
+      "berkas": "ketenagakerjaan.csv",
+      "tentang": "Struktur ketenagakerjaan DIY (ribu orang)",
+      "sumber": "LPPD DIY 2023, halaman 192, tabel ke-1"
+    },
+    {
+      "berkas": "ketimpangan.csv",
+      "tentang": "Distribusi pendapatan DIY menurut porsi penduduk",
+      "sumber": "LPPD DIY 2023, halaman 198, tabel ke-1"
+    },
+    {
+      "berkas": "investasi-tren.csv",
+      "tentang": "Realisasi investasi PMDN-PMA kumulatif DIY (Rp miliar)",
+      "sumber": "LPPD DIY 2023, halaman 585, tabel ke-1"
+    },
+    {
+      "berkas": "investasi-perkota.csv",
+      "tentang": "Investasi PMDN-PMA per kabupaten/kota DIY per tahun (Rp miliar)",
+      "sumber": "LPPD DIY 2023, halaman 586, tabel ke-1"
+    },
+    {
+      "berkas": "keistimewaan.csv",
+      "tentang": "Urusan keistimewaan DIY: pagu, realisasi fisik-keuangan",
+      "sumber": "LPPD DIY 2023, halaman 800, tabel ke-2"
+    },
+    {
+      "berkas": "bkk.csv",
+      "tentang": "Bantuan Keuangan Khusus BKK kalurahan DIY (20 jenis)",
+      "sumber": "LPPD DIY 2023, halaman 739–740, tabel ke-1"
+    },
+    {
+      "berkas": "pendidikan.csv",
+      "tentang": "Indikator kunci layanan pendidikan DIY 2023",
+      "sumber": "LPPD DIY 2023, halaman 333–335 (blok rasio IKK)"
+    },
+    {
+      "berkas": "spm.csv",
+      "tentang": "Kategori indeks pencapaian SPM per bidang",
+      "sumber": "LPPD DIY 2023, halaman 1046–1105"
+    },
+    {
+      "berkas": "spm-pendidikan.csv",
+      "tentang": "Indikator SPM pendidikan menengah (target vs capaian)",
+      "sumber": "LPPD DIY 2023, halaman 1046–1048, tabel ke-1"
+    }
+  ],
+  "tabelStats": [
+    {
+      "berkas": "data-story/source/bab-1-pendahuluan.md",
+      "tabel": 485,
+      "tabelBerangka": 71
+    },
+    {
+      "berkas": "data-story/source/bab2-2_1_capaian-kinerja-makro.md",
+      "tabel": 4,
+      "tabelBerangka": 1
+    },
+    {
+      "berkas": "data-story/source/bab2-2_1_1_indeks-pembangunan-manusia-ipm.md",
+      "tabel": 2,
+      "tabelBerangka": 1
+    },
+    {
+      "berkas": "data-story/source/bab2-2_1_2_angka-kemiskinan.md",
+      "tabel": 6,
+      "tabelBerangka": 2
+    },
+    {
+      "berkas": "data-story/source/bab2-2_1_6_ketimpangan-pendapatan.md",
+      "tabel": 3,
+      "tabelBerangka": 1
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_2_indikator-kinerja-kunci-hasil.md",
+      "tabel": 83,
+      "tabelBerangka": 0
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_6_22_urusan-penanaman-modal-dinas-penanaman-modal-dan-pelayanan.md",
+      "tabel": 59,
+      "tabelBerangka": 11
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_8_5_bantuan-keuangan-khusus-bkk-kalurahan.md",
+      "tabel": 37,
+      "tabelBerangka": 2
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_11_2_perencanaan-pembangunan-paniradya-kaistimewan-diy.md",
+      "tabel": 65,
+      "tabelBerangka": 12
+    },
+    {
+      "berkas": "data-story/source/bab-4-penerapan-standar.md",
+      "tabel": 158,
+      "tabelBerangka": 51
+    }
+  ]
+}
