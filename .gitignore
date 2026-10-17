@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023_compressed.pdf
+data_dump.txt
+report_sections.txt
+desktop.ini

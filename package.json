@@ -1,0 +1,28 @@
+{
+  "name": "lppd-diy-dalam-angka",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Web data story LPPD DIY 2023 — penyelenggaraan Pemerintahan Daerah DIY dalam angka. Satu halaman naratif, statis, dapat dibuka tanpa jaringan.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "data": "node scripts/build_data.mjs",
+    "validate:data": "node scripts/validate_data.mjs",
+    "build": "astro check && astro build && node scripts/build_sw.mjs",
+    "check:build": "node scripts/check_build.mjs",
+    "verify": "npm run data && npm run validate:data && npm run build && npm run check:build"
+  },
+  "dependencies": {
+    "astro": "^7.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.5",
+    "typescript": "^5.9.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}
