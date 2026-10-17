@@ -1,0 +1,407 @@
+---
+/**
+ * Lapisan interaksi seluruh grafik. Dirender sekali di tata letak.
+ *
+ * Kontrak markup (dibangun lewat lib/viz.ts):
+ *  · `[data-viz]`   kontainer grafik; dapat difokus dan dijelajah dengan panah.
+ *  · `[data-t]`     tanda bertooltip: judul (data-t), nilai (data-v), baris
+ *                   keterangan (data-s, dipisah "|"), warna kunci (data-c).
+ *  · `[data-g]`     grup sorotan: seluruh tanda bergrup sama menyala bersama.
+ *                   Tanda tanpa data-t meminjam isi tooltip dari anggota grup
+ *                   yang memilikinya (misalnya 100 kotak waffle → baris legenda).
+ *  · `[data-k]`     kelompok wilayah untuk filter `[data-filter]` di figur yang sama.
+ *
+ * Tooltip memperkaya, tidak pernah menggerbang: tanpa JavaScript seluruh angka
+ * tetap terbaca di tabel angka alternatif. Seluruh teks dimasukkan lewat
+ * textContent, tidak pernah innerHTML.
+ */
+---
+
+<script is:inline>
+  (function () {
+    var PEMISAH = "|";
+
+    var tip = document.createElement("div");
+    tip.className = "viz-tip";
+    tip.setAttribute("role", "tooltip");
+    tip.hidden = true;
+    var baris1 = document.createElement("div");
+    baris1.className = "viz-tip__v";
+    var kunci = document.createElement("span");
+    kunci.className = "viz-tip__key";
+    var nilai = document.createElement("span");
+    nilai.className = "viz-tip__nilai";
+    baris1.appendChild(kunci);
+    baris1.appendChild(nilai);
+    var judul = document.createElement("div");
+    judul.className = "viz-tip__judul";
+    var ket = document.createElement("div");
+    ket.className = "viz-tip__baris";
+    tip.appendChild(baris1);
+    tip.appendChild(judul);
+    tip.appendChild(ket);
+
+    var siaran = document.createElement("div");
+    siaran.className = "viz-siaran";
+    siaran.setAttribute("aria-live", "polite");
+
+    function pasangKeBody() {
+      document.body.appendChild(tip);
+      document.body.appendChild(siaran);
+    }
+    if (document.body) pasangKeBody();
+    else document.addEventListener("DOMContentLoaded", pasangKeBody);
+
+    var vizAktif = null;
+    var tandaAktif = null;
+
+    function sumberIsi(viz, el) {
+      if (el.hasAttribute("data-t")) return el;
+      var g = el.getAttribute("data-g");
+      if (!g) return null;
+      var calon = viz.querySelectorAll("[data-t][data-g]");
+      for (var i = 0; i < calon.length; i++) {
+        if (calon[i].getAttribute("data-g") === g) return calon[i];
+      }
+      return null;
+    }
+
+    function isiTip(src) {
+      nilai.textContent = src.getAttribute("data-v") || "";
+      judul.textContent = src.getAttribute("data-t") || "";
+      while (ket.firstChild) ket.removeChild(ket.firstChild);
+      var s = src.getAttribute("data-s");
+      if (s) {
+        s.split(PEMISAH).forEach(function (b) {
+          var d = document.createElement("div");
+          d.textContent = b;
+          ket.appendChild(d);
+        });
+      }
+      var c = src.getAttribute("data-c");
+      kunci.hidden = !c;
+      kunci.style.background = c || "";
+    }
+
+    function bersih() {
+      if (vizAktif) {
+        vizAktif.classList.remove("is-fokus");
+        var aktif = vizAktif.querySelectorAll(".is-aktif");
+        for (var i = 0; i < aktif.length; i++) aktif[i].classList.remove("is-aktif");
+      }
+      vizAktif = null;
+      tandaAktif = null;
+      tip.hidden = true;
+    }
+
+    function sorot(viz, el) {
+      if (el === tandaAktif) return;
+      bersih();
+      vizAktif = viz;
+      tandaAktif = el;
+      viz.classList.add("is-fokus");
+      var g = el.getAttribute("data-g");
+      if (g) {
+        var anggota = viz.querySelectorAll("[data-g]");
+        for (var i = 0; i < anggota.length; i++) {
+          if (anggota[i].getAttribute("data-g") === g) anggota[i].classList.add("is-aktif");
+        }
+      }
+      el.classList.add("is-aktif");
+    }
+
+    function letakkan(x, y) {
+      tip.hidden = false;
+      var r = tip.getBoundingClientRect();
+      var m = 12;
+      var kiri = x - r.width / 2;
+      var atas = y - r.height - 16;
+      if (atas < m + 56) atas = y + 20;
+      kiri = Math.max(m, Math.min(kiri, window.innerWidth - r.width - m));
+      atas = Math.max(m, Math.min(atas, window.innerHeight - r.height - m));
+      tip.style.transform = "translate(" + Math.round(kiri) + "px," + Math.round(atas) + "px)";
+    }
+
+    function tandaDari(target) {
+      if (!target || !target.closest) return null;
+      var el = target.closest("[data-t],[data-g]");
+      if (!el) return null;
+      var viz = el.closest("[data-viz]");
+      if (!viz || el.classList.contains("is-redup")) return null;
+      return { el: el, viz: viz };
+    }
+
+    function tampilkan(hit, x, y) {
+      sorot(hit.viz, hit.el);
+      var src = sumberIsi(hit.viz, hit.el);
+      if (!src) {
+        tip.hidden = true;
+        return;
+      }
+      isiTip(src);
+      letakkan(x, y);
+    }
+
+    // Tetikus: tooltip mengikuti penunjuk, tanda yang disentuh menyala.
+    document.addEventListener(
+      "pointermove",
+      function (e) {
+        if (e.pointerType !== "mouse") return;
+        var hit = tandaDari(e.target);
+        if (!hit) {
+          if (vizAktif && document.activeElement !== vizAktif) bersih();
+          return;
+        }
+        tampilkan(hit, e.clientX, e.clientY);
+      },
+      { passive: true }
+    );
+
+    // Sentuh dan pena: ketuk tanda untuk membaca, ketuk di luar untuk menutup.
+    document.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse") return;
+      var hit = tandaDari(e.target);
+      if (!hit) {
+        bersih();
+        return;
+      }
+      tandaAktif = null;
+      tampilkan(hit, e.clientX, e.clientY);
+    });
+
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (vizAktif && document.activeElement !== vizAktif) bersih();
+      },
+      { passive: true }
+    );
+
+    // Keyboard: fokus pada grafik, panah menjelajah tanda yang terlihat.
+    document.addEventListener("keydown", function (e) {
+      var viz = document.activeElement;
+      if (!viz || !viz.hasAttribute || !viz.hasAttribute("data-viz")) return;
+      if (e.key === "Escape") {
+        bersih();
+        return;
+      }
+      var arah = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1, Home: "awal", End: "akhir" }[e.key];
+      if (arah === undefined) return;
+      var tanda = Array.prototype.filter.call(viz.querySelectorAll("[data-t]"), function (m) {
+        return m.getClientRects().length > 0 && !m.classList.contains("is-redup");
+      });
+      if (!tanda.length) return;
+      e.preventDefault();
+      var i = tanda.indexOf(tandaAktif);
+      if (arah === "awal") i = 0;
+      else if (arah === "akhir") i = tanda.length - 1;
+      else i = i < 0 ? 0 : Math.max(0, Math.min(tanda.length - 1, i + arah));
+      var el = tanda[i];
+      sorot(viz, el);
+      isiTip(el);
+      var b = el.getBoundingClientRect();
+      if (b.top < 72 || b.bottom > window.innerHeight - 12) {
+        window.scrollBy({ top: b.top - window.innerHeight / 2, behavior: "auto" });
+        b = el.getBoundingClientRect();
+      }
+      letakkan(b.left + b.width / 2, b.top);
+      var s = (el.getAttribute("data-s") || "").split(PEMISAH).join(". ");
+      siaran.textContent = el.getAttribute("data-t") + ": " + el.getAttribute("data-v") + (s ? ". " + s : "");
+    });
+
+    document.addEventListener("focusout", function (e) {
+      if (vizAktif && e.target === vizAktif) bersih();
+    });
+
+    // Filter kelompok wilayah: pilih satu kelompok, sisanya meredup.
+    document.addEventListener("click", function (e) {
+      var chip = e.target && e.target.closest ? e.target.closest("[data-filter]") : null;
+      if (!chip) return;
+      var figur = chip.closest("figure") || document;
+      var pilihan = chip.getAttribute("data-filter");
+      if (chip.getAttribute("aria-pressed") === "true" && pilihan !== "") pilihan = "";
+      var chips = figur.querySelectorAll("[data-filter]");
+      for (var i = 0; i < chips.length; i++) {
+        chips[i].setAttribute("aria-pressed", chips[i].getAttribute("data-filter") === pilihan ? "true" : "false");
+      }
+      bersih();
+      var tanda = figur.querySelectorAll("[data-k]");
+      for (var j = 0; j < tanda.length; j++) {
+        tanda[j].classList.toggle("is-redup", pilihan !== "" && tanda[j].getAttribute("data-k") !== pilihan);
+      }
+    });
+  })();
+</script>
+
+<style is:global>
+  /* ── Kontainer grafik interaktif ───────────────────────────────────────── */
+  .viz {
+    position: relative;
+    border-radius: var(--radius-sm);
+  }
+  .viz:focus {
+    outline: none;
+  }
+  .viz:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 6px;
+  }
+  .viz [data-t],
+  .viz [data-g],
+  .viz [data-k] {
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      filter var(--duration-fast) var(--ease-out);
+  }
+  .viz.is-fokus [data-t]:not(.is-aktif),
+  .viz.is-fokus [data-g]:not(.is-aktif) {
+    opacity: 0.28;
+  }
+  .viz [data-t].is-aktif {
+    filter: brightness(1.08) saturate(1.1);
+  }
+  .viz .is-redup {
+    opacity: 0.1 !important;
+    pointer-events: none;
+  }
+  /* Label di tepi grafik boleh melewati batas SVG dan masuk ke bantalan kartu. */
+  .viz svg {
+    overflow: visible;
+  }
+  @media (max-width: 600px) {
+    .chip__n {
+      display: none;
+    }
+  }
+
+  /* ── Tooltip: nilai memimpin, label mengikuti, kunci berupa garis. ─────── */
+  .viz-tip {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 90;
+    pointer-events: none;
+    min-width: 9.5rem;
+    max-width: 19rem;
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    background: var(--surface-raised);
+    color: var(--text-body);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-3);
+    font-family: var(--font-body);
+    font-size: var(--size-caption);
+    line-height: 1.45;
+  }
+  .viz-tip[hidden] {
+    display: none;
+  }
+  .viz-tip__v {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .viz-tip__key {
+    flex: none;
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .viz-tip__nilai {
+    font-size: var(--size-body);
+    font-weight: var(--fw-bold);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-tight);
+  }
+  .viz-tip__judul {
+    margin-top: 1px;
+    font-weight: var(--fw-medium);
+    color: var(--text-body);
+  }
+  .viz-tip__baris {
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+  }
+  .viz-tip__baris:empty {
+    display: none;
+  }
+  .viz-siaran {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* ── Filter kelompok wilayah ───────────────────────────────────────────── */
+  .viz-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+  .viz-filter__label {
+    font-family: var(--font-mono);
+    font-size: var(--size-micro);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-right: var(--space-1);
+  }
+  .chip {
+    font: inherit;
+    font-size: var(--size-caption);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 3px var(--space-3) 3px var(--space-2);
+    color: var(--text-body);
+    background: var(--surface-card);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+  .chip:hover {
+    border-color: var(--border-strong);
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--surface-sunken);
+    border-color: var(--text-muted);
+    color: var(--text-strong);
+    font-weight: var(--fw-medium);
+  }
+  .chip__sw {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .chip__n {
+    font-family: var(--font-mono);
+    font-size: var(--size-micro);
+    color: var(--text-subtle);
+  }
+
+  @media print {
+    .viz-tip,
+    .viz-filter {
+      display: none !important;
+    }
+    .viz .is-redup,
+    .viz.is-fokus [data-t],
+    .viz.is-fokus [data-g] {
+      opacity: 1 !important;
+    }
+    .viz {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+</style>

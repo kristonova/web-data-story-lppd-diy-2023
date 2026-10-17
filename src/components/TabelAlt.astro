@@ -1,0 +1,53 @@
+---
+/**
+ * Tabel angka alternatif. Setiap grafik memilikinya, dan ia terbuka tanpa
+ * JavaScript karena memakai <details> (PRD §10, §11.1).
+ *
+ * Sel yang tidak tersedia ditulis "–" — kosong bukan nol.
+ */
+interface Kolom {
+  judul: string;
+  num?: boolean;
+}
+
+interface Props {
+  judul: string;
+  keterangan?: string;
+  kolom: Kolom[];
+  baris: (string | number | null)[][];
+  gulir?: boolean;
+}
+
+const { judul, keterangan, kolom, baris, gulir = false } = Astro.props;
+---
+
+<details class="tabel-alt">
+  <summary>Tabel angka: {judul}</summary>
+  <div class={gulir ? "tabel-scroll" : ""}>
+    <table>
+      <caption>{keterangan ?? judul}</caption>
+      <thead>
+        <tr>
+          {kolom.map((k) => <th scope="col" class={k.num ? "num" : ""}>{k.judul}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {
+          baris.map((r) => (
+            <tr>
+              {r.map((sel, i) => {
+                const num = kolom[i]?.num ?? false;
+                const kosong = sel === null;
+                const kelas = `${num ? "num" : ""}${kosong ? " kosong" : ""}`.trim();
+                if (i === 0) {
+                  return <th scope="row" class={kelas}>{sel ?? "–"}</th>;
+                }
+                return <td class={kelas}>{sel ?? "–"}</td>;
+              })}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</details>

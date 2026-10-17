@@ -1,0 +1,146 @@
+---
+/**
+ * GarisTren — beberapa siring antarwaktu dalam satu grafik.
+ * Dipakai untuk deret periode: kemiskinan perkotaan/perdesaan/total,
+ * investasi per kab/kota.
+ *
+ * Garis 2 px dengan ujung rata, titik data 4 px, kisi bulat; skala bersama,
+ * sumbu tunggal. Warna mengikuti entitas, teks memakai token teks.
+ */
+import { kisi, q, type SeriKey } from "../../lib/chart";
+import { d } from "../../lib/format";
+import { kontainer, tip } from "../../lib/viz";
+
+export interface SeriTren {
+  label: string;
+  /** Kunci warna seri: "1".."5" atau "highlight" (dan "base"/"gap" bila perlu). */
+  seri: string;
+  nilai: (number | null)[];
+}
+
+interface Props {
+  caption: string;
+  label: string;
+  labels: string[];
+  seri: SeriTren[];
+  satuan: string;
+  digit?: number;
+  /** Rentang dimulai di bawah nilai terkecil (untuk nilai yang semuanya tinggi). */
+  miringNol?: boolean;
+}
+
+const { caption, label, labels, seri, satuan, digit = 2, miringNol = true } = Astro.props;
+
+const semua = seri.flatMap((s) => s.nilai.filter((v): v is number => v !== null));
+const lo0 = Math.min(...semua);
+const hi0 = Math.max(...semua);
+const LUKA = (hi0 - lo0 || 1) * 0.14;
+const from0 = miringNol ? lo0 - LUKA : 0;
+const lo = q(Math.max(0, from0));
+const hi = q(hi0 + LUKA * 0.5);
+const rentang = hi - lo || 1;
+
+const W = 760;
+const H = 320;
+const padL = 62;
+const padR = 96;
+const top = 26;
+const bottom = 54;
+const plotW = W - padL - padR;
+const plotH = H - top - bottom;
+
+const langkah = kisi(rentang);
+const hiKisi = langkah[langkah.length - 1] ?? rentang;
+const rentaKisi = hiKisi;
+const numKisi = rentaKisi > 40 ? 0 : digit;
+
+const x = (i: number) =>
+  q(padL + (labels.length === 1 ? 0.5 : i / (labels.length - 1)) * plotW);
+const y = (v: number) => q(top + (1 - (v - lo) / rentaKisi) * plotH);
+
+const warna = (s: SeriKey | string): string => `var(--series-${s === "highlight" ? 1 : s})`;
+---
+
+<figure class="figur">
+  <figcaption>{caption}</figcaption>
+
+  <div class="viz" {...kontainer(label)}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMinYMin meet"
+         role="img" aria-label={label} aria-hidden="false">
+      <g class="grid" aria-hidden="true">
+        {langkah.map((c) => (
+          <g>
+            <line x1={padL} x2={W - padR + 6} y1={y(lo + c)} y2={y(lo + c)} />
+            <text class="tick" x={q(padL - 10)} y={q(y(lo + c) + 3.5)} text-anchor="end">{d(lo + c, numKisi)}</text>
+          </g>
+        ))}
+        {labels.map((l, i) => (
+          <text class="tick" x={x(i)} y={H - 26} text-anchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}>
+            {l.length > 11 ? l.slice(0, 10) : l}
+          </text>
+        ))}
+        <text class="satuan" x={W - 2} y={top - 12} text-anchor="end">{satuan}</text>
+      </g>
+
+      {
+        seri.map((s) => {
+          const w = warna(s.seri);
+          const poin = s.nilai
+            .map((v, i) => (v === null ? null : { i, v }))
+            .filter((p): p is { i: number; v: number } => p !== null);
+          const terakhir = poin[poin.length - 1];
+          return (
+            <g data-seri={s.seri}>
+              {poin.length > 1 && (
+                <polyline
+                  points={poin.map((p) => `${x(p.i)},${y(p.v)}`).join(" ")}
+                  fill="none" stroke={w} stroke-width="2" stroke-linejoin="round" stroke-linecap="round"
+                  pathLength="1" data-anim="garis"
+                />
+              )}
+              {poin.map((p) => (
+                <circle cx={x(p.i)} cy={y(p.v)} r="4" fill={w} stroke="var(--surface-card)"
+                        stroke-width="1.5" data-anim="titik" {...tip({
+                          judul: s.label,
+                          nilai: `${d(p.v, digit)} ${satuan}`,
+                          baris: [labels[p.i] ?? ""],
+                          warna: w,
+                        })} />
+              ))}
+              {terakhir && (
+                <text class="nilai" x={q(x(terakhir.i) + 8)} y={q(y(terakhir.v) + 4)} fill={w} data-anim="pudar">
+                  {d(terakhir.v, digit)}
+                </text>
+              )}
+            </g>
+          );
+        })
+      }
+    </svg>
+  </div>
+</figure>
+
+<style>
+  .grid line {
+    stroke: var(--chart-grid);
+    stroke-width: 1;
+  }
+  .tick {
+    fill: var(--text-subtle);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .satuan {
+    fill: var(--text-subtle);
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .nilai {
+    font-size: 13px;
+    font-weight: var(--fw-bold);
+    font-family: var(--font-body);
+  }
+</style>

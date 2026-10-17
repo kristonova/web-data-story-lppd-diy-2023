@@ -1,0 +1,54 @@
+---
+/**
+ * Adegan — struktur tetap yang dipakai seluruh adegan bernomor:
+ * satu pertanyaan → satu visual → satu kalimat tafsir → sumber.
+ *
+ * Judul adegan selalu ditulis sebagai pertanyaan. Kalimat tafsir menyatakan
+ * apa yang terlihat pada data; rekomendasi tidak muncul di adegan.
+ */
+import type { Sumber } from "../lib/data";
+import { prov } from "../lib/data";
+import { anchor } from "../lib/format";
+
+interface Props {
+  id: string;
+  pertanyaan: string;
+  tafsir: string;
+  /** Satu penunjuk sumber LPPD, atau beberapa bila adegan memakai lebih dari satu tabel. Diabaikan bila `sumberTeks` diisi. */
+  sumber?: Sumber | Sumber[];
+  /** Teks sumber jadi-jadian (di luar LPPD); mem-override sumber[] bila diisi. */
+  sumberTeks?: string;
+}
+
+const { id, pertanyaan, tafsir, sumber = [], sumberTeks } = Astro.props;
+const daftar = Array.isArray(sumber) ? sumber : [sumber];
+---
+
+<section class="adegan" id={anchor(id)} data-reveal aria-labelledby={`${anchor(id)}-judul`}>
+  <div class="adegan__head">
+    <span class="adegan__no" aria-hidden="true">{id}</span>
+    <h3 id={`${anchor(id)}-judul`}>
+      <span class="sr-only">Adegan {id}. </span>{pertanyaan}
+    </h3>
+  </div>
+
+  <div class="adegan__body">
+    <slot />
+
+    <p class="tafsir" set:html={tafsir} />
+
+    {
+      sumberTeks ? (
+        <p class="sumber">
+          <b>Sumber</b> {sumberTeks}
+        </p>
+      ) : (
+        daftar.map((s) => (
+          <p class="sumber">
+            <b>Sumber</b> {prov(s)}
+          </p>
+        ))
+      )
+    }
+  </div>
+</section>

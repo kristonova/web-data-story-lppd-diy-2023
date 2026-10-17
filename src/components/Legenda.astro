@@ -1,0 +1,31 @@
+---
+/**
+ * Legenda. Untuk dua seri atau lebih, legenda selalu ada; sampai empat seri
+ * ditambah label langsung pada grafiknya, sehingga identitas tidak pernah
+ * bergantung pada warna saja (PRD §10).
+ */
+import { isi, type SeriKey } from "../lib/chart";
+
+interface Item {
+  label: string;
+  /** Kunci seri: "1".."5", "base", "highlight", atau "gap". */
+  seri: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="legenda" role="list">
+  {
+    items.map((it) => (
+      <li class="legenda__item">
+        <span class="legenda__swatch" style={`background:${isi(it.seri as SeriKey).fill}`} aria-hidden="true" />
+        {it.label}
+      </li>
+    ))
+  }
+</ul>

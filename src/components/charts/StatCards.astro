@@ -1,0 +1,38 @@
+---
+/**
+ * StatCards — satu angka adalah satu angka; ia tidak butuh grafik.
+ * Dipakai di adegan 0.0, 1.1, 2.4, 3.6, 3.7, 4.6, 5.3.
+ */
+import { n } from "../../lib/format";
+
+export interface Kartu {
+  nilai: number | string;
+  satuan?: string;
+  label: string;
+  sub?: string;
+  pct?: number | null;
+  sorot?: boolean;
+}
+
+interface Props {
+  kartu: Kartu[];
+  judul?: string;
+}
+
+const { kartu, judul } = Astro.props;
+---
+
+<div class="stats" role="list" aria-label={judul ?? "Angka utama"}>
+  {
+    kartu.map((k) => (
+      <div class:list={["stat", k.sorot && "stat--sorot"]} role="listitem" data-anim="kartu">
+        <span class="stat__n">
+          {typeof k.nilai === "number" ? <span data-count={Math.round(k.nilai)}>{n(k.nilai)}</span> : k.nilai}
+          {k.satuan && <span class="stat__unit">{k.satuan}</span>}
+        </span>
+        <span class="stat__l">{k.label}</span>
+        {k.sub && <span class="stat__sub">{k.sub}</span>}
+      </div>
+    ))
+  }
+</div>

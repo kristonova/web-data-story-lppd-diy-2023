@@ -1,0 +1,1114 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tata letak dan gaya naratif. Menyusul tokens.css.
+
+   Tiga hal yang mengatur seluruh berkas ini:
+   · Anggaran warna SADASA — kira-kira 60% kertas, 30% tinta dan netral,
+     10% merah dan emas. Merah adalah aksen, garis, dan sorotan.
+   · Lingkaran melawan persegi bersudut tegas. Tidak ada jari-jari 24 px.
+   · Merek turunan cetak: garis rambut yang bekerja, bayangan nyaris tidak ada.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Bilah atas lengket setinggi ~52 px; beri ruang supaya judul adegan tidak
+     tertutup ketika pembaca meloncat lewat tautan. */
+  scroll-padding-top: 4.5rem;
+}
+:target {
+  scroll-margin-top: 4.5rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--surface-page);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  font-size: var(--size-body);
+  line-height: var(--lh-normal);
+  font-weight: var(--fw-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--text-strong);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tracking-tight);
+  font-weight: var(--fw-bold);
+  text-wrap: balance;
+}
+p {
+  margin: 0 0 var(--space-4);
+  text-wrap: pretty;
+}
+p:last-child {
+  margin-bottom: 0;
+}
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+::selection {
+  background: var(--red-200);
+  color: var(--red-950);
+}
+
+/* ── Susunan halaman ──────────────────────────────────────────────────────── */
+.wrap {
+  width: min(100% - 2 * var(--gutter), var(--container-md));
+  margin-inline: auto;
+}
+.wrap--wide {
+  width: min(100% - 2 * var(--gutter), var(--container-lg));
+  margin-inline: auto;
+}
+.prose {
+  max-width: var(--measure-prose);
+}
+
+/* ── Eyebrow: mikro, huruf besar, jarak lebar, merah. Perabot SADASA. ────── */
+.eyebrow {
+  font-size: var(--size-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-brand);
+  margin: 0 0 var(--space-2);
+  display: block;
+}
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.rule-accent {
+  width: 44px;
+  height: var(--rule-accent);
+  background: var(--accent);
+  border: 0;
+  margin: var(--space-4) 0 var(--space-6);
+}
+
+/* ── Progres baca ─────────────────────────────────────────────────────────── */
+.progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: transparent;
+  z-index: 60;
+  pointer-events: none;
+}
+.progress__bar {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transform-origin: left;
+}
+
+/* ── Bilah atas ───────────────────────────────────────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--gutter);
+  background: color-mix(in oklab, var(--surface-page) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--border-hairline);
+}
+.topbar__title {
+  font-size: var(--size-body-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-strong);
+  letter-spacing: var(--tracking-tight);
+}
+.topbar__spacer {
+  flex: 1;
+}
+.topbar__nav {
+  display: flex;
+  gap: var(--space-1);
+}
+.topbar__nav a {
+  font-size: var(--size-caption);
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.topbar__nav a:hover {
+  color: var(--text-brand);
+  background: var(--accent-soft);
+}
+@media (max-width: 860px) {
+  .topbar__nav {
+    display: none;
+  }
+}
+
+.btn-ghost {
+  font: inherit;
+  font-size: var(--size-caption);
+  font-weight: var(--fw-medium);
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+.btn-ghost:hover {
+  background: var(--accent-soft);
+  border-color: var(--border-strong);
+  color: var(--text-brand);
+}
+
+/* ── Pembuka: kertas, bukan bidang tinta. Aturan pertama SADASA — merah adalah
+      sinyal, bukan bidang. Merah hanya pada logo, eyebrow, dan garis aksen;
+      angka memakai arang di atas kartu putih (pola StatCard nada "paper"). ── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  border-bottom: 1px solid var(--border-hairline);
+  padding-block: clamp(var(--space-12), 8vw, var(--space-24));
+  isolation: isolate;
+}
+.hero::before {
+  /* Motif ¾-ring: satu per permukaan, ditambatkan di luar kanvas,
+     selalu di belakang isi. Versi merah ±8% untuk dasar terang. */
+  content: "";
+  position: absolute;
+  right: -14%;
+  bottom: -46%;
+  width: min(78vw, 760px);
+  aspect-ratio: 1;
+  background: url("./brand/accent-ring.png") center / contain no-repeat;
+  z-index: -1;
+  pointer-events: none;
+}
+[data-theme="ink"] .hero::before {
+  background-image: url("./brand/accent-ring-faint.png");
+  opacity: 0.16;
+}
+.hero__mark {
+  height: 34px;
+  width: auto;
+  margin-bottom: var(--space-10);
+}
+[data-theme="ink"] .hero__mark--light,
+.hero__mark--ink {
+  display: none;
+}
+[data-theme="ink"] .hero__mark--ink {
+  display: block;
+}
+.hero__eyebrow::after {
+  /* Garis aksen 44 px di antara eyebrow dan judul, seperti SectionTitle. */
+  content: "";
+  display: block;
+  width: 44px;
+  height: var(--rule-accent);
+  margin-top: var(--space-3);
+  background: var(--sadasa-red);
+}
+[data-theme="ink"] .hero__eyebrow::after {
+  background: var(--gold-500);
+}
+.hero h1 {
+  font-size: var(--size-display-2);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--lh-snug);
+  max-width: 20ch;
+  margin-top: var(--space-4);
+}
+.hero__lead {
+  color: var(--text-body);
+  font-size: var(--size-body-lg);
+  max-width: 58ch;
+  margin-top: var(--space-6);
+}
+.hero__figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+}
+.hero__figure {
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--pad-card);
+}
+.hero__figure .n {
+  display: block;
+  font-size: var(--size-display-2);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.hero__figure .l {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: var(--size-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.hero__note {
+  margin-top: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: var(--size-body-sm);
+  max-width: 68ch;
+}
+
+/* ── Babak dan pilar ──────────────────────────────────────────────────────── */
+.babak {
+  padding-block: var(--space-12) var(--space-4);
+}
+.babak__label {
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.babak h2 {
+  font-size: var(--size-display-3);
+  letter-spacing: var(--tracking-display);
+  margin-top: var(--space-2);
+}
+.babak__lead {
+  color: var(--text-muted);
+  max-width: var(--measure-prose);
+  margin-top: var(--space-4);
+}
+
+.pilar {
+  padding-block: var(--space-12) var(--space-20);
+  border-top: 1px solid var(--border-hairline);
+}
+.pilar__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-4);
+}
+.pilar__no {
+  font-family: var(--font-mono);
+  font-size: var(--size-h3);
+  font-weight: var(--fw-medium);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.pilar h2 {
+  font-size: var(--size-h1);
+}
+.pilar__bidang {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--size-micro);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+}
+.pilar__lead {
+  color: var(--text-muted);
+  max-width: var(--measure-prose);
+  margin-bottom: var(--space-10);
+}
+
+/* ── Adegan: satu pertanyaan → satu visual → satu tafsir → sumber. ───────── */
+.adegan {
+  margin-block: var(--space-16);
+}
+
+/* ── Gerak saat gulir ─────────────────────────────────────────────────────
+   Satu kosakata gerak untuk seluruh halaman, turunan aturan SADASA §4.7:
+   tenang, cepat, tanpa pantulan, sekali saja.
+
+   Blok — setiap judul, paragraf, dan figur naik sambil muncul ketika masuk
+   layar; blok yang masuk bersamaan berjenjang --gerak-jenjang. Daftar pemilih
+   blok di bawah dicerminkan oleh konstanta BLOK di layouts/Cerita.astro dan
+   oleh print.css; ketiganya harus sama.
+
+   Tanda — elemen grafik bertanda [data-anim] digambar ketika figurnya muncul:
+   batang tumbuh dari sumbunya, garis ditarik, titik dan kotak mengisi
+   berurutan. Jarak antartanda (--tunda-k) dihitung skrip menurut jumlah
+   tanda, sehingga 5 batang dan 100 kotak sama-sama selesai < 1,4 detik.
+   Keyframe hanya punya titik awal dan diisi "backwards": sesudah selesai,
+   tanda kembali ke gayanya sendiri, jadi sorotan hover tetap bekerja.
+
+   Blok hanya disembunyikan ketika kelas .js ada. Kelas itu dipasang skrip di
+   <head> dan dilepas lagi bila skrip gerak gagal berjalan; tanpa JavaScript
+   seluruh isi tampil penuh (PRD §11.1). ─────────────────────────────────── */
+.js
+  :is(
+    .hero__figures,
+    .babak .wrap > *,
+    .pilar > .wrap > :not(.adegan),
+    .adegan > :not(.adegan__body),
+    .adegan__body > *
+  ) {
+  transition:
+    opacity var(--duration-reveal) var(--ease-out) var(--blok-tunda, 0ms),
+    translate var(--duration-reveal) var(--ease-out) var(--blok-tunda, 0ms);
+}
+.js
+  :is(
+    .hero__figures,
+    .babak .wrap > *,
+    .pilar > .wrap > :not(.adegan),
+    .adegan > :not(.adegan__body),
+    .adegan__body > *
+  ):not(.is-in) {
+  opacity: 0;
+  translate: 0 var(--gerak-geser);
+}
+
+/* Garis aksen ditarik dari kiri; batang tafsir ditarik dari atas. */
+.js .pilar > .wrap > .rule-accent {
+  transform-origin: left center;
+  transition:
+    opacity var(--duration-reveal) var(--ease-out) var(--blok-tunda, 0ms),
+    translate var(--duration-reveal) var(--ease-out) var(--blok-tunda, 0ms),
+    scale var(--gerak-gambar) var(--ease-out) calc(var(--blok-tunda, 0ms) + var(--gerak-mulai));
+}
+.js .pilar > .wrap > .rule-accent:not(.is-in) {
+  scale: 0 1;
+}
+.js .tafsir {
+  position: relative;
+  border-left-color: transparent;
+}
+.js .tafsir::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * var(--rule-accent));
+  width: var(--rule-accent);
+  background: var(--accent);
+  transform-origin: center top;
+  transition: scale var(--gerak-gambar) var(--ease-out) calc(var(--blok-tunda, 0ms) + var(--gerak-mulai));
+}
+.js .tafsir:not(.is-in)::before {
+  scale: 1 0;
+}
+
+/* Pembuka tidak menunggu skrip: judulnya bergerak masuk sejak lukisan
+   pertama. Hanya deret angka yang ikut sistem blok, karena hitung naiknya
+   memerlukan skrip. */
+.js .hero::before {
+  animation: gerak-cincin 1400ms var(--ease-out) backwards;
+}
+.js .hero .wrap > * {
+  animation: gerak-naik var(--duration-reveal) var(--ease-out) backwards;
+}
+.js .hero .wrap > .hero__figures {
+  animation: none;
+}
+.js .hero .wrap > .hero__eyebrow {
+  animation-delay: 90ms;
+}
+.js .hero__eyebrow::after {
+  transform-origin: left center;
+  animation: gerak-skala-x var(--gerak-gambar) var(--ease-out) 300ms backwards;
+}
+.js .hero .wrap > h1 {
+  animation-delay: 180ms;
+}
+.js .hero .wrap > .hero__lead {
+  animation-delay: 270ms;
+}
+.js .hero .wrap > .hero__note {
+  animation-delay: 540ms;
+}
+
+/* Tanda data. */
+.js .is-in [data-anim] {
+  animation-duration: var(--gerak-gambar);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: backwards;
+  animation-delay: calc(
+    var(--blok-tunda, 0ms) + var(--gerak-mulai) + var(--tunda, 0ms) + var(--tunda-k, 0ms)
+  );
+}
+.js .is-in :is([data-anim="x"], [data-anim="x-balik"], [data-anim="x-tengah"]) {
+  animation-name: gerak-skala-x;
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+.js .is-in [data-anim="x-balik"] {
+  transform-origin: right center;
+}
+.js .is-in [data-anim="x-tengah"] {
+  transform-origin: center;
+}
+.js .is-in [data-anim="y"] {
+  animation-name: gerak-skala-y;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+.js .is-in [data-anim="titik"] {
+  animation-name: gerak-titik;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.js .is-in [data-anim="ubin"] {
+  animation-name: gerak-ubin;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.js .is-in [data-anim="sudut"] {
+  animation-name: gerak-titik;
+  transform-origin: left bottom;
+}
+.js .is-in [data-anim="kartu"] {
+  animation-name: gerak-naik;
+  animation-duration: var(--duration-reveal);
+}
+.js .is-in [data-anim="pudar"] {
+  animation-name: gerak-pudar;
+}
+.js .is-in [data-anim="sapu"] {
+  animation-name: gerak-sapu;
+}
+.js .is-in [data-anim="garis"] {
+  animation-name: gerak-garis;
+  animation-duration: calc(var(--gerak-gambar) * 1.6);
+}
+.js .is-in [data-anim="busur"] {
+  animation-name: gerak-busur;
+  animation-duration: calc(var(--gerak-gambar) * 1.3);
+}
+
+@keyframes gerak-naik {
+  from {
+    opacity: 0;
+    translate: 0 var(--gerak-geser);
+  }
+}
+@keyframes gerak-cincin {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+@keyframes gerak-skala-x {
+  from {
+    scale: 0 1;
+  }
+}
+@keyframes gerak-skala-y {
+  from {
+    scale: 1 0;
+  }
+}
+@keyframes gerak-titik {
+  from {
+    opacity: 0;
+    scale: 0.2;
+  }
+}
+@keyframes gerak-ubin {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+@keyframes gerak-pudar {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes gerak-sapu {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+/* Jalur bertanda pathLength="1": satu garis putus sepanjang jalur, digeser. */
+@keyframes gerak-garis {
+  from {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0;
+  }
+}
+/* Busur cincin (pathLength="100") memanjang dari nol ke panjang atributnya. */
+@keyframes gerak-busur {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js
+    :is(
+      .hero__figures,
+      .babak .wrap > *,
+      .pilar > .wrap > :not(.adegan),
+      .adegan > :not(.adegan__body),
+      .adegan__body > *
+    ):not(.is-in) {
+    opacity: 1;
+    translate: none;
+  }
+  .js .rule-accent,
+  .js .tafsir::before {
+    scale: none !important;
+  }
+  .js [data-anim],
+  .js .hero::before,
+  .js .hero .wrap > *,
+  .js .hero__eyebrow::after {
+    animation: none !important;
+  }
+}
+
+.adegan__head {
+  display: flex;
+  gap: var(--space-4);
+  align-items: baseline;
+  margin-bottom: var(--space-5);
+}
+.adegan__no {
+  font-family: var(--font-mono);
+  font-size: var(--size-caption);
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+  padding-top: 0.35em;
+  flex: none;
+}
+.adegan h3 {
+  font-size: var(--size-h2);
+  max-width: 34ch;
+}
+.adegan__body {
+  margin-top: var(--space-6);
+}
+
+figure {
+  margin: 0;
+}
+.figur {
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--pad-card);
+  overflow: hidden;
+}
+.figur > svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+figcaption {
+  font-size: var(--size-caption);
+  color: var(--text-muted);
+  margin-bottom: var(--space-5);
+  max-width: var(--measure-prose);
+}
+
+/* Tafsir: apa yang terlihat. Rekomendasi hanya muncul di bagian 6.1. */
+.tafsir {
+  margin-top: var(--space-5);
+  padding-left: var(--space-5);
+  border-left: var(--rule-accent) solid var(--accent);
+  font-size: var(--size-body-lg);
+  color: var(--text-strong);
+  max-width: var(--measure-prose);
+  line-height: var(--lh-relaxed);
+}
+.sumber {
+  margin-top: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+  color: var(--text-subtle);
+  letter-spacing: 0.01em;
+  line-height: var(--lh-normal);
+}
+.sumber b {
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+}
+
+/* ── Tabel angka alternatif, terbuka tanpa JavaScript. ───────────────────── */
+.tabel-alt {
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--border-hairline);
+}
+.tabel-alt > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: var(--space-3) 0;
+  font-size: var(--size-caption);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tabel-alt > summary::-webkit-details-marker {
+  display: none;
+}
+.tabel-alt > summary::before {
+  content: "+";
+  font-family: var(--font-mono);
+  color: var(--accent);
+  width: 1em;
+}
+.tabel-alt[open] > summary::before {
+  content: "\2212";
+}
+.tabel-alt > summary:hover {
+  color: var(--text-brand);
+}
+.tabel-alt table {
+  font-size: var(--size-body-sm);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: var(--space-4);
+}
+.tabel-alt caption {
+  text-align: left;
+  font-size: var(--size-caption);
+  color: var(--text-subtle);
+  padding-bottom: var(--space-2);
+}
+.tabel-alt th,
+.tabel-alt td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
+}
+.tabel-alt th {
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.tabel-alt td.num,
+.tabel-alt th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tabel-alt .masked {
+  color: var(--text-subtle);
+  font-style: italic;
+}
+.tabel-scroll {
+  overflow-x: auto;
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
+/* ── Kartu statistik ──────────────────────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+.stat {
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--pad-card-tight) var(--pad-card);
+  position: relative;
+}
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--rule-accent);
+  background: var(--accent);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  opacity: 0;
+}
+.stat--sorot::before {
+  opacity: 1;
+}
+.stat__n {
+  display: block;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.stat--sorot .stat__n {
+  color: var(--accent);
+}
+.stat__unit {
+  font-size: 0.44em;
+  font-weight: var(--fw-medium);
+  letter-spacing: 0;
+  color: var(--text-muted);
+  margin-left: 0.25em;
+}
+.stat__l {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--size-caption);
+  color: var(--text-muted);
+  line-height: var(--lh-normal);
+}
+.stat__sub {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--size-micro);
+  color: var(--text-subtle);
+}
+
+/* ── Kartu celah data. Celah adalah temuan; ia butuh bentuknya sendiri. ──── */
+.celah {
+  background: var(--surface-gold-soft);
+  border: 1px solid var(--border-hairline);
+  border-left: var(--rule-accent) solid var(--status-warning);
+  border-radius: var(--radius-md);
+  padding: var(--pad-card);
+  margin-top: var(--space-5);
+}
+.celah__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.celah__icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--status-warning);
+}
+.celah__title {
+  font-size: var(--size-body);
+  font-weight: var(--fw-bold);
+  color: var(--text-strong);
+  letter-spacing: var(--tracking-tight);
+}
+.celah__n {
+  font-size: var(--size-h1);
+  font-weight: var(--fw-black);
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-display);
+  display: block;
+  line-height: var(--lh-tight);
+}
+.celah p {
+  font-size: var(--size-body-sm);
+  color: var(--text-body);
+  max-width: var(--measure-prose);
+  margin-bottom: 0;
+}
+.celah p + p {
+  margin-top: var(--space-3);
+}
+
+/* ── Legenda ──────────────────────────────────────────────────────────────── */
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-bottom: var(--space-5);
+  font-size: var(--size-caption);
+  color: var(--text-muted);
+}
+.legenda__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.legenda__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-xs);
+  flex: none;
+}
+
+/* ── Arsir "belum tercatat" untuk tanda HTML (waffle, treemap, lintasan). Sama
+      dengan pola SVG #arsir-celah: celah data tidak disampaikan lewat warna saja. */
+.isi-celah {
+  background-color: var(--surface-card);
+  background-image: repeating-linear-gradient(45deg, var(--mark-gap) 0 1.5px, transparent 1.5px 5px);
+}
+
+/* ── Penutup ──────────────────────────────────────────────────────────────── */
+.agenda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+.agenda__kartu {
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--pad-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.agenda__no {
+  font-family: var(--font-mono);
+  font-size: var(--size-caption);
+  color: var(--accent);
+  font-weight: var(--fw-medium);
+}
+.agenda__kartu h4 {
+  font-size: var(--size-h4);
+}
+.agenda__kartu p {
+  font-size: var(--size-body-sm);
+  margin: 0;
+}
+.agenda__rujuk {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+  color: var(--text-subtle);
+}
+.agenda__rujuk a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.metode {
+  margin-top: var(--space-8);
+}
+.metode table {
+  font-size: var(--size-body-sm);
+}
+.metode th,
+.metode td {
+  text-align: left;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
+  vertical-align: top;
+}
+.metode th {
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.metode td code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--text-brand);
+}
+.batas-list {
+  counter-reset: batas;
+  list-style: none;
+  padding: 0;
+  margin: var(--space-6) 0 0;
+  display: grid;
+  gap: var(--space-4);
+}
+.batas-list li {
+  counter-increment: batas;
+  padding-left: var(--space-10);
+  position: relative;
+  max-width: var(--measure-prose);
+}
+.batas-list li::before {
+  content: counter(batas, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-mono);
+  font-size: var(--size-caption);
+  color: var(--accent);
+  font-weight: var(--fw-medium);
+}
+.batas-list b {
+  color: var(--text-strong);
+  font-weight: var(--fw-medium);
+}
+
+.unduhan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+.unduhan a {
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+  color: var(--text-body);
+  text-decoration: none;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+}
+.unduhan a:hover {
+  border-color: var(--border-brand);
+  color: var(--text-brand);
+  background: var(--accent-soft);
+}
+
+/* ── Kaki halaman ─────────────────────────────────────────────────────────── */
+.foot {
+  border-top: 1px solid var(--border-hairline);
+  margin-top: var(--space-20);
+  padding-block: var(--space-12) var(--space-16);
+  font-size: var(--size-body-sm);
+  color: var(--text-muted);
+}
+.foot__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.foot__mark {
+  height: 26px;
+  width: auto;
+  opacity: 0.9;
+}
+[data-theme="ink"] .foot__mark--light,
+.foot__mark--ink {
+  display: none;
+}
+[data-theme="ink"] .foot__mark--ink {
+  display: block;
+}
+
+/* ── Tabel panas lingkungan ───────────────────────────────────────────────── */
+.panas {
+  font-size: var(--size-body-sm);
+  font-variant-numeric: tabular-nums;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.panas th,
+.panas td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
+  white-space: nowrap;
+}
+.panas thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-card);
+  z-index: 1;
+  text-align: right;
+  font-size: var(--size-micro);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+  border-bottom: 1px solid var(--border-strong);
+}
+.panas thead th:first-child,
+.panas thead th:nth-child(2),
+.panas thead th:nth-child(3) {
+  text-align: left;
+}
+.panas td.num {
+  text-align: right;
+}
+.panas td.rank {
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--size-micro);
+}
+.panas td.nama {
+  font-weight: var(--fw-medium);
+  color: var(--text-strong);
+  white-space: normal;
+  min-width: 11rem;
+}
+.panas td.wil {
+  color: var(--text-muted);
+  font-size: var(--size-caption);
+  white-space: normal;
+}
+.panas .sel {
+  display: inline-block;
+  min-width: 3.4rem;
+  text-align: right;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+}
+
+/* ── Responsif: terbaca pada 400 px tanpa gulir mendatar. ────────────────── */
+@media (max-width: 600px) {
+  :root {
+    --gutter: 1rem;
+    --pad-card: 1rem;
+  }
+  .adegan__head {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .adegan__no {
+    padding-top: 0;
+  }
+  .hero__figures {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tafsir {
+    padding-left: var(--space-4);
+  }
+}

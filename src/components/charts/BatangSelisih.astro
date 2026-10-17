@@ -1,0 +1,138 @@
+---
+/**
+ * BatangSelisih — batang divergen dua arah terhadap garis nol.
+ * Dipakai untuk selisih capaian terhadap target (SPM pendidikan) dan
+ * perubahan persen antarwaktu (indikator makro pembuka).
+ *
+ * Batang positif berjalan ke kanan dari garis nol, negatif ke kiri.
+ * Satu batang berlabel disorot merah; sel nol digambar sebagai titik kecil.
+ */
+import { q, batasAtas } from "../../lib/chart";
+import { d } from "../../lib/format";
+import { kontainer, tip } from "../../lib/viz";
+
+export interface BarisSelisih {
+  label: string;
+  /** Selisih; bisa negatif, nol, atau positif. */
+  delta: number;
+  /** Keterangan tambahan yang tampil di dalam tooltip. */
+  catatan?: string;
+  sorot?: boolean;
+}
+
+interface Props {
+  caption: string;
+  label: string;
+  rows: BarisSelisih[];
+  /** Satuan yang ditulis di ujung tooltip, misal '%'. */
+  satuan: string;
+  digit?: number;
+}
+
+const { caption, label, rows, satuan, digit = 1 } = Astro.props;
+
+const maks = batasAtas(Math.max(...rows.map((r) => Math.abs(r.delta)), 0.1));
+const W = 760;
+const rowH = 24;
+const GAP = 8;
+const labelW = Math.round(
+  Math.min(286, Math.max(140, rows.reduce((m, r) => Math.max(m, r.label.length), 0) * 6.2 + 12)),
+);
+const valW = 66;
+const tinggiG = 26 + rows.length * (rowH + GAP) + 28;
+const plotW = W - labelW - 14 - valW - 6;
+const nol = q(labelW + 14);
+const skala = plotW / maks;
+
+const kata = (r: BarisSelisih): Record<string, string> =>
+  tip({
+    judul: r.label,
+    nilai: `${r.delta >= 0 ? "+" : "−"}${d(Math.abs(r.delta), digit)} ${satuan}`,
+    baris: [r.catatan ?? ""],
+    warna: r.sorot ? "var(--mark-highlight)" : "var(--mark-base)",
+  });
+const off = (r: BarisSelisih): string =>
+  `${r.delta >= 0 ? "+" : "−"}${d(Math.abs(r.delta), digit)}`;
+---
+
+<figure class="figur">
+  <figcaption>{caption}</figcaption>
+
+  <div class="viz" {...kontainer(label)}>
+    <svg viewBox={`0 0 ${W} ${tinggiG}`} width="100%" preserveAspectRatio="xMinYMin meet"
+         role="img" aria-label={label} aria-hidden="false">
+      <g class="grid" aria-hidden="true">
+        {[maks / 2, maks].map((v) => (
+          <g>
+            <line x1={q(nol + v * skala)} x2={q(nol + v * skala)} y1={16} y2={tinggiG - 24} />
+            <line x1={q(nol - v * skala)} x2={q(nol - v * skala)} y1={16} y2={tinggiG - 24} stroke-dasharray="2 3" />
+            <text class="tick" x={q(nol + v * skala)} y={tinggiG - 6} text-anchor="middle">{d(v, digit)}</text>
+            <text class="tick" x={q(nol - v * skala)} y={tinggiG - 6} text-anchor="middle">−{d(v, digit)}</text>
+          </g>
+        ))}
+        <text class="tick" x={nol} y={tinggiG - 6} text-anchor="middle">0</text>
+        <line class="sumbu" x1={nol} x2={nol} y1={10} y2={tinggiG - 22} />
+      </g>
+
+      {
+        rows.map((r, i) => {
+          const yy = q(26 + i * (rowH + GAP));
+          const lebar = q(Math.abs(r.delta) * skala);
+          const posisi = r.delta >= 0;
+          const isF = posisi ? "x" : "x-balik";
+          return (
+            <g class="baris" {...kata(r)}>
+              <rect x="0" y={q(yy - GAP / 2)} width={W} height={rowH + GAP} fill="transparent" />
+              <text class="nama" x={q(labelW + 4)} y={q(yy + rowH / 2 + 4)} text-anchor="end">
+                {r.label.length > 30 ? `${r.label.slice(0, 29)}…` : r.label}
+              </text>
+              {r.delta === 0 ? (
+                <circle cx={nol} cy={q(yy + rowH / 2)} r="3.5" fill="var(--mark-muted)"
+                        stroke="var(--surface-card)" stroke-width="1.5" data-anim="titik" />
+              ) : (
+                <g>
+                  <rect x={posisi ? nol : q(nol - lebar)} y={yy} width={lebar} height={rowH}
+                        fill={r.sorot ? "var(--mark-highlight)" : "var(--mark-base)"}
+                        data-anim={isF} />
+                  <text class="nilai" x={posisi ? q(nol + lebar + 7) : q(nol - lebar - 7)}
+                        y={q(yy + rowH / 2 + 4)} text-anchor={posisi ? "start" : "end"} data-anim="pudar">
+                    {off(r)}
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })
+      }
+    </svg>
+  </div>
+</figure>
+
+<style>
+  .grid line {
+    stroke: var(--chart-grid);
+    stroke-width: 1;
+  }
+  .sumbu {
+    stroke: var(--chart-axis);
+    stroke-width: 1;
+  }
+  .tick {
+    fill: var(--text-subtle);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .nama {
+    fill: var(--text-body);
+    font-size: 12.5px;
+    font-family: var(--font-body);
+  }
+  .nilai {
+    fill: var(--text-strong);
+    font-size: 12.5px;
+    font-weight: var(--fw-bold);
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
