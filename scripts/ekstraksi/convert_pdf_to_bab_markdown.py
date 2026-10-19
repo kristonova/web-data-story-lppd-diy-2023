@@ -22,8 +22,11 @@ import pdfplumber
 import re
 from pathlib import Path
 
-PDF_PATH = r"D:\PROJECT\Project Pribadi\web-data-story-lppd-diy\Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023_compressed.pdf"
-OUT_DIR  = Path("markdown-per-bab")
+# Path relatif terhadap akar repo (skrip ini ada di scripts/ekstraksi/),
+# jadi skrip dapat dijalankan dari folder mana pun.
+AKAR     = Path(__file__).resolve().parents[2]
+PDF_PATH = AKAR / "bahan-mentah" / "Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023_compressed.pdf"
+OUT_DIR  = AKAR / "markdown-per-bab"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # (nomor_bab, halaman_awal, halaman_akhir, judul_bab, ringkasan_singkat)

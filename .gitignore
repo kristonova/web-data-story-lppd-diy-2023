@@ -1,7 +1,22 @@
+# Dependensi dan hasil build.
+# dist/ tidak di-commit: GitHub Actions (.github/workflows/deploy.yml)
+# membangun ulang situs dan menerbitkannya ke GitHub Pages.
 node_modules/
 dist/
 .astro/
-Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023_compressed.pdf
-data_dump.txt
-report_sections.txt
+
+# Bahan mentah besar: PDF LPPD asli dan teks dump (tidak dibutuhkan saat build).
+bahan-mentah/
+
+# Log dan berkas lingkungan.
+npm-debug.log*
+*.log
+.env
+.env.*
+
+# Berkas sistem operasi dan editor.
 desktop.ini
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

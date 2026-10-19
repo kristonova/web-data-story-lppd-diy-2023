@@ -13,8 +13,11 @@ import re
 import os
 from pathlib import Path
 
-PDF_PATH = r"D:\PROJECT\Project Pribadi\web-apps\Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023_compressed.pdf"
-OUT_DIR  = Path("data-story")
+# Path relatif terhadap akar repo (skrip ini ada di scripts/ekstraksi/),
+# jadi skrip dapat dijalankan dari folder mana pun.
+AKAR     = Path(__file__).resolve().parents[2]
+PDF_PATH = AKAR / "bahan-mentah" / "Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023_compressed.pdf"
+OUT_DIR  = AKAR / "data-story"
 SRC_DIR  = OUT_DIR / "source"
 
 # (nomor_bab, halaman_awal, halaman_akhir, judul_bab)

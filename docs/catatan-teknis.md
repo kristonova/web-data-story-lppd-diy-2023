@@ -9,7 +9,10 @@ alasannya, supaya keputusan lama tidak dibongkar tanpa tahu kenapa ia dibuat.
 
 Sumber kerja adalah hasil ekstraksi teks laporan dalam `markdown-per-bab/` (di root repo,
 bukan di dalam `data-story/`) — satu berkas per bab, dengan penanda
-`<!-- Halaman N -->` per halaman. `scripts/build_data.mjs` melakukan:
+`<!-- Halaman N -->` per halaman. Keduanya dihasilkan sekali dari PDF di `bahan-mentah/`
+oleh skrip Python di `scripts/ekstraksi/` (`convert_pdf_to_bab_markdown.py` untuk
+`markdown-per-bab/`, `extract_tables.py` untuk `data-story/source/`).
+`scripts/build_data.mjs` melakukan:
 
 - **Penambal baris**: tabel PDF yang terpotong lintas halaman disambung terlebih dahulu,
   lalu diuji: jumlah baris dan beberapa nilai kunci (mis. IPM 81,09;
