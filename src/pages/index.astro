@@ -148,8 +148,8 @@ const kpi = [
   },
 ];
 const leadRingkasan =
-  `Sepanjang 2023, ${membaik === md.length ? `ke${kata(md.length)}` : `${kata(membaik)} dari ${kata(md.length)}`} indikator makro DIY bergerak ke arah yang lebih baik. ` +
-  `Indeks pembangunan manusia mencapai <strong>${d(ipmC.nilai2023, 2)}</strong>, kemiskinan turun menjadi <strong>${d(kemC.nilai2023, 2)}%</strong>, dan ekonomi tumbuh <strong>${d(grwC.perubahan, 2)}%</strong>.`;
+  `Sepanjang tahun 2023, ${membaik === md.length ? `seluruh (${kata(md.length)})` : `${kata(membaik)} dari ${kata(md.length)}`} indikator makro DIY menunjukkan tren perbaikan. ` +
+  `Indeks Pembangunan Manusia (IPM) berhasil mencapai <strong>${d(ipmC.nilai2023, 2)}</strong>, persentase kemiskinan berhasil ditekan ke level <strong>${d(kemC.nilai2023, 2)}%</strong>, dan laju pertumbuhan ekonomi daerah tercatat sebesar <strong>${d(grwC.perubahan, 2)}%</strong>.`;
 
 // ══ Bab 1: wilayah dan penduduk ═════════════════════════════════════════════
 const luas = pilar1.luas;
@@ -189,19 +189,19 @@ const lapisWilayah = [
   {
     judul: "Luas daratan",
     ramp: "emas" as const,
-    nilai: perKode((k) => ({ nilai: byKode(k).km2, tampil: `${d(byKode(k).km2, 2)} km²`, baris: [`${p(byKode(k).luasPct, 2)} dari luas DIY`] })),
+    nilai: perKode((k) => ({ nilai: byKode(k).km2, tampil: `${d(byKode(k).km2, 2)} km²`, baris: [`${p(byKode(k).luasPct, 2)} dari total luas daratan DIY`] })),
   },
   {
-    judul: "Penduduk",
+    judul: "Jumlah penduduk",
     ramp: "biru" as const,
     nilai: perKode((k) => ({
       nilai: byKode(k).jiwa,
       tampil: `${n(byKode(k).jiwa)} jiwa`,
-      baris: [`${p(byKode(k).jiwaPct, 2)} dari penduduk DIY`, `Laki-laki ${n(byKode(k).laki)}, perempuan ${n(byKode(k).perempuan)}`],
+      baris: [`${p(byKode(k).jiwaPct, 2)} dari total penduduk DIY`, `Laki-laki ${n(byKode(k).laki)} jiwa, perempuan ${n(byKode(k).perempuan)} jiwa`],
     })),
   },
   {
-    judul: "Kepadatan",
+    judul: "Kepadatan penduduk",
     ramp: "merah" as const,
     nilai: perKode((k) => ({ nilai: byKode(k).padat, tampil: `${n(byKode(k).padat)} jiwa/km²`, baris: [`Rata-rata DIY ${n(padatDIY)} jiwa per km²`] })),
   },
@@ -399,7 +399,6 @@ const lapisJarak = [
   },
 ];
 const ipmTop = maks(KODE, (k) => ipmKab(k)[iAkhirIpm]!);
-const ipmDuaTeratas = [...KODE].sort((a, b) => ipmKab(b)[iAkhirIpm]! - ipmKab(a)[iAkhirIpm]!).slice(0, 2);
 const ipmLow = mins(KODE, (k) => ipmKab(k)[iAkhirIpm]!);
 const kemTop = maks(KODE, (k) => kemKab(k)[iAkhirKem] ?? -1);
 const kemLow = mins(KODE, (k) => kemKab(k)[iAkhirKem] ?? 99);
@@ -469,7 +468,6 @@ const kemAkhir = ambilKem("Total", perAkhir);
 const kemAwal = ambilKem("Total", perAwal);
 const kemDesa = ambilKem("Perdesaan", perAkhir);
 const kemKota = ambilKem("Perkotaan", perAkhir);
-const desaSelaluLebih = periode.every((per) => ambilKem("Perdesaan", per).persen > ambilKem("Perkotaan", per).persen);
 const kemMin = Math.floor(Math.min(...kemSeri.flatMap((s) => s.nilai)) - 1);
 const kemMax = Math.ceil(Math.max(...kemSeri.flatMap((s) => s.nilai)) + 1);
 const kemTik = Array.from({ length: Math.floor((kemMax - kemMin) / 2) + 1 }, (_, j) => kemMin + 2 * j)
@@ -553,7 +551,6 @@ const peDalam = mins(KODE, (k) => peKab(k)[iPandemi]!);
 const pePuncak = maks(KODE, (k) => Math.max(...peKab(k)));
 const pePuncakTahun = TPE[peKab(pePuncak).indexOf(Math.max(...peKab(pePuncak)))]!;
 const peMin23 = mins(KODE, (k) => peKab(k)[iAkhirPe]!);
-const peSemuaKontraksi = KODE.every((k) => peKab(k)[iPandemi]! < 0);
 
 // Lapangan usaha
 const NAMA_SEKTOR: [RegExp, string, string][] = [
@@ -782,12 +779,12 @@ const nav = [
   { href: "#penutup", label: "Penutup" },
 ];
 const leadBab = [
-  `DIY adalah provinsi dengan wilayah daratan terkecil kedua di Indonesia. Peta di bab ini memperlihatkan ruang yang dikelola: yang paling luas bukan yang paling ramai, dan susunan umur warganya berbeda dari satu wilayah ke wilayah lain.`,
-  `Uang daerah mengalir dari pajak dan transfer pemerintah pusat menuju belanja pegawai, layanan, hibah, dan kabupaten/kota. Pendapatan hampir seluruhnya terealisasi, belanja menyusul sedikit di belakangnya.`,
-  `Ukuran-ukuran kesejahteraan bergerak ke arah yang sama, tetapi petanya belum rata. ${gabungDan(ipmDuaTeratas.map(namaK))} jauh di depan, sementara ${gabungDan(kemDuaTeratas.map(namaK))} masih tertinggal.`,
-  `Pandemi memukul ekonomi seluruh kabupaten/kota pada 2020, lalu pemulihan datang tidak serempak. Penanaman modal terus bertambah, tetapi tujuannya berpindah dari satu wilayah ke wilayah lain.`,
-  `Keistimewaan DIY dijaga lewat kebudayaan, tata ruang, pertanahan, dan kelembagaan. Tahun ini ditandai penetapan Sumbu Filosofi sebagai Warisan Budaya Dunia, sementara sebagian dananya diturunkan langsung ke kalurahan.`,
-  `Sebagian layanan dasar sudah penuh, sebagian lain menyisakan pekerjaan rumah yang nyata. ${awalBesar(kata(paripurna.length))} dari ${kata(spmKat.length)} bidang SPM meraih kategori tertinggi, dan akses air minum belum merata di ${namaK(belumTop)}.`,
+  `Sebagai salah satu provinsi dengan luas daratan paling kompak di Indonesia, DIY mengelola ruang yang dinamis. Bab ini memetakan perbandingan luas wilayah, konsentrasi sebaran warga, serta profil struktur demografi di setiap kabupaten/kota.`,
+  `Kemandirian fiskal daerah ditopang oleh optimalisasi PAD dan alokasi transfer pemerintah pusat. Bab ini membedah postur aliran pendapatan, realisasi belanja operasional dan modal, hingga efektivitas serapan anggaran di setiap urusan.`,
+  `Kemajuan pembangunan manusia terus meningkat, meski tantangan disparitas antardaerah masih nyata. Akselerasi kesejahteraan melaju pesat di kawasan perkotaan, sementara pengentasan kemiskinan dan pemerataan terus didorong di seluruh penjuru wilayah.`,
+  `Setelah melewati tekanan pandemi pada 2020, perekonomian DIY bangkit kembali ke jalur pertumbuhan positif. Dinamika pemulihan tercermin pada geliat lapangan usaha unggulan, lonjakan arus investasi, serta geliat industri perhotelan dan pariwisata.`,
+  `Penyelenggaraan urusan keistimewaan DIY mewujud dalam pelestarian budaya, penataan ruang, kelembagaan, dan pengelolaan pertanahan. Tahun 2023 menjadi tonggak bersejarah dengan penetapan Sumbu Filosofi sebagai Warisan Budaya Dunia oleh UNESCO, didukung pemerataan manfaat Dana Keistimewaan hingga ke tingkat kalurahan.`,
+  `Pemerintah daerah berkomitmen menjamin hak-hak mendasar masyarakat melalui pemenuhan Standar Pelayanan Minimal (SPM). Evaluasi kinerja menunjukkan ${kata(paripurna.length)} bidang SPM telah tuntas paripurna, diiringi peningkatan mutu pendidikan inklusi, infrastruktur dasar, serta perluasan akses air bersih dan sanitasi.`,
 ];
 ---
 
@@ -856,9 +853,9 @@ const leadBab = [
     <Adegan
       id="1-1"
       lebar
-      judul="Peta Lima Wilayah"
-      pertanyaan="Seberapa luas DIY, dan di mana penduduknya tinggal?"
-      tafsir={`Luas daratan DIY <strong>${d(luas.total, 2)} km²</strong>, hanya ${p(luas.persenIndonesia, 2)} daratan Indonesia. ${kabTerluas.nama} menempati <strong>${p(kabTerluas.luasPct, 2)}</strong> wilayah, tetapi dihuni ${p(kabTerluas.jiwaPct, 2)} penduduk. ${kabTerpadat.nama} sebaliknya: ${p(kabTerpadat.luasPct, 2)} wilayah untuk ${p(kabTerpadat.jiwaPct, 2)} penduduk, dengan kepadatan <strong>${n(kabTerpadat.padat)} jiwa per km²</strong>, lebih dari ${kaliPadat} kali kepadatan ${kabTerluas.nama}. Pilih lapisan peta untuk berganti antara luas, penduduk, dan kepadatan.`}
+      judul="Peta Sebaran Wilayah"
+      pertanyaan="Bagaimana perbandingan luas wilayah dan sebaran konsentrasi penduduk di DIY?"
+      tafsir={`Total luas daratan DIY tercatat sebesar <strong>${d(luas.total, 2)} km²</strong> atau sekitar ${p(luas.persenIndonesia, 2)} dari luas daratan Indonesia. ${kabTerluas.nama} merupakan daerah terluas yang mencakup <strong>${p(kabTerluas.luasPct, 2)}</strong> wilayah provinsi, namun hanya dihuni ${p(kabTerluas.jiwaPct, 2)} penduduk. Sebaliknya, ${kabTerpadat.nama} hanya menempati ${p(kabTerpadat.luasPct, 2)} area namun menampung ${p(kabTerpadat.jiwaPct, 2)} penduduk, dengan kepadatan tertinggi mencapai <strong>${n(kabTerpadat.padat)} jiwa/km²</strong>—atau lebih dari ${kaliPadat} kali lipat kepadatan di ${kabTerluas.nama}. Pilih lapisan peta untuk membandingkan aspek luas, jumlah penduduk, dan kepadatan.`}
       sumber={[SB(27, "naskah geografi wilayah", F1), SB(30, 1, F1)]}
       sumberLain={[SUMBER_PETA]}
     >
@@ -887,9 +884,9 @@ const leadBab = [
 
     <Adegan
       id="1-2"
-      judul="Dari Kapanewon ke Kalurahan"
-      pertanyaan="Bagaimana penduduk dan wilayah administrasinya terbagi?"
-      tafsir={`Penduduk DIY <strong>${n(pdk.total)} jiwa</strong>, ${p(pdk.perempuanPersen, 1)} di antaranya perempuan; ${kabTerramai.nama} paling ramai dengan ${p(kabTerramai.jiwaPct, 2)} penduduk. Pemerintahan di tingkat bawah dijalankan oleh <strong>${n(adm.kapanewon)}</strong> kapanewon dan kemantren, <strong>${n(adm.kalurahan)}</strong> kalurahan, dan <strong>${n(adm.kelurahan)}</strong> kelurahan. ${kabDesaTerbanyak.nama} sendiri memiliki ${n(kabDesaTerbanyak.kap)} kapanewon dan ${n(kabDesaTerbanyak.kal)} kalurahan; arahkan penunjuk ke peta untuk membaca nama setiap kapanewon.`}
+      judul="Pembagian Administratif"
+      pertanyaan="Bagaimana struktur administrasi pemerintahan daerah dan persebaran warganya?"
+      tafsir={`Jumlah penduduk DIY mencapai <strong>${n(pdk.total)} jiwa</strong> dengan proporsi perempuan sebesar ${p(pdk.perempuanPersen, 1)}. ${kabTerramai.nama} menjadi wilayah berpenduduk terbanyak dengan menampung ${p(kabTerramai.jiwaPct, 2)} total warga. Struktur pemerintahan daerah ditopang oleh <strong>${n(adm.kapanewon)}</strong> kapanewon dan kemantren, <strong>${n(adm.kalurahan)}</strong> kalurahan, serta <strong>${n(adm.kelurahan)}</strong> kelurahan. ${kabDesaTerbanyak.nama} membawahi unit administratif terbanyak, yaitu ${n(kabDesaTerbanyak.kap)} kapanewon dan ${n(kabDesaTerbanyak.kal)} kalurahan. Arahkan kursor pada peta untuk melihat rincian setiap kapanewon.`}
       sumber={[SB(30, 1, F1), SB(31, 4, F1)]}
       sumberLain={[SUMBER_PETA]}
     >
@@ -930,9 +927,9 @@ const leadBab = [
 
     <Adegan
       id="1-3"
-      judul="Punggung Usia"
-      pertanyaan="Bagaimana susunan umur penduduk, dan wilayah mana yang paling menua?"
-      tafsir={`Sekitar satu dari ${kata(satuDari)} penduduk DIY berusia ${labelUsia(ikLansia.nama).replace("+", "")} tahun ke atas: <strong>${p(ikLansia.persen, 1)}</strong>, hampir menyamai porsi anak usia ${labelUsia(ikAnak.nama)} tahun (${p(ikAnak.persen, 1)}). Setiap 100 penduduk usia produktif menanggung sekitar <strong>${d(rasioTanggungan, 0)}</strong> penduduk usia nonproduktif. ${namaK(kabTertua.kode)} paling menua: <strong>${p(kabTertua.persen, 1)}</strong> penduduknya lansia, dan punggungnya menebal di ujung kanan. ${namaK(kabTermuda.kode)} paling muda dengan porsi lansia ${p(kabTermuda.persen, 1)}.`}
+      judul="Struktur Usia Penduduk"
+      pertanyaan="Bagaimana komposisi kelompok usia penduduk dan wilayah mana yang memiliki proporsi lansia tertinggi?"
+      tafsir={`Karakteristik demografi DIY memperlihatkan tren penuaan penduduk, di mana sekitar satu dari ${kata(satuDari)} warga telah berusia ${labelUsia(ikLansia.nama).replace("+", "")} tahun ke atas (<strong>${p(ikLansia.persen, 1)}</strong>)—hampir sebanding dengan kelompok usia anak ${labelUsia(ikAnak.nama)} tahun (${p(ikAnak.persen, 1)}). Rasio ketergantungan berada di angka <strong>${d(rasioTanggungan, 0)}</strong>, yang berarti setiap 100 penduduk usia produktif menanggung sekitar ${d(rasioTanggungan, 0)} penduduk nonproduktif. ${namaK(kabTertua.kode)} memiliki proporsi lansia tertinggi mencapai <strong>${p(kabTertua.persen, 1)}</strong>, sedangkan ${namaK(kabTermuda.kode)} mencatatkan struktur demografi paling muda dengan proporsi lansia sebesar ${p(kabTermuda.persen, 1)}.`}
       sumber={[SB(30, 2, F1), SB(31, 1, F1)]}
     >
       <Figur
@@ -977,9 +974,9 @@ const leadBab = [
     <Adegan
       id="2-1"
       lebar
-      judul="Arus Uang Daerah"
-      pertanyaan="Dari mana uang daerah datang, dan ke mana ia mengalir?"
-      tafsir={`Sepanjang 2023 tersedia <strong>${rp(danaTersedia)}</strong>: pendapatan daerah ${rp(pdp.total.realisasi)} (${p(pdp.total.persen, 2)} dari target, ${arahKata(tumbuhPendapatan)} ${p(Math.abs(tumbuhPendapatan), 2)} dibanding 2022) ditambah pembiayaan netto ${rp(bln.pembiayaanNetto.realisasi)}. Pendapatan asli daerah menyumbang <strong>${p(pdp.sharePad, 2)}</strong> pendapatan, dengan pajak daerah sebagai tulang punggungnya (${p(sharePajak, 1)}); transfer pemerintah pusat tetap sumber terbesar, <strong>${p(shareTransferPusat, 2)}</strong>. Di hilir, belanja operasi memakai ${p(shareDana(bln.operasi.realisasi), 1)} dana, belanja transfer ${p(shareDana(bln.transfer.realisasi), 1)}, belanja modal ${p(shareDana(bln.modal.realisasi), 1)}, dan ${rp(bln.slpa.realisasi)} tersisa sebagai SiLPA.`}
+      judul="Arus Keuangan Daerah"
+      pertanyaan="Bagaimana sumber pendapatan daerah dihimpun dan dialokasikan ke pos belanja?"
+      tafsir={`Total kapasitas fiskal daerah sepanjang 2023 mencapai <strong>${rp(danaTersedia)}</strong>, bersumber dari realisasi pendapatan daerah sebesar ${rp(pdp.total.realisasi)} (${p(pdp.total.persen, 2)} dari target, ${arahKata(tumbuhPendapatan)} ${p(Math.abs(tumbuhPendapatan), 2)} dibandingkan 2022) serta pembiayaan netto ${rp(bln.pembiayaanNetto.realisasi)}. Pendapatan Asli Daerah (PAD) menyumbang <strong>${p(pdp.sharePad, 2)}</strong> dari total pendapatan dengan pajak daerah sebagai penopang utama (${p(sharePajak, 1)}), sementara dana transfer pusat tetap menjadi porsi terbesar mencapai <strong>${p(shareTransferPusat, 2)}</strong>. Pada sisi belanja, porsi terbesar dialokasikan untuk belanja operasi (${p(shareDana(bln.operasi.realisasi), 1)}), disusul belanja transfer (${p(shareDana(bln.transfer.realisasi), 1)}), belanja modal (${p(shareDana(bln.modal.realisasi), 1)}), serta menyisakan SiLPA sebesar ${rp(bln.slpa.realisasi)}.`}
       sumber={[SB(60, 1, F1), SB(61, 1, F1), SB(62, 1, F1), SB(63, 1, F1)]}
     >
       <Figur judul="Arus anggaran pendapatan dan belanja 2023" satuan="realisasi; lebar pita sebanding nilai">
@@ -1019,9 +1016,9 @@ const leadBab = [
 
     <Adegan
       id="2-2"
-      judul="Serapan Belanja"
-      pertanyaan="Berapa belanja yang terserap dari anggarannya?"
-      tafsir={`Belanja terealisasi <strong>${rp(bln.total.realisasi)}</strong> atau ${p(bln.total.persen, 2)} dari anggaran, menyisakan ${rp(sisaBelanja)}. Selisih terbesar ada pada belanja barang dan jasa: <strong>${rp(sisaBJ)}</strong> tidak terserap. Belanja tidak terduga hampir tidak terpakai, ${p(bln.takTerduga.persen, 2)} dari anggarannya, karena memang disiapkan untuk keadaan darurat.`}
+      judul="Realisasi Belanja Daerah"
+      pertanyaan="Seberapa optimal anggaran belanja daerah terealisasi menurut pos pengeluaran?"
+      tafsir={`Realisasi belanja daerah berhasil mencapai <strong>${rp(bln.total.realisasi)}</strong> atau ${p(bln.total.persen, 2)} dari total pagu anggaran, menghasilkan efisiensi sisa anggaran sebesar ${rp(sisaBelanja)}. Efisiensi terbesar berada pada pos belanja barang dan jasa dengan sisa alokasi mencapai <strong>${rp(sisaBJ)}</strong>. Sementara itu, pos belanja tidak terduga terealisasi sebesar ${p(bln.takTerduga.persen, 2)} sejalan dengan fungsinya sebagai dana cadangan darurat.`}
       sumber={[SB(61, 1, F1), SB(62, 1, F1), SB(63, 1, F1)]}
     >
       <Figur judul="Anggaran dan realisasi belanja" satuan="persen serapan dan realisasi">
@@ -1043,9 +1040,9 @@ const leadBab = [
 
     <Adegan
       id="2-3"
-      judul="Serapan per Urusan"
-      pertanyaan="Urusan mana yang paling lambat menyerap anggarannya?"
-      tafsir={`Serapan rata-rata seluruh urusan <strong>${p(pilar2u.jumlah.persen, 2)}</strong>. Di antara urusan pelayanan dasar, ${NAMA_DASAR[urKes.id]!.toLowerCase()} tertinggal paling jauh: <strong>${p(urKes.persen, 2)}</strong>, menyisakan ${rp(urKes.anggaran - urKes.realisasi)} anggaran. ${NAMA_DASAR[urPend.id]}, urusan dengan anggaran terbesar (${rp(urPend.anggaran)}), terserap ${p(urPend.persen, 2)}.`}
+      judul="Kinerja Serapan Urusan"
+      pertanyaan="Bagaimana tingkat penyerapan anggaran pada masing-masing urusan pemerintahan?"
+      tafsir={`Rata-rata tingkat penyerapan anggaran di seluruh urusan pemerintahan mencapai <strong>${p(pilar2u.jumlah.persen, 2)}</strong>. Pada kelompok urusan wajib pelayanan dasar, serapan terendah tercatat pada bidang ${NAMA_DASAR[urKes.id]!.toLowerCase()} sebesar <strong>${p(urKes.persen, 2)}</strong> dengan sisa pagu ${rp(urKes.anggaran - urKes.realisasi)}. Sementara itu, bidang ${NAMA_DASAR[urPend.id]} yang mengelola anggaran terbesar (${rp(urPend.anggaran)}) mencatatkan kinerja penyerapan yang sangat baik, yakni mencapai ${p(urPend.persen, 2)}.`}
       sumber={pilar2u.sumber}
     >
       <Figur judul="Serapan per kelompok urusan" satuan="persen realisasi terhadap anggaran; besar titik = besar anggaran">
@@ -1080,9 +1077,9 @@ const leadBab = [
     <Adegan
       id="3-1"
       lebar
-      judul="Jarak Antarwilayah"
-      pertanyaan="Seberapa jauh jarak kesejahteraan antarkabupaten/kota?"
-      tafsir={`Keempat peta bercerita sama. ${namaK(ipmTop)} mencatat IPM <strong>${d(ipmKab(ipmTop)[iAkhirIpm]!, 2)}</strong>, sedangkan ${namaK(ipmLow)} ${d(ipmKab(ipmLow)[iAkhirIpm]!, 2)}. Kemiskinan tertinggi di ${gabungDan(kemDuaTeratas.map((k) => `${namaK(k)} (${p(kemKab(k)[iAkhirKem]!, 2)})`))}, ${kaliKata((kemKab(kemTop)[iAkhirKem]!) / kemKab(kemLow)[iAkhirKem]!)} ${namaK(kemLow)}. Penduduk ${namaK(rlsTop)} rata-rata bersekolah <strong>${d(kompKab(rlsTop)[2]! - kompKab(rlsLow)[2]!, 2)} tahun lebih lama</strong> daripada penduduk ${namaK(rlsLow)}, dan pengeluaran per kapitanya ${kaliKata((kompKab(pppTop)[3]!) / kompKab(pppLow)[3]!)} ${namaK(pppLow)}. LPPD mencatat indeks Williamson, ukuran ketimpangan ekonomi antarwilayah, ${d(wAwal.nilai, 4)} pada ${wAwal.tahun}, memuncak ${d(wPuncak.nilai, 4)} pada ${wPuncak.tahun}, lalu ${d(wAkhir.nilai, 4)} pada ${wAkhir.tahun}${wil.proyeksi2023 ? " (angka proyeksi)" : ""}, masih di atas target ${d(wil.target2023, 3)}.`}
+      judul="Disparitas Antarwilayah"
+      pertanyaan="Bagaimana potret ketimpangan indikator kesejahteraan antarkabupaten/kota?"
+      tafsir={`Peta indikator kesejahteraan memperlihatkan pola disparitas yang konsisten antardaerah. ${namaK(ipmTop)} memimpin capaian IPM dengan angka <strong>${d(ipmKab(ipmTop)[iAkhirIpm]!, 2)}</strong>, sedangkan ${namaK(ipmLow)} berada di angka ${d(ipmKab(ipmLow)[iAkhirIpm]!, 2)}. Persentase penduduk miskin tertinggi tercatat di ${gabungDan(kemDuaTeratas.map((k) => `${namaK(k)} (${p(kemKab(k)[iAkhirKem]!, 2)})`))}, atau ${kaliKata((kemKab(kemTop)[iAkhirKem]!) / kemKab(kemLow)[iAkhirKem]!)} lipat dibandingkan ${namaK(kemLow)}. Rata-rata lama sekolah warga ${namaK(rlsTop)} tercatat <strong>${d(kompKab(rlsTop)[2]! - kompKab(rlsLow)[2]!, 2)} tahun lebih panjang</strong> dibandingkan warga ${namaK(rlsLow)}, dengan pengeluaran per kapita ${kaliKata((kompKab(pppTop)[3]!) / kompKab(pppLow)[3]!)} lipat ${namaK(pppLow)}. Indeks Williamson sebagai ukuran ketimpangan antardaerah tercatat sebesar ${d(wAwal.nilai, 4)} pada ${wAwal.tahun}, sempat mencapai puncak ${d(wPuncak.nilai, 4)} pada ${wPuncak.tahun}, kemudian berada di level ${d(wAkhir.nilai, 4)} pada ${wAkhir.tahun}${wil.proyeksi2023 ? " (angka proyeksi)" : ""}, masih di atas target ${d(wil.target2023, 3)}.`}
       sumber={[SB(939, 5, F7), SB(941, 1, F7), SB(948, 1, F7), SB(931, 2, F7)]}
       sumberLain={[SUMBER_PETA]}
     >
@@ -1131,9 +1128,9 @@ const leadBab = [
     <Adegan
       id="3-2"
       lebar
-      judul="Pembangunan Manusia"
-      pertanyaan="Bagaimana pembangunan manusia tiap wilayah bergerak?"
-      tafsir={`IPM DIY naik dari ${d(ipmKab("DIY")[0]!, 2)} pada ${W.ipm.tahun[0]} menjadi <strong>${d(ipmKab("DIY")[iAkhirIpm]!, 2)}</strong> dan berada dalam kategori sangat tinggi menurut klasifikasi BPS. ${gabungDan(sangatTinggi)} juga sudah di kategori itu; ${gabungDan(tinggi)} masih kategori tinggi. Jarak ${namaK(ipmTop)} dan ${namaK(ipmLow)} ${gapAkhir > gapAwal ? "sedikit melebar" : "menyempit"}, dari ${d(gapAwal, 2)} menjadi <strong>${d(gapAkhir, 2)} poin</strong>. Komponennya tidak seragam: ${namaK(ahhTop)} justru memiliki umur harapan hidup tertinggi, <strong>${d(kompKab(ahhTop)[0]!, 2)} tahun</strong>${ahhTopPppRendah ? ", meski pengeluaran per kapitanya termasuk yang terendah" : ""}.`}
+      judul="Kemajuan Pembangunan Manusia"
+      pertanyaan="Bagaimana perkembangan Indeks Pembangunan Manusia dan komponen pembentuknya di tiap daerah?"
+      tafsir={`IPM DIY secara agregat terus meningkat dari ${d(ipmKab("DIY")[0]!, 2)} pada ${W.ipm.tahun[0]} menjadi <strong>${d(ipmKab("DIY")[iAkhirIpm]!, 2)}</strong>, mempertahankan kategori "Sangat Tinggi" standar BPS. Predikat ini juga dicapai oleh ${gabungDan(sangatTinggi)}, sedangkan ${gabungDan(tinggi)} berada pada kategori "Tinggi". Selisih capaian antara ${namaK(ipmTop)} dan ${namaK(ipmLow)} tercatat ${gapAkhir > gapAwal ? "sedikit melebar" : "berangsur menyempit"}, dari ${d(gapAwal, 2)} menjadi <strong>${d(gapAkhir, 2)} poin</strong>. Pada tingkat komponen, dinamikanya beragam: ${namaK(ahhTop)} justru mencatatkan Umur Harapan Hidup (UHH) tertinggi yakni <strong>${d(kompKab(ahhTop)[0]!, 2)} tahun</strong>${ahhTopPppRendah ? ", kendati tingkat pengeluaran per kapitanya relatif lebih rendah" : ""}.`}
       sumber={[SB(939, 5, F7), SB(941, 1, F7), SB(189, 1, "bab2-2_1_1_indeks-pembangunan-manusia-ipm.md")]}
     >
       <Figur judul="IPM per kabupaten/kota" satuan={`indeks; pita krem: kategori sangat tinggi BPS (≥ ${IPM_SANGAT_TINGGI})`}>
@@ -1182,9 +1179,9 @@ const leadBab = [
 
     <Adegan
       id="3-3"
-      judul="Jejak Kemiskinan"
-      pertanyaan="Berapa banyak penduduk yang masih miskin, dan di mana?"
-      tafsir={`Pada ${perAkhir} terdapat <strong>${d(kemAkhir.ribu, 2)} ribu</strong> penduduk miskin, atau ${p(kemAkhir.persen, 2)} dari penduduk DIY, turun dari ${d(kemAwal.ribu, 2)} ribu pada ${perAwal}. ${desaSelaluLebih ? "Kemiskinan di perdesaan selalu lebih tinggi" : "Kemiskinan di perdesaan lebih tinggi"}: <strong>${p(kemDesa.persen, 2)}</strong> berbanding ${p(kemKota.persen, 2)} di perkotaan. Di tingkat kabupaten/kota, ${iPuncakKem !== undefined ? `seluruh wilayah mencapai puncaknya pada ${W.kemiskinan.periode[iPuncakKem]} lalu turun` : "puncak tiap wilayah berbeda"}; ${namaK(kemTop)} tertinggi dengan <strong>${p(kemKab(kemTop)[iAkhirKem]!, 2)}</strong>. ${kemNaik.length ? `${gabungDan(kemNaik.map(namaK))} menjadi satu-satunya wilayah yang angka ${W.kemiskinan.periode[iAkhirKem]}-nya lebih tinggi daripada ${W.kemiskinan.periode[0]} (${p(kemKab(kemNaik[0]!)[0]!, 2)} menjadi ${p(kemKab(kemNaik[0]!)[iAkhirKem]!, 2)}).` : ""}`}
+      judul="Dinamika Angka Kemiskinan"
+      pertanyaan="Bagaimana tren penurunan kemiskinan dan sebarannya antara perkotaan dan perdesaan?"
+      tafsir={`Per ${perAkhir}, jumlah penduduk miskin di DIY tercatat sebanyak <strong>${d(kemAkhir.ribu, 2)} ribu jiwa</strong> (${p(kemAkhir.persen, 2)}), berkurang dari ${d(kemAwal.ribu, 2)} ribu jiwa pada ${perAwal}. Namun, kesenjangan spasial masih kentara: persentase kemiskinan di perdesaan mencapai <strong>${p(kemDesa.persen, 2)}</strong>, lebih tinggi dibandingkan perkotaan yang berada di level ${p(kemKota.persen, 2)}. Di tingkat wilayah, ${iPuncakKem !== undefined ? `seluruh daerah sempat mengalami puncak kemiskinan pada ${W.kemiskinan.periode[iPuncakKem]} sebelum berangsur melandai kembali` : "tren penurunan terus berlanjut"}; persentase tertinggi saat ini berada di ${namaK(kemTop)} sebesar <strong>${p(kemKab(kemTop)[iAkhirKem]!, 2)}</strong>. ${kemNaik.length ? `${gabungDan(kemNaik.map(namaK))} menjadi wilayah yang persentase kemiskinannya pada ${W.kemiskinan.periode[iAkhirKem]} masih berada di atas posisi ${W.kemiskinan.periode[0]} (dari ${p(kemKab(kemNaik[0]!)[0]!, 2)} menjadi ${p(kemKab(kemNaik[0]!)[iAkhirKem]!, 2)}).` : ""}`}
       sumber={[SB(191, 1, "bab2-2_1_2_angka-kemiskinan.md"), SB(948, 1, F7)]}
     >
       <Figur
@@ -1233,9 +1230,9 @@ const leadBab = [
 
     <Adegan
       id="3-4"
-      judul="Pasar Kerja"
-      pertanyaan="Bagaimana keadaan pasar kerja DIY?"
-      tafsir={`Tingkat pengangguran terbuka ${arahKata(kk.tpt.t2023 - kk.tpt.t2022)} dari ${p(kk.tpt.t2022, 2)} menjadi <strong>${p(kk.tpt.t2023, 2)}</strong>. Jumlah penganggur ${kkPeng.t2023 < kkPeng.t2022 ? "berkurang" : "bertambah"} dari ${d(kkPeng.t2022, 2)} ribu menjadi <strong>${d(kkPeng.t2023, 2)} ribu orang</strong>. Penduduk usia kerja tercatat ${n(kkPUK.t2023)} ribu orang pada Agustus 2023, ${n(kkKerja.t2023)} ribu di antaranya bekerja.`}
+      judul="Kondisi Ketenagakerjaan"
+      pertanyaan="Bagaimana perkembangan serapan tenaga kerja dan tingkat pengangguran di DIY?"
+      tafsir={`Tingkat Pengangguran Terbuka (TPT) DIY menunjukkan perbaikan, ${arahKata(kk.tpt.t2023 - kk.tpt.t2022)} dari ${p(kk.tpt.t2022, 2)} menjadi <strong>${p(kk.tpt.t2023, 2)}</strong>. Sejalan dengan itu, jumlah pengangguran ${kkPeng.t2023 < kkPeng.t2022 ? "berkurang" : "bertambah"} dari ${d(kkPeng.t2022, 2)} ribu orang menjadi <strong>${d(kkPeng.t2023, 2)} ribu orang</strong>. Dari total ${n(kkPUK.t2023)} ribu penduduk usia kerja per Agustus 2023, sebanyak ${n(kkKerja.t2023)} ribu orang di antaranya telah terserap aktif di dunia kerja.`}
       sumber={SB(192, 1, "bab2-2_1_2_angka-kemiskinan.md")}
     >
       <Figur
@@ -1259,9 +1256,9 @@ const leadBab = [
 
     <Adegan
       id="3-5"
-      judul="Ketimpangan Pengeluaran"
-      pertanyaan="Seberapa merata pengeluaran penduduk?"
-      tafsir={`Rasio gini turun tipis dari ${d(ktd.gini2022, 3)} menjadi <strong>${d(ktd.gini2023, 3)}</strong>. Menurut kriteria Bank Dunia, porsi pengeluaran 40% penduduk terbawah di perkotaan (${p(tKota.p40Bawah, 2)}) tergolong ketimpangan ${kategoriBD(tKota.p40Bawah)}, sedangkan di perdesaan (${p(tDesa.p40Bawah, 2)}) ${kategoriBD(tDesa.p40Bawah)}. Di perkotaan, 20% penduduk teratas menguasai <strong>${p(tKota.p20Atas, 2)}</strong> pengeluaran.`}
+      judul="Pemerataan Pengeluaran"
+      pertanyaan="Seberapa merata distribusi pengeluaran warga antarkelompok pendapatan?"
+      tafsir={`Rasio Gini DIY mengalami perbaikan tipis dari ${d(ktd.gini2022, 3)} menjadi <strong>${d(ktd.gini2023, 3)}</strong>. Mengacu pada tolok ukur Bank Dunia, porsi pengeluaran 40% kelompok terbawah di perkotaan (${p(tKota.p40Bawah, 2)}) tergolong ketimpangan ${kategoriBD(tKota.p40Bawah)}, sedangkan di perdesaan (${p(tDesa.p40Bawah, 2)}) berada pada kategori ${kategoriBD(tDesa.p40Bawah)}. Di wilayah perkotaan, konsentrasi pengeluaran cukup menonjol di mana 20% kelompok teratas menguasai <strong>${p(tKota.p20Atas, 2)}</strong> dari total pengeluaran.`}
       sumber={[SB(198, 1, "bab2-2_1_6_ketimpangan-pendapatan.md"), SB(188, 2, FM)]}
     >
       <Figur
@@ -1297,9 +1294,9 @@ const leadBab = [
     <Adegan
       id="4-1"
       lebar
-      judul="Laju Ekonomi Wilayah"
-      pertanyaan="Bagaimana ekonomi tiap wilayah melewati pandemi?"
-      tafsir={`${namaK(pePuncak)} mencatat pertumbuhan tertinggi dalam enam tahun ini, <strong>${p(Math.max(...peKab(pePuncak)), 2)}</strong> pada ${pePuncakTahun}. ${peSemuaKontraksi ? "Pada 2020 seluruh kabupaten/kota terkontraksi" : "Pada 2020 sebagian wilayah terkontraksi"}, dan ${namaK(peDalam)} paling dalam: <strong>${p(peKab(peDalam)[iPandemi]!, 2)}</strong>; LPPD mencatat kontraksi inilah yang menaikkan kembali ketimpangan antarwilayah tahun itu. Pada ${TPE[iAkhirPe]} laju antarwilayah kembali rapat: yang terendah pun ${namaK(peMin23)} ${p(peKab(peMin23)[iAkhirPe]!, 2)}, dan ekonomi DIY tumbuh ${p(W.pertumbuhan.diy[iAkhirPe]!, 2)}.`}
+      judul="Pertumbuhan Ekonomi Daerah"
+      pertanyaan="Bagaimana dinamika kontraksi dan pemulihan ekonomi di setiap kabupaten/kota?"
+      tafsir={`${namaK(pePuncak)} mencatatkan rekor pertumbuhan tertinggi dalam kurun waktu enam tahun terakhir, yakni mencapai <strong>${p(Math.max(...peKab(pePuncak)), 2)}</strong> pada ${pePuncakTahun}. Krisis pandemi pada 2020 sempat menekan perekonomian seluruh daerah, dengan kontraksi terdalam terjadi di ${namaK(peDalam)} sebesar <strong>${p(peKab(peDalam)[iPandemi]!, 2)}</strong>—situasi yang kala itu memperlebar kembali ketimpangan antardaerah. Memasuki tahun ${TPE[iAkhirPe]}, laju pemulihan ekonomi telah merata dan solid; pertumbuhan terendah di ${namaK(peMin23)} tetap tumbuh positif di level ${p(peKab(peMin23)[iAkhirPe]!, 2)}, serta mendorong pertumbuhan ekonomi agregat DIY ke angka ${p(W.pertumbuhan.diy[iAkhirPe]!, 2)}.`}
       sumber={[SB(924, 5, F7), SB(924, 1, F7), SB(930, 3, F7)]}
     >
       <Figur judul="Pertumbuhan ekonomi per kabupaten/kota" satuan="persen per tahun; garis putus: DIY">
@@ -1325,9 +1322,9 @@ const leadBab = [
     <Adegan
       id="4-2"
       lebar
-      judul="Denyut Lapangan Usaha"
-      pertanyaan="Lapangan usaha mana yang paling terpukul pandemi, dan mana yang paling cepat bangkit?"
-      tafsir={`Pada 2020, ${n(kontraksi20.length)} dari ${n(sektor.length)} lapangan usaha menyusut. Pukulan terdalam dialami ${gabungDan(tigaTerdalam.map((s) => fmtSektor(s, iPandemi)))}. Sebaliknya, ${fmtSektor(duaMelonjak[0]!, iPandemi)} dan ${fmtSektor(duaMelonjak[1]!, iPandemi)} justru melonjak. ${awalBesar(awalKecil(pulihTercepat.label))} bangkit paling kencang pada 2022, <strong>${p(pulihTercepat.nilai[iPulih]!, 2)}</strong>. ${semuaPositif23 ? `Pada ${TPE[iAkhirPe]} seluruh lapangan usaha tumbuh positif (angka sementara), dipimpin ${fmtSektor(duaTeratas23[0]!, iAkhirPe)} dan ${fmtSektor(duaTeratas23[1]!, iAkhirPe)}.` : ""}`}
+      judul="Kinerja Sektor Usaha"
+      pertanyaan="Sektor lapangan usaha mana yang paling terdampak krisis dan paling cepat pulih?"
+      tafsir={`Dampak pandemi 2020 menekan ${n(kontraksi20.length)} dari ${n(sektor.length)} sektor lapangan usaha di DIY. Tekanan terberat dialami oleh sektor ${gabungDan(tigaTerdalam.map((s) => fmtSektor(s, iPandemi)))}. Sebaliknya, sektor ${fmtSektor(duaMelonjak[0]!, iPandemi)} dan ${fmtSektor(duaMelonjak[1]!, iPandemi)} justru mencatatkan pertumbuhan positif. Pemulihan terkuat ditunjukkan oleh sektor ${awalBesar(awalKecil(pulihTercepat.label))} pada 2022 yang melesat hingga <strong>${p(pulihTercepat.nilai[iPulih]!, 2)}</strong>. ${semuaPositif23 ? `Pada ${TPE[iAkhirPe]}, seluruh sektor lapangan usaha berhasil kembali ke zona pertumbuhan positif (data sementara), dipimpin oleh laju sektor ${fmtSektor(duaTeratas23[0]!, iAkhirPe)} serta ${fmtSektor(duaTeratas23[1]!, iAkhirPe)}.` : ""}`}
       sumber={[SB(923, 2, F7), SB(924, 1, F7)]}
     >
       <Figur judul="Pertumbuhan menurut lapangan usaha" satuan="persen per tahun; 2023 angka sementara; diurutkan dari kontraksi terdalam pada 2020">
@@ -1352,9 +1349,9 @@ const leadBab = [
 
     <Adegan
       id="4-3"
-      judul="Modal yang Terkumpul"
-      pertanyaan="Seberapa besar penanaman modal yang sudah terkumpul?"
-      tafsir={`Nilai investasi kumulatif di DIY mencapai <strong>Rp${d(inv23.totalTriliun, 2)} triliun</strong> sampai 2023, naik <strong>${p(inv.pertumbuhan.s2023, 2)}</strong> dari Rp${d(inv22.totalTriliun, 2)} triliun setahun sebelumnya; laporan membulatkannya menjadi ${inv23.pctStated}%. Tambahan investasi sepanjang 2023 Rp${d(inv23.tambahanTriliun, 2)} triliun, ${inv23.tambahanTriliun > inv22.tambahanTriliun ? "lebih besar" : "lebih kecil"} daripada tambahan 2022 (Rp${d(inv22.tambahanTriliun, 2)} triliun). Penanaman modal dalam negeri membentuk ${p(pmdnShare, 1)} dari nilai kumulatif.`}
+      judul="Akumulasi Investasi Daerah"
+      pertanyaan="Berapa capaian akumulasi realisasi penanaman modal di DIY?"
+      tafsir={`Akumulasi nilai investasi di DIY mencapai <strong>Rp${d(inv23.totalTriliun, 2)} triliun</strong> hingga akhir 2023, tumbuh <strong>${p(inv.pertumbuhan.s2023, 2)}</strong> dari Rp${d(inv22.totalTriliun, 2)} triliun pada tahun sebelumnya (tercatat pembulatan ${inv23.pctStated}% di laporan resmi). Tambahan realisasi investasi baru sepanjang 2023 mencapai Rp${d(inv23.tambahanTriliun, 2)} triliun, ${inv23.tambahanTriliun > inv22.tambahanTriliun ? "lebih tinggi" : "lebih rendah"} dibandingkan tambahan 2022 (Rp${d(inv22.tambahanTriliun, 2)} triliun). Penanaman Modal Dalam Negeri (PMDN) mendominasi dengan kontribusi ${p(pmdnShare, 1)} dari total akumulasi modal.`}
       sumber={SB(585, 1, FP)}
     >
       <Figur
@@ -1396,9 +1393,9 @@ const leadBab = [
     <Adegan
       id="4-4"
       lebar
-      judul="Peta Investasi"
-      pertanyaan="Ke kabupaten/kota mana investasi mengalir dari tahun ke tahun?"
-      tafsir={`Pusat investasi berpindah. Pada ${tahunInv[0]} ${namaK(terbesarPerTahun[0]!)} menarik realisasi terbesar, <strong>${rp(kp.t2019 * 1e9)}</strong>, lalu ${kpTurunTerus ? "turun setiap tahun" : "menurun"} hingga ${rp(kp.t2023 * 1e9)} pada 2023. Pada 2023 giliran ${invTerbesar.kabkota}: <strong>${rp(invTerbesar.t2023 * 1e9)}</strong>, ${p((100 * invTerbesar.t2023) / totalInv23, 1)} dari realisasi tahunan DIY. Investasi di ${bantul.kabkota} tumbuh ${d(bantulKali, 1)} kali lipat sejak 2021. Tekan tombol putar untuk melihat perpindahannya.`}
+      judul="Peta Aliran Investasi"
+      pertanyaan="Bagaimana tren pergeseran realisasi investasi antarkabupaten/kota dari tahun ke tahun?"
+      tafsir={`Arah konsentrasi investasi di DIY memperlihatkan pergeseran yang dinamis antardaerah. Pada ${tahunInv[0]}, ${namaK(terbesarPerTahun[0]!)} sempat membukukan realisasi investasi terbesar dengan nilai <strong>${rp(kp.t2019 * 1e9)}</strong> sebelum kemudian ${kpTurunTerus ? "mengalami tren penurunan bertahap" : "menurun"} ke angka ${rp(kp.t2023 * 1e9)} pada 2023. Pada 2023, porsi realisasi investasi tahunan terbesar bergeser ke ${invTerbesar.kabkota} dengan nilai <strong>${rp(invTerbesar.t2023 * 1e9)}</strong> atau menyerap ${p((100 * invTerbesar.t2023) / totalInv23, 1)} dari total realisasi tahunan se-DIY. Di sisi lain, arus investasi di ${bantul.kabkota} melesat signifikan hingga ${d(bantulKali, 1)} kali lipat sejak 2021. Tekan tombol putar (play) untuk melihat dinamika pergerakan tiap tahun.`}
       sumber={SB(586, 1, FP)}
       sumberLain={[SUMBER_PETA]}
     >
@@ -1425,9 +1422,9 @@ const leadBab = [
     <Adegan
       id="4-5"
       lebar
-      judul="Tempat Bermalam"
-      pertanyaan="Di mana wisatawan bermalam?"
-      tafsir={`Jumlah hotel di DIY bertambah dari ${n(totHotel(H_T22))} menjadi <strong>${n(totHotel(H_T23))}</strong>. ${hotelTop23 !== hotelTop22 ? `${namaK(hotelTop23)} kini memiliki hotel terbanyak, ${n(hotel(hotelTop23)[H_T23]!)}, menggeser ${namaK(hotelTop22)} yang berkurang dari ${n(hotel(hotelTop22)[H_T22]!)} menjadi ${n(hotel(hotelTop22)[H_T23]!)}.` : `${namaK(hotelTop23)} tetap memiliki hotel terbanyak, ${n(hotel(hotelTop23)[H_T23]!)}.`} Hotel berbintang terpusat di ${namaK(bintangTop)}: <strong>${n(hotel(bintangTop)[H_B23]!)} dari ${n(totHotel(H_B23))}</strong>. Pertumbuhan tercepat terjadi di ${namaK(hotelTumbuh)}, dari ${n(hotel(hotelTumbuh)[H_T22]!)} menjadi ${n(hotel(hotelTumbuh)[H_T23]!)} hotel.`}
+      judul="Sebaran Akomodasi Wisata"
+      pertanyaan="Bagaimana sebaran dan pertumbuhan fasilitas hotel berbintang maupun nonbintang di DIY?"
+      tafsir={`Kapasitas akomodasi pariwisata DIY terus bertumbuh, ditandai penambahan total hotel dari ${n(totHotel(H_T22))} unit menjadi <strong>${n(totHotel(H_T23))} unit</strong>. ${hotelTop23 !== hotelTop22 ? `${namaK(hotelTop23)} kini memiliki jumlah hotel terbanyak (${n(hotel(hotelTop23)[H_T23]!)} unit), menggeser ${namaK(hotelTop22)} yang mencatatkan ${n(hotel(hotelTop22)[H_T23]!)} unit (dari ${n(hotel(hotelTop22)[H_T22]!)} unit pada 2022).` : `${namaK(hotelTop23)} konsisten menjadi wilayah dengan jumlah hotel terbanyak (${n(hotel(hotelTop23)[H_T23]!)} unit).`} Hotel berbintang terkonsentrasi di ${namaK(bintangTop)} yang menyumbang <strong>${n(hotel(bintangTop)[H_B23]!)} dari ${n(totHotel(H_B23))} unit</strong> hotel berbintang di DIY. Sementara itu, pertumbuhan akomodasi tercepat dicapai oleh ${namaK(hotelTumbuh)} yang bertambah dari ${n(hotel(hotelTumbuh)[H_T22]!)} menjadi ${n(hotel(hotelTumbuh)[H_T23]!)} hotel.`}
       sumber={SB(639, 1, F7p)}
       sumberLain={[SUMBER_PETA]}
     >
@@ -1457,9 +1454,9 @@ const leadBab = [
     <Adegan
       id="5-1"
       lebar
-      judul="Sumbu Filosofi"
-      pertanyaan="Warisan apa yang dijaga keistimewaan DIY?"
-      tafsir={`LPPD mencatat penetapan Sumbu Filosofi sebagai Warisan Budaya Dunia oleh UNESCO sebagai penanda keberhasilan urusan keistimewaan 2023. Di peta, garis merah menghubungkan Tugu, Keraton, dan Panggung Krapyak; garis emas meneruskannya sebagai sumbu imajiner ke Gunung Merapi di utara dan Laut Selatan. Sampai 2023, pemerintah daerah mengelola dan melestarikan <strong>${n(cagar.jumlahRincian)} cagar budaya</strong>, terbanyak berupa ${awalKecil(cagarUrut[0]!.jenis)} (${n(cagarUrut[0]!.jumlah)})${cagar.jumlahRincian !== cagar.jumlahTertulis ? `; baris jumlah di tabel laporan menulis ${n(cagar.jumlahTertulis)}` : ""}.`}
+      judul="Warisan Budaya Sumbu Filosofi"
+      pertanyaan="Bagaimana komitmen pelestarian warisan budaya dan penetapan Sumbu Filosofi Yogyakarta?"
+      tafsir={`Capaian bersejarah urusan keistimewaan DIY pada 2023 ditandai dengan penetapan resmi Sumbu Filosofi Yogyakarta sebagai Warisan Budaya Dunia oleh UNESCO. Garis merah pada peta menghubungkan poros utama Tugu Pal Putih, Keraton Yogyakarta, dan Panggung Krapyak, yang berpadu dengan sumbu imajiner garis emas menuju Gunung Merapi di utara hingga Laut Selatan. Hingga akhir 2023, Pemda DIY secara aktif mengelola dan melestarikan <strong>${n(cagar.jumlahRincian)} cagar budaya</strong>, dengan kategori terbanyak berupa ${awalKecil(cagarUrut[0]!.jenis)} (${n(cagarUrut[0]!.jumlah)} objek)${cagar.jumlahRincian !== cagar.jumlahTertulis ? `; terdapat catatan selisih pada baris rekapitulasi tabel laporan yang mencantumkan ${n(cagar.jumlahTertulis)} objek` : ""}.`}
       sumber={[SB(1107, "naskah penutup Bab V", "bab-5-penutup.md"), SB(615, 1, F7b)]}
       sumberLain={[SUMBER_PETA, { label: "Penanda", teks: "letak Tugu, Keraton, Panggung Krapyak, Gunung Merapi, dan Laut Selatan diperkirakan untuk ilustrasi (data-story/geo/penanda.geojson), bukan angka LPPD." }]}
     >
@@ -1486,9 +1483,9 @@ const leadBab = [
 
     <Adegan
       id="5-2"
-      judul="Nilai Keistimewaan"
-      pertanyaan="Seberapa baik urusan keistimewaan dijalankan?"
-      tafsir={`Nilai akhir penyelenggaraan keistimewaan 2023 <strong>${d(nA.total, 2)}</strong> dari 100. Capaian fisik dan keuangan nyaris sempurna, ${d(nA.rerataCapaian, 2)}. Poin terbanyak hilang di ${(namaNA[naHilangIdx] ?? naHilang.nama).toLowerCase()}: skornya ${d(naHilang.nilai, 2)}, sehingga <strong>${d(naHilang.bobot - naHilang.hasil, 2)} poin</strong> dari bobotnya tidak teraih.`}
+      judul="Kinerja Urusan Keistimewaan"
+      pertanyaan="Berapa capaian nilai akhir akuntabilitas kinerja penyelenggaraan urusan keistimewaan DIY?"
+      tafsir={`Evaluasi kinerja penyelenggaraan kewenangan keistimewaan DIY 2023 memperoleh nilai akhir yang sangat tinggi, yakni <strong>${d(nA.total, 2)}</strong> dari skala 100. Realisasi capaian fisik dan penyerapan anggaran mencatatkan performa prima di angka ${d(nA.rerataCapaian, 2)}. Adapun ruang peningkatan terbesar berada pada aspek ${(namaNA[naHilangIdx] ?? naHilang.nama).toLowerCase()} dengan capaian skor ${d(naHilang.nilai, 2)}, di mana terdapat selisih <strong>${d(naHilang.bobot - naHilang.hasil, 2)} poin</strong> dari target pembobotan maksimal.`}
       sumber={SB(800, 1, FK)}
     >
       <Figur judul="Susunan nilai akhir keistimewaan" satuan="lebar ruas = bobot; isian = hasil yang diraih">
@@ -1504,9 +1501,9 @@ const leadBab = [
 
     <Adegan
       id="5-3"
-      judul="Dana Keistimewaan"
-      pertanyaan="Ke mana Dana Keistimewaan dibelanjakan?"
-      tafsir={`Dana Keistimewaan 2023 dianggarkan <strong>${rp(urK.total.anggaran)}</strong>; ${p((100 * urKeb.anggaran) / urK.total.anggaran, 1)} di antaranya untuk urusan ${urKeb.nama.toLowerCase()}. Realisasi keuangannya ${p(urK.total.keuangan, 2)} dan fisiknya ${p(urK.total.fisik, 2)}. ${kalimat(urRendah.nama)} menjadi urusan dengan serapan keuangan terendah, <strong>${p(urRendah.keuangan, 2)}</strong>.`}
+      judul="Alokasi Dana Keistimewaan"
+      pertanyaan="Bagaimana proporsi alokasi dan efektivitas serapan Dana Keistimewaan menurut bidang urusan?"
+      tafsir={`Pagu anggaran Dana Keistimewaan (Danais) pada 2023 ditetapkan sebesar <strong>${rp(urK.total.anggaran)}</strong>, dengan alokasi terbesar diarahkan untuk mendukung urusan ${urKeb.nama.toLowerCase()} (${p((100 * urKeb.anggaran) / urK.total.anggaran, 1)}). Kinerja realisasi anggaran menunjukkan efektivitas tinggi dengan serapan keuangan mencapai ${p(urK.total.keuangan, 2)} dan capaian fisik sebesar ${p(urK.total.fisik, 2)}. Bidang ${kalimat(urRendah.nama)} mencatatkan tingkat serapan keuangan paling rendah, yakni sebesar <strong>${p(urRendah.keuangan, 2)}</strong>.`}
       sumber={SB(800, 2, FK)}
     >
       <Figur
@@ -1548,9 +1545,9 @@ const leadBab = [
     <Adegan
       id="5-4"
       lebar
-      judul="Bantuan ke Kalurahan"
-      pertanyaan="Program apa saja yang dibiayai bantuan keuangan khusus kalurahan?"
-      tafsir={`Bantuan keuangan khusus kalurahan tersalur lewat ${n(bkk.baris.length)} program dengan pagu <strong>${rp(bkk.jumlah.pagu)}</strong> dan realisasi ${rp(bkk.jumlah.realisasi)} (${p((100 * bkk.jumlah.realisasi) / bkk.jumlah.pagu, 2)}). ${bkkFisikPenuh ? "Seluruh program melaporkan capaian fisik 100%. " : ""}Program terbesar adalah ${awalKecil(namaBkk(bkkTerbesar.jenis))} dengan pagu <strong>${rp(bkkTerbesar.pagu)}</strong>; tiga program terbesar saja sudah mengambil ${p((100 * bkkTigaBesar) / bkk.jumlah.pagu, 1)} dari seluruh pagu.`}
+      judul="BKK Kalurahan"
+      pertanyaan="Program prioritas apa saja yang didanai melalui Bantuan Keuangan Khusus (BKK) Kalurahan?"
+      tafsir={`Pemberdayaan masyarakat di tingkat akar rumput diperkuat melalui penyaluran BKK Kalurahan yang menjangkau ${n(bkk.baris.length)} program strategis, dengan total pagu <strong>${rp(bkk.jumlah.pagu)}</strong> dan realisasi sebesar ${rp(bkk.jumlah.realisasi)} (${p((100 * bkk.jumlah.realisasi) / bkk.jumlah.pagu, 2)}). ${bkkFisikPenuh ? "Seluruh program berhasil menuntaskan target fisik 100%. " : ""}Alokasi pendanaan terbesar diarahkan untuk program ${awalKecil(namaBkk(bkkTerbesar.jenis))} dengan pagu sebesar <strong>${rp(bkkTerbesar.pagu)}</strong>, di mana tiga program teratas secara kumulatif menyerap ${p((100 * bkkTigaBesar) / bkk.jumlah.pagu, 1)} dari total pagu BKK.`}
       sumber={[SB(739, 1, FB), SB(740, 1, FB)]}
     >
       <Figur judul="Pagu bantuan keuangan khusus kalurahan" satuan="luas petak sebanding pagu">
@@ -1572,9 +1569,9 @@ const leadBab = [
   <Bab no={6} id={i.bab[5]!.id} judul={i.bab[5]!.judul} sub={i.bab[5]!.sub} lead={leadBab[5]!} ikon={i.bab[5]!.ikon} ikonNama={i.bab[5]!.ikonNama}>
     <Adegan
       id="6-1"
-      judul="Pendidikan Menengah"
-      pertanyaan="Seberapa jauh layanan pendidikan menengah menjangkau penduduknya?"
-      tafsir={`Angka partisipasi kasar pendidikan menengah mencapai <strong>${p(ikkP.apk.rasio, 2)}</strong>. Angka ini melampaui 100% karena siswa yang bersekolah di DIY mencakup pelajar di luar kelompok usia sekolah dan pelajar dari luar daerah. Angka partisipasi murni ${p(ikkP.apm.rasio, 2)}. Layanan bagi anak berkebutuhan khusus menjangkau ${p(ikkP.abk.persen, 2)}: <strong>${n(abkBelum)} anak</strong> belum terlayani.`}
+      judul="Akses Pendidikan Menengah"
+      pertanyaan="Seberapa optimal daya jangkau partisipasi sekolah menengah dan layanan pendidikan inklusi?"
+      tafsir={`Angka Partisipasi Kasar (APK) pendidikan menengah di DIY mencapai <strong>${p(ikkP.apk.rasio, 2)}</strong>. Capaian di atas 100% ini mencerminkan tingginya daya tarik DIY sebagai kota pelajar, yang menampung banyak siswa lintas kelompok usia serta pelajar dari luar daerah. Sementara itu, Angka Partisipasi Murni (APM) berada di level ${p(ikkP.apm.rasio, 2)}. Pada layanan pendidikan inklusi, penjangkauan anak berkebutuhan khusus telah mencapai ${p(ikkP.abk.persen, 2)}, dengan sisa <strong>${n(abkBelum)} anak</strong> yang masih dalam proses pemenuhan akses layanan.`}
       sumber={SB("333–335", "blok rasio partisipasi sekolah dan ABK", F2)}
     >
       <Figur judul="Kinerja kunci pendidikan" satuan="persen">
@@ -1605,9 +1602,9 @@ const leadBab = [
 
     <Adegan
       id="6-2"
-      judul="Infrastruktur Dasar"
-      pertanyaan="Bagaimana kondisi infrastruktur dasar dan layanan rujukan kesehatan?"
-      tafsir={`Kebutuhan air minum curah lintas kabupaten/kota sebesar ${d(ikkU.airMinum.nilai, 2)} liter per detik terpenuhi <strong>${p(ikkU.airMinum.persen, 0)}</strong>, dan ${p(ikkU.jalan.persen, 2)} jalan provinsi dalam kondisi mantap. Sistem pengolahan air limbah domestik regional baru terisi <strong>${p(ikkU.spal.persen, 2)}</strong> dari kapasitasnya. Untuk layanan rujukan tersedia ${n(ikkH.tempatTidurRsRujukan)} tempat tidur rumah sakit, atau <strong>${d(ikkH.rasioPerRibu, 2)} per seribu penduduk</strong>.`}
+      judul="Layanan Infrastruktur Dasar"
+      pertanyaan="Bagaimana kondisi kemantapan jalan, air baku regional, dan kapasitas fasilitas rujukan kesehatan?"
+      tafsir={`Pemenuhan kebutuhan air minum curah regional lintas kabupaten/kota dengan debit ${d(ikkU.airMinum.nilai, 2)} liter/detik berhasil terpenuhi <strong>${p(ikkU.airMinum.persen, 0)}</strong>, serta sebanyak ${p(ikkU.jalan.persen, 2)} ruas jalan provinsi berada dalam kondisi mantap. Pada sektor sanitasi wilayah, utilisasi Sistem Pengolahan Air Limbah (SPAL) domestik regional tercatat sebesar <strong>${p(ikkU.spal.persen, 2)}</strong> dari total kapasitas terpasang. Pada sektor kesehatan rujukan, tersedia sebanyak ${n(ikkH.tempatTidurRsRujukan)} tempat tidur rumah sakit atau setara dengan rasio <strong>${d(ikkH.rasioPerRibu, 2)} per seribu penduduk</strong>.`}
       sumber={[SB("337–339", "blok infrastruktur dasar provinsi", F2), SB("335–337", "blok rumah sakit rujukan", F2)]}
     >
       <Figur judul="Infrastruktur dasar kewenangan provinsi" satuan="persen">
@@ -1636,9 +1633,9 @@ const leadBab = [
     <Adegan
       id="6-3"
       lebar
-      judul="Air Minum dan Sanitasi"
-      pertanyaan="Rumah tangga mana yang belum menikmati air minum dan sanitasi layak?"
-      tafsir={`<strong>${p(aksesAirPct, 2)}</strong> rumah tangga DIY sudah mengakses air minum, ${p(pipaPct, 1)} di antaranya lewat jaringan perpipaan. ${n(airTot[2]!)} rumah tangga belum berakses, dan <strong>${p((100 * air(belumTop)[2]!) / airTot[2]!, 1)}</strong> di antaranya berada di ${namaK(belumTop)}. ${tanpaBelum.length ? `${gabungDan(tanpaBelum)} tidak lagi memiliki rumah tangga tanpa akses. ` : ""}Porsi perpipaan tertinggi di ${namaK(pipaTop)} (${p((100 * air(pipaTop)[0]!) / rtKab(pipaTop), 1)}) dan terendah di ${namaK(pipaLow)} (${p((100 * air(pipaLow)[0]!) / rtKab(pipaLow), 1)}). Untuk sanitasi, ${p(sanLayakPct, 2)} rumah tangga sudah berakses layak${tanpaBabs ? " dan tidak ada lagi yang buang air besar sembarangan" : ""}, tetapi baru <strong>${p(sanAmanPct, 2)}</strong> yang tergolong aman; tertinggi di ${namaK(amanTop)}, terendah di ${namaK(amanLow)}.`}
+      judul="Air Bersih & Sanitasi Layak"
+      pertanyaan="Bagaimana sebaran pemenuhan akses air minum aman dan fasilitas sanitasi rumah tangga?"
+      tafsir={`Sebagian besar rumah tangga di DIY (<strong>${p(aksesAirPct, 2)}</strong>) telah memiliki akses terhadap air minum layak, dengan ${p(pipaPct, 1)} di antaranya terhubung melalui jaringan perpipaan. Namun, masih terdapat ${n(airTot[2]!)} rumah tangga yang belum terjangkau fasilitas memadai, di mana <strong>${p((100 * air(belumTop)[2]!) / airTot[2]!, 1)}</strong> di antaranya berada di ${namaK(belumTop)}. ${tanpaBelum.length ? `Sebaliknya, ${gabungDan(tanpaBelum)} telah berhasil menuntaskan akses air minum hingga 100%. ` : ""}Jangkauan perpipaan tertinggi berada di ${namaK(pipaTop)} (${p((100 * air(pipaTop)[0]!) / rtKab(pipaTop), 1)}) dan terendah di ${namaK(pipaLow)} (${p((100 * air(pipaLow)[0]!) / rtKab(pipaLow), 1)}). Pada sektor sanitasi, ${p(sanLayakPct, 2)} rumah tangga telah memiliki akses sanitasi layak${tanpaBabs ? " dan bebas dari praktik buang air besar sembarangan" : ""}, meski baru <strong>${p(sanAmanPct, 2)}</strong> yang memenuhi kualifikasi sanitasi aman—dengan capaian tertinggi di ${namaK(amanTop)} dan terendah di ${namaK(amanLow)}.`}
       sumber={[SB(467, 3, F7a), SB(463, 1, F7a)]}
     >
       <Figur judul="Akses air minum rumah tangga" satuan="satu kotak = satu persen rumah tangga wilayahnya, 2023">
@@ -1673,9 +1670,9 @@ const leadBab = [
     <Adegan
       id="6-4"
       lebar
-      judul="Capaian SPM"
-      pertanyaan="Bidang SPM mana yang sudah tuntas?"
-      tafsir={`${awalBesar(kata(paripurna.length))} dari ${kata(spmKat.length)} bidang SPM meraih kategori paripurna dengan indeks ${d(paripurna[0]?.indeks ?? 0, 0)}. ${nonParipurna.map((k) => `${k.bidang} berada satu tingkat di bawahnya, kategori ${k.kategori.toLowerCase()}, dengan indeks <strong>${d(k.indeks, 2)}</strong>`).join("; ")}.`}
+      judul="Evaluasi Capaian SPM"
+      pertanyaan="Bidang pelayanan dasar mana yang telah berhasil menuntaskan target Standar Pelayanan Minimal?"
+      tafsir={`Sebanyak ${kata(paripurna.length)} dari ${kata(spmKat.length)} bidang SPM di DIY berhasil meraih predikat tertinggi (kategori "Paripurna") dengan indeks sempurna ${d(paripurna[0]?.indeks ?? 0, 0)}. Sementara itu, bidang lainnya mencatatkan capaian mendekati tuntas: ${nonParipurna.map((k) => `bidang ${k.bidang} berada pada predikat ${k.kategori.toLowerCase()} dengan capaian indeks <strong>${d(k.indeks, 2)}</strong>`).join("; ")}.`}
       sumber={SB("1046–1105", "kategori dan indikator SPM per bidang", FS)}
     >
       <Figur judul="Indeks pencapaian SPM" satuan="indeks per bidang, skor penuh 100">
@@ -1705,9 +1702,9 @@ const leadBab = [
     <Adegan
       id="6-5"
       lebar
-      judul="SPM Pendidikan"
-      pertanyaan="Di mana layanan pendidikan belum mencapai targetnya?"
-      tafsir={`Dari ${n(pInd.length)} indikator SPM pendidikan yang terbaca, <strong>${n(indBelum.length)}</strong> belum mencapai target. Celah terbesar ada pada ${indTerendah.label.toLowerCase()} ${indTerendah.jenjang.toLowerCase()}: <strong>${p(indTerendah.pct, 2)}</strong> dari target. Di jenjang lain, indikator yang tertinggal meliputi ${gabungDan(labelBelumSmaSmk)}.`}
+      judul="Rincian SPM Pendidikan"
+      pertanyaan="Indikator mutu pendidikan pada jenjang mana saja yang masih memerlukan akselerasi pemenuhan?"
+      tafsir={`Dari total ${n(pInd.length)} indikator SPM pendidikan yang dievaluasi, tercatat <strong>${n(indBelum.length)} indikator</strong> yang belum memenuhi target 100%. Kesenjangan pemenuhan terbesar terdapat pada indikator ${indTerendah.label.toLowerCase()} jenjang ${indTerendah.jenjang.toLowerCase()} yang baru mencapai <strong>${p(indTerendah.pct, 2)}</strong> dari target. Pada jenjang lainnya, akselerasi masih diperlukan pada aspek ${gabungDan(labelBelumSmaSmk)}.`}
       sumber={[SB(1046, 1, FS), SB(1047, 1, FS)]}
     >
       <Figur judul="Indikator SPM pendidikan" satuan="persen dari target; merah: belum mencapai target">
@@ -1723,9 +1720,9 @@ const leadBab = [
 
     <Adegan
       id="6-6"
-      judul="Anak Berkebutuhan Khusus"
-      pertanyaan="Berapa anak berkebutuhan khusus yang sudah terlayani?"
-      tafsir={`Layanan pendidikan khusus menjangkau <strong>${n(khus.terlayani)}</strong> dari ${n(khus.harusDilayani)} anak yang harus dilayani (${p(khus.persen, 2)}). Masih ada <strong>${n(khus.belumTerlayani)} anak</strong> yang belum terlayani. Indeks pencapaian SPM pendidikan khusus ${d(khus.indeksKhusus, 2)}.`}
+      judul="Pendidikan Khusus & Inklusi"
+      pertanyaan="Berapa banyak anak berkebutuhan khusus yang telah memperoleh layanan pendidikan khusus?"
+      tafsir={`Penyelenggaraan layanan pendidikan khusus di DIY telah menjangkau sebanyak <strong>${n(khus.terlayani)} anak</strong> dari total sasaran ${n(khus.harusDilayani)} anak berkebutuhan khusus (${p(khus.persen, 2)}). Upaya pemenuhan terus ditingkatkan untuk memfasilitasi <strong>${n(khus.belumTerlayani)} anak</strong> yang belum terlayani secara optimal. Adapun indeks pencapaian SPM pendidikan khusus secara keseluruhan berhasil mencapai angka <strong>${d(khus.indeksKhusus, 2)}</strong>.`}
       sumber={SB(1047, 1, FS)}
     >
       <Figur judul="Layanan pendidikan khusus" satuan="satu kotak = satu persen anak yang harus dilayani">
@@ -1766,9 +1763,9 @@ const leadBab = [
 
     <Adegan
       id="7-1"
-      judul="Catatan Celah Data"
-      pertanyaan="Catatan apa saja yang direkam selama pengolahan data?"
-      tafsir={`Pipeline merekam <strong>${n(celah.length)} catatan</strong>: pembulatan antartabel, sel yang tak terbaca mesin, ralat yang dicatat laporan sendiri, penulisan angka yang tidak seragam, dan satuan yang perlu ditafsirkan. Sel yang rusak tidak pernah ditampilkan sebagai angka; ia dilaporkan di sini.`}
+      judul="Catatan Rekonsiliasi Data"
+      pertanyaan="Hal teknis dan diskrepansi apa saja yang ditemukan saat verifikasi data laporan resmi?"
+      tafsir={`Selama proses verifikasi dan ekstraksi data dokumen LPPD DIY 2023, sistem mencatat secara transparan <strong>${n(celah.length)} poin anomali teknis</strong>. Catatan ini mencakup selisih pembulatan antar-tabel, sel dokumen pindaian yang buram (OCR), ralat resmi yang dicantumkan dalam naskah laporan, serta variasi penulisan angka. Seluruh data yang tidak terbaca utuh tidak direkayasa, melainkan dicatat apa adanya demi menjaga akuntabilitas informasi.`}
       sumberTeks="manifes catatan celah, dihasilkan scripts/build_data.mjs dari pemeriksaan aritmetika atas tabel LPPD DIY 2023 (bab 1–5)."
     >
       <ol class="daftar-celah">
@@ -1778,9 +1775,9 @@ const leadBab = [
 
     <Adegan
       id="7-2"
-      judul="Unduhan Data"
-      pertanyaan="Bagaimana mengunduh dan memeriksa angkanya?"
-      tafsir={`Tersedia <strong>${n(unduhan.filter((u) => u.berkas.endsWith(".csv")).length)} berkas CSV</strong> berisi tabel agregat yang sudah melewati pemeriksaan aritmetika otomatis, ditambah ${kata(unduhan.filter((u) => u.berkas.endsWith(".geojson")).length)} berkas GeoJSON batas wilayah yang dipakai peta. Setiap berkas menunjuk kembali sumbernya, dan dapat dibuka di aplikasi lembar kerja atau aplikasi GIS.`}
+      judul="Dataset & Unduhan Publik"
+      pertanyaan="Bagaimana cara mengunduh dan memanfaatkan dataset terbuka dari data story ini?"
+      tafsir={`Tersedia <strong>${n(unduhan.filter((u) => u.berkas.endsWith(".csv")).length)} berkas dataset CSV</strong> berisi tabel-tabel agregat yang telah lolos validasi aritmetika, serta ${kata(unduhan.filter((u) => u.berkas.endsWith(".geojson")).length)} berkas GeoJSON batas wilayah yang dapat digunakan langsung pada perangkat lunak GIS maupun aplikasi pengolah data. Setiap berkas memuat rujukan tabel sumber secara lengkap untuk memudahkan audit dan analisis lanjutan.`}
       sumberTeks="berkas unduhan dihasilkan pipeline dari tabel LPPD DIY 2023 (bab 1–5), pemisah titik koma, desimal koma; GeoJSON dalam EPSG:4326."
     >
       <ul class="unduhan">
