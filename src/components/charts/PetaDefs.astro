@@ -1,0 +1,28 @@
+---
+/**
+ * PetaDefs — jalur batas wilayah, dirender sekali di halaman.
+ *
+ * Setiap peta memanggil jalur ini lewat <use href="#…">, sehingga data batas
+ * (hasil proyeksi GeoJSON saat build) hanya dikirim satu kali betapapun
+ * banyaknya peta. Jalur sengaja tanpa isian dan goresan: warna ditentukan
+ * elemen <use> di tiap peta dan diwariskan ke jalur ini.
+ */
+import { peta } from "../../lib/data";
+---
+
+<svg class="peta-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    {peta.kab.map((k) => <path id={`pk-${k.kode}`} d={k.d} vector-effect="non-scaling-stroke" />)}
+    {peta.kapanewon.map((k) => <path id={`pc-${k.kode}`} d={k.d} vector-effect="non-scaling-stroke" />)}
+    {peta.sekitar.map((s, i) => <path id={`ps-${i}`} d={s.d} vector-effect="non-scaling-stroke" />)}
+  </defs>
+</svg>
+
+<style>
+  .peta-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+</style>

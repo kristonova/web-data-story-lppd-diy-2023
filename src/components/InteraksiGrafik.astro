@@ -10,6 +10,9 @@
  *                   Tanda tanpa data-t meminjam isi tooltip dari anggota grup
  *                   yang memilikinya (misalnya 100 kotak waffle → baris legenda).
  *  · `[data-k]`     kelompok wilayah untuk filter `[data-filter]` di figur yang sama.
+ *  · `[data-lapis-induk]` grafik berlapis: tombol `[data-pilih]` mengganti lapis
+ *                   aktif (atribut data-lapis), `[data-putar]` memutar lapis
+ *                   berurutan; isi tooltip per lapis di data-t0/data-v0/data-s0 ….
  *
  * Tooltip memperkaya, tidak pernah menggerbang: tanpa JavaScript seluruh angka
  * tetap terbaca di tabel angka alternatif. Seluruh teks dimasukkan lewat
@@ -211,6 +214,80 @@
 
     document.addEventListener("focusout", function (e) {
       if (vizAktif && e.target === vizAktif) bersih();
+    });
+
+    // Lapis grafik/peta: tombol [data-pilih] di dalam [data-lapis-induk] mengganti
+    // lapis aktif. Isi tooltip per lapis tersimpan di data-t0/data-v0/data-s0 …
+    function pilihLapis(induk, i, umumkan) {
+      induk.classList.add("is-siap");
+      induk.setAttribute("data-lapis", String(i));
+      var tombol = induk.querySelectorAll("[data-pilih]");
+      var nama = "";
+      for (var k = 0; k < tombol.length; k++) {
+        var pas = tombol[k].getAttribute("data-pilih") === String(i);
+        tombol[k].setAttribute("aria-pressed", pas ? "true" : "false");
+        if (pas) nama = tombol[k].textContent;
+      }
+      var tanda = induk.querySelectorAll("[data-v" + i + "]");
+      for (var j = 0; j < tanda.length; j++) {
+        ["t", "v", "s"].forEach(function (a) {
+          var v = tanda[j].getAttribute("data-" + a + i);
+          if (v !== null) tanda[j].setAttribute("data-" + a, v);
+          else if (a === "s") tanda[j].removeAttribute("data-s");
+        });
+      }
+      bersih();
+      if (umumkan && nama) siaran.textContent = "Lapisan ditampilkan: " + nama;
+    }
+
+    var putaran = [];
+    function hentikan(induk) {
+      for (var i = putaran.length - 1; i >= 0; i--) {
+        if (putaran[i].induk !== induk) continue;
+        clearInterval(putaran[i].id);
+        putaran.splice(i, 1);
+      }
+      var b = induk.querySelector("[data-putar]");
+      if (b) {
+        b.setAttribute("aria-pressed", "false");
+        var t = b.querySelector("[data-putar-teks]");
+        if (t) t.textContent = "Putar";
+      }
+    }
+    function mulaiPutar(induk) {
+      var n = induk.querySelectorAll("[data-pilih]").length;
+      if (n < 2) return;
+      var i = Number(induk.getAttribute("data-lapis") || 0);
+      if (i >= n - 1) {
+        i = 0;
+        pilihLapis(induk, 0, false);
+      }
+      var b = induk.querySelector("[data-putar]");
+      b.setAttribute("aria-pressed", "true");
+      var t = b.querySelector("[data-putar-teks]");
+      if (t) t.textContent = "Jeda";
+      var id = setInterval(function () {
+        i += 1;
+        pilihLapis(induk, i, true);
+        if (i >= n - 1) hentikan(induk);
+      }, 1400);
+      putaran.push({ induk: induk, id: id });
+    }
+
+    document.addEventListener("click", function (e) {
+      if (!e.target || !e.target.closest) return;
+      var pilih = e.target.closest("[data-pilih]");
+      var putar = e.target.closest("[data-putar]");
+      var induk = (pilih || putar) && (pilih || putar).closest("[data-lapis-induk]");
+      if (!induk) return;
+      if (pilih) {
+        hentikan(induk);
+        pilihLapis(induk, Number(pilih.getAttribute("data-pilih")), true);
+      } else if (putar.getAttribute("aria-pressed") === "true") {
+        hentikan(induk);
+      } else {
+        mulaiPutar(induk);
+      }
     });
 
     // Filter kelompok wilayah: pilih satu kelompok, sisanya meredup.

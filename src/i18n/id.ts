@@ -12,7 +12,7 @@
 
 export const judul = "LPPD DIY 2023 dalam Angka";
 export const deskripsi =
-  "Web data story Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023: wilayah dan penduduk, keuangan daerah, kesejahteraan, kinerja kunci, keistimewaan, dan standar pelayanan minimal. Setiap angka menunjuk halaman dan tabel sumbernya.";
+  "Web data story Laporan Penyelenggaraan Pemerintahan Daerah DIY Tahun 2023: peta wilayah dan penduduk, arus keuangan daerah, kesejahteraan antarwilayah, ekonomi dan investasi, keistimewaan, dan layanan dasar. Setiap angka menunjuk halaman dan tabel sumbernya.";
 
 export const sampul = {
   label: "Laporan Penyelenggaraan Pemerintahan Daerah",
@@ -59,15 +59,15 @@ export const bab: BabTeks[] = [
     id: "bab-3",
     judul: "Kesejahteraan Masyarakat",
     nav: "Kesejahteraan",
-    sub: "Pembangunan manusia, kemiskinan, pasar kerja, dan ketimpangan",
+    sub: "Pembangunan manusia, kemiskinan, pasar kerja, dan jarak antarwilayah",
     ikon: "ikon-beringin-kembar",
     ikonNama: "Beringin Kembar",
   },
   {
     id: "bab-4",
-    judul: "Kinerja Kunci dan Investasi",
-    nav: "Kinerja",
-    sub: "Pendidikan, kesehatan, infrastruktur dasar, dan penanaman modal",
+    judul: "Ekonomi dan Investasi",
+    nav: "Ekonomi",
+    sub: "Pertumbuhan wilayah, lapangan usaha, penanaman modal, dan akomodasi wisata",
     ikon: "ikon-becak",
     ikonNama: "Becak",
   },
@@ -75,15 +75,15 @@ export const bab: BabTeks[] = [
     id: "bab-5",
     judul: "Urusan Keistimewaan",
     nav: "Keistimewaan",
-    sub: "Dana Keistimewaan dan bantuan keuangan khusus kalurahan",
+    sub: "Warisan budaya, Dana Keistimewaan, dan bantuan keuangan khusus kalurahan",
     ikon: "ikon-keraton",
     ikonNama: "Keraton",
   },
   {
     id: "bab-6",
-    judul: "Standar Pelayanan Minimal",
-    nav: "SPM",
-    sub: "Layanan dasar yang wajib dipenuhi pemerintah daerah",
+    judul: "Layanan Dasar",
+    nav: "Layanan",
+    sub: "Pendidikan, infrastruktur, air minum, sanitasi, dan standar pelayanan minimal",
     ikon: "ikon-lampu-antik",
     ikonNama: "Lampu Antik",
   },
@@ -95,9 +95,9 @@ export const penutup = {
   lead:
     "Tidak semua angka dalam laporan dapat dibaca utuh. Sebagian sel rusak akibat pembacaan mesin, dan beberapa pembulatan tidak konsisten antartabel. Catatan itu tidak disembunyikan: semuanya direkam pipeline dan ditampilkan di sini, diikuti berkas unduhan agregat.",
   kolofonData:
-    "Semua angka berasal dari Laporan Penyelenggaraan Pemerintahan Daerah Daerah Istimewa Yogyakarta Tahun 2023. Berkas unduhan adalah tabel yang sudah melewati pemeriksaan aritmetika otomatis sebelum ditulis.",
+    "Semua angka berasal dari Laporan Penyelenggaraan Pemerintahan Daerah Daerah Istimewa Yogyakarta Tahun 2023. Berkas unduhan adalah tabel yang sudah melewati pemeriksaan aritmetika otomatis sebelum ditulis. Batas wilayah pada peta berasal dari portal GIS Dukcapil Kemendagri dan bersifat indikatif.",
   kolofonDesain:
-    "Identitas visual mengikuti pedoman Jogja Istimewa; hak cipta logo dan identitas visual ada pada Pemerintah Daerah Istimewa Yogyakarta. Huruf Source Sans 3 (SIL Open Font License) dan Jogjakartype (© Locomotype, lisensi gratis non-komersial).",
+    "Identitas visual mengikuti pedoman Jogja Istimewa; hak cipta logo dan identitas visual ada pada Pemerintah Daerah Istimewa Yogyakarta. Huruf Source Sans 3 (SIL Open Font License) untuk naskah dan Jogjakartype (© Locomotype, lisensi gratis non-komersial) untuk judul.",
 };
 
 export const akhir = {

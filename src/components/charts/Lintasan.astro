@@ -1,0 +1,246 @@
+---
+/**
+ * Lintasan — perjalanan satu ukuran per wilayah dari periode awal ke akhir.
+ *
+ * Setiap baris adalah satu rel mendatar: titik periode antara digambar
+ * kecil, periode awal berupa cincin, periode akhir bulatan penuh, dan garis
+ * penghubung awal→akhir berujung panah ke arah perubahan. Rentang tertinggi
+ * di tengah perjalanan (mis. puncak pandemi) tetap terlihat sebagai titik
+ * yang menjauh dari garis. Periode yang selnya tak terbaca dilewati.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Baris {
+  label: string;
+  nilai: (number | null)[];
+  tampil: string[];
+  warna: string;
+  sub?: string;
+  sorot?: boolean;
+}
+interface Props {
+  label: string;
+  periode: string[];
+  rows: Baris[];
+  min: number;
+  max: number;
+  tik: { nilai: number; label: string }[];
+  /** Indeks periode yang diberi tanda puncak (opsional). */
+  puncak?: number;
+}
+
+const { label, periode, rows, min, max, tik, puncak } = Astro.props;
+const px = (v: number) => (100 * (v - min)) / (max - min);
+const akhir = periode.length - 1;
+---
+
+<div class="viz ln" {...kontainer(label)}>
+  <div class="ln__kisi" aria-hidden="true">
+    {tik.map((t) => <span style={`left:${css(px(t.nilai))}`}>{t.label}</span>)}
+  </div>
+  {
+    rows.map((r, ri) => {
+      const a = r.nilai[0]!;
+      const z = r.nilai[akhir]!;
+      const turun = z < a;
+      return (
+        <div class:list={["ln__baris", r.sorot && "is-sorot"]} style={`--w:${r.warna}`}>
+          <div class="ln__nama">
+            <b>{r.label}</b>
+            {r.sub && <span>{r.sub}</span>}
+          </div>
+          <div class="ln__rel">
+            {tik.map((t) => <i class="ln__garis-kisi" style={`left:${css(px(t.nilai))}`} aria-hidden="true" />)}
+            <span
+              class:list={["ln__hubung", turun ? "is-turun" : "is-naik"]}
+              style={`left:${css(px(Math.min(a, z)))};width:${css(Math.abs(px(z) - px(a)))};--tunda-k:${ri * 90}ms`}
+              data-anim={turun ? "x-kanan" : "x"}
+              aria-hidden="true"
+            />
+            {r.nilai.map((v, j) =>
+              v == null ? null : (
+                <span
+                  class:list={["ln__titik", j === 0 && "is-awal", j === akhir && "is-akhir", j === puncak && "is-puncak"]}
+                  style={`left:${css(px(v))};--tunda-k:${ri * 90 + j * 110}ms`}
+                  data-anim="titik"
+                  data-g={`l${ri}`}
+                  {...tip({ judul: `${r.label} · ${periode[j]}`, nilai: r.tampil[j] ?? "", warna: r.warna })}
+                />
+              ),
+            )}
+            <span class="ln__nilai ln__nilai--awal" style={`left:${css(px(a))}`} data-anim="pudar">
+              {r.tampil[0]}
+            </span>
+            <span class="ln__nilai ln__nilai--akhir" style={`left:${css(px(z))}`} data-anim="pudar">
+              {r.tampil[akhir]}
+            </span>
+          </div>
+        </div>
+      );
+    })
+  }
+  <ul class="ln__kunci" aria-hidden="true">
+    <li><i class="ln__titik is-awal is-contoh" />{periode[0]}</li>
+    <li><i class="ln__titik is-contoh" />periode antara</li>
+    {puncak != null && <li><i class="ln__titik is-puncak is-contoh" />{periode[puncak]}</li>}
+    <li><i class="ln__titik is-akhir is-contoh" />{periode[akhir]}</li>
+  </ul>
+</div>
+
+<style>
+  .ln {
+    --lebar-nama: 9.5rem;
+  }
+  .ln__kisi {
+    position: relative;
+    height: 1.6em;
+    margin-left: var(--lebar-nama);
+  }
+  .ln__kisi span {
+    position: absolute;
+    bottom: 4px;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .ln__baris {
+    display: grid;
+    grid-template-columns: var(--lebar-nama) minmax(0, 1fr);
+    align-items: center;
+    min-height: 68px;
+    border-top: 1px solid var(--hairline);
+  }
+  .ln__nama {
+    display: flex;
+    flex-direction: column;
+    padding-right: var(--space-4);
+    font-size: var(--fs-small);
+    line-height: 1.2;
+  }
+  .ln__nama b {
+    font-weight: 600;
+  }
+  .ln__nama span {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .ln__baris.is-sorot .ln__nama span {
+    color: var(--red);
+    font-weight: 600;
+  }
+  .ln__rel {
+    position: relative;
+    height: 68px;
+  }
+  .ln__garis-kisi {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 1px solid var(--c-kisi);
+  }
+  .ln__hubung {
+    position: absolute;
+    top: 50%;
+    height: 3px;
+    margin-top: -1.5px;
+    background: var(--w);
+    opacity: 0.55;
+  }
+  .ln__hubung::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-block: 5px solid transparent;
+    margin-top: -5px;
+  }
+  .ln__hubung.is-turun::after {
+    left: -2px;
+    border-right: 7px solid var(--w);
+  }
+  .ln__hubung.is-naik::after {
+    right: -2px;
+    border-left: 7px solid var(--w);
+  }
+  .ln__titik {
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    background: var(--c-redup);
+    cursor: default;
+  }
+  .ln__titik::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
+  .ln__titik.is-awal {
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    background: var(--white);
+    border: 2.5px solid var(--w, var(--ink));
+  }
+  .ln__titik.is-puncak {
+    background: var(--white);
+    border: 1.5px dashed var(--ink);
+  }
+  .ln__titik.is-akhir {
+    width: 15px;
+    height: 15px;
+    margin: -7.5px 0 0 -7.5px;
+    background: var(--w, var(--ink));
+  }
+  .ln__nilai {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--text-muted);
+  }
+  .ln__nilai--awal {
+    top: 4px;
+  }
+  .ln__nilai--akhir {
+    bottom: 3px;
+    font-weight: 600;
+    color: var(--text);
+    font-size: var(--fs-small);
+  }
+  .ln__kunci {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin: var(--space-4) 0 0 var(--lebar-nama);
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .ln__kunci li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .ln__titik.is-contoh {
+    position: relative;
+    top: auto;
+    margin: 0;
+    --w: var(--ink);
+  }
+  @media (max-width: 600px) {
+    .ln {
+      --lebar-nama: 6.25rem;
+    }
+    .ln__kunci {
+      margin-left: 0;
+    }
+  }
+</style>

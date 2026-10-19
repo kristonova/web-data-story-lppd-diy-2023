@@ -14,6 +14,8 @@ interface Item {
   tampil: string;
   sub?: string;
   sorot?: boolean;
+  /** Warna busur; bawaan tinta (atau merah bila disorot). */
+  warna?: string;
 }
 interface Props {
   label: string;
@@ -41,7 +43,7 @@ const K = q(2 * Math.PI * R);
                 class="cc__busur"
                 stroke-dasharray={`${busur} ${K}`}
                 data-anim="busur"
-                style={`--busur:${busur};--k:${K}`}
+                style={`--busur:${busur};--k:${K}${it.warna ? `;stroke:${it.warna}` : ""}`}
                 transform="rotate(-90 64 64)"
               />
             </svg>

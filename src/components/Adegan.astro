@@ -3,9 +3,10 @@
  * Adegan — struktur tetap seluruh adegan bernomor:
  * judul bergaris (pertanyaan) → visual di kiri → tafsir dan sumber di kanan.
  *
- * Judul memakai pola SectionTitle pedoman Jogja Istimewa: judul `title`
- * lalu garis aksen yang berawal dari tepi kiri layar. Kalimat tafsir
- * menyatakan apa yang terlihat pada data; rekomendasi tidak muncul di sini.
+ * Judul memakai pola SectionTitle pedoman Jogja Istimewa: judul pendek
+ * berhuruf Jogjakartype, pertanyaan adegan sebagai anak judul, lalu garis
+ * aksen yang berawal dari tepi kiri layar. Kalimat tafsir menyatakan apa
+ * yang terlihat pada data; rekomendasi tidak muncul di sini.
  */
 import type { Sumber } from "../lib/data";
 import { prov } from "../lib/data";
@@ -13,15 +14,19 @@ import { anchor } from "../lib/format";
 
 interface Props {
   id: string;
+  /** Judul pendek (dua sampai empat kata), berhuruf Jogjakartype. */
+  judul: string;
   pertanyaan: string;
   tafsir: string;
   sumber?: Sumber | Sumber[];
   sumberTeks?: string;
+  /** Sumber di luar LPPD (mis. batas wilayah peta), ditulis apa adanya. */
+  sumberLain?: { label: string; teks: string }[];
   /** Visual selebar wadah; tafsir pindah ke bawah dalam dua kolom. */
   lebar?: boolean;
 }
 
-const { id, pertanyaan, tafsir, sumber = [], sumberTeks, lebar = false } = Astro.props;
+const { id, judul, pertanyaan, tafsir, sumber = [], sumberTeks, sumberLain = [], lebar = false } = Astro.props;
 const daftar = Array.isArray(sumber) ? sumber : [sumber];
 const nomor = id.replace("-", ".");
 const ank = anchor(id);
@@ -31,7 +36,8 @@ const ank = anchor(id);
   <div class="wrap">
     <header class="jb" data-reveal>
       <span class="jb__no" aria-hidden="true">{nomor}</span>
-      <h3 class="jb__teks" id={`${ank}-judul`}><span class="sr-only">Adegan {id}. </span>{pertanyaan}</h3>
+      <h3 class="jb__teks" id={`${ank}-judul`}><span class="sr-only">Adegan {id}. </span>{judul}</h3>
+      <p class="jb__tanya">{pertanyaan}</p>
       <div class="jb__garis" aria-hidden="true"></div>
     </header>
 
@@ -52,6 +58,9 @@ const ank = anchor(id);
               ))
             )
           }
+          {sumberLain.map((s) => (
+            <p class="sumber"><b>{s.label}</b> {s.teks}</p>
+          ))}
         </div>
       </div>
     </div>

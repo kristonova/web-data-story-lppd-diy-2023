@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "name": "Penanda dan label peta DIY",
+  "metadata": {
+    "sumber": "Koordinat perkiraan penanda tempat dan letak label, disusun untuk ilustrasi peta (bukan angka LPPD). Garis Sumbu Filosofi digambar menghubungkan penanda berjenis 'sumbu' sesuai urutannya.",
+    "crs": "EPSG:4326"
+  },
+  "features": [
+    { "type": "Feature", "properties": { "nama": "Gunung Merapi", "jenis": "sumbu", "urut": 1, "ikon": "ikon-merapi" }, "geometry": { "type": "Point", "coordinates": [110.4457, -7.5407] } },
+    { "type": "Feature", "properties": { "nama": "Tugu Yogyakarta", "jenis": "sumbu", "urut": 2, "ikon": "ikon-tugu" }, "geometry": { "type": "Point", "coordinates": [110.3671, -7.7829] } },
+    { "type": "Feature", "properties": { "nama": "Keraton Yogyakarta", "jenis": "sumbu", "urut": 3, "ikon": "ikon-keraton" }, "geometry": { "type": "Point", "coordinates": [110.3644, -7.8053] } },
+    { "type": "Feature", "properties": { "nama": "Panggung Krapyak", "jenis": "sumbu", "urut": 4 }, "geometry": { "type": "Point", "coordinates": [110.3594, -7.8273] } },
+    { "type": "Feature", "properties": { "nama": "Laut Selatan", "jenis": "sumbu", "urut": 5 }, "geometry": { "type": "Point", "coordinates": [110.3208, -8.0247] } },
+    { "type": "Feature", "properties": { "nama": "Samudra Hindia", "jenis": "laut" }, "geometry": { "type": "Point", "coordinates": [110.43, -8.19] } },
+    { "type": "Feature", "properties": { "nama": "Jawa Tengah", "jenis": "provinsi" }, "geometry": { "type": "Point", "coordinates": [110.7, -7.62] } }
+  ]
+}

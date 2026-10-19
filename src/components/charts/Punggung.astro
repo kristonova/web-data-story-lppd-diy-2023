@@ -1,0 +1,225 @@
+---
+/**
+ * Punggung — ridgeline: sebaran umur tiap kabupaten/kota sebagai punggung
+ * bukit yang bertumpuk, seperti lapis pegunungan di cakrawala Jogja.
+ *
+ * Setiap punggung adalah porsi penduduk per kelompok umur lima tahunan
+ * (jumlah satu punggung = 100%). Bagian lansia diberi isian lebih pekat.
+ * Kurva dihaluskan dengan interpolasi monoton (Fritsch–Carlson) sehingga
+ * tidak pernah melampaui nilai data di antara dua titik.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+import { q } from "../../lib/chart";
+import { campur } from "../../lib/warna";
+
+interface Baris {
+  label: string;
+  nilai: number[];
+  tampil: string[];
+  ringkas: string;
+  sub: string;
+  warna: string;
+  sorot?: boolean;
+}
+interface Props {
+  label: string;
+  x: string[];
+  rows: Baris[];
+  /** Indeks kelompok umur pertama yang dihitung lansia. */
+  awalLansia: number;
+  /** Label kelompok yang ditulis di sumbu bawah. */
+  tikX?: number[];
+}
+
+const { label, x, rows, awalLansia, tikX = x.map((_, i) => i).filter((i) => i % 3 === 0 || i === x.length - 1) } = Astro.props;
+
+const W = 1000;
+const BARIS = 64; // jarak antarbaris, px
+const PUNCAK = 150; // tinggi puncak terbesar, px
+const ATAS = PUNCAK - BARIS + 18;
+const H = ATAS + rows.length * BARIS + 6;
+const maks = Math.max(...rows.flatMap((r) => r.nilai));
+const px = (i: number) => (W * i) / (x.length - 1);
+
+/** Titik kurva monoton → perintah kubik SVG. */
+function kurva(ys: number[]): string {
+  const n = ys.length;
+  const xs = ys.map((_, i) => px(i));
+  const d = ys.slice(0, -1).map((y, i) => (ys[i + 1]! - y) / (xs[i + 1]! - xs[i]!));
+  const m = ys.map((_, i) => (i === 0 ? d[0]! : i === n - 1 ? d[n - 2]! : d[i - 1]! * d[i]! <= 0 ? 0 : (d[i - 1]! + d[i]!) / 2));
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = (m[i]!) / (d[i]!);
+    const b = (m[i + 1]!) / (d[i]!);
+    const s = a * a + b * b;
+    if (s > 9) {
+      const t = 3 / Math.sqrt(s);
+      m[i] = t * a * d[i]!;
+      m[i + 1] = t * b * d[i]!;
+    }
+  }
+  let out = `M${q(xs[0]!)} ${q(ys[0]!)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = (xs[i + 1]! - xs[i]!) / 3;
+    out += `C${q(xs[i]! + h)} ${q(ys[i]! + m[i]! * h)} ${q(xs[i + 1]! - h)} ${q(ys[i + 1]! - m[i + 1]! * h)} ${q(xs[i + 1]!)} ${q(ys[i + 1]!)}`;
+  }
+  return out;
+}
+
+const punggung = rows.map((r, i) => {
+  const dasar = ATAS + (i + 1) * BARIS;
+  const ys = r.nilai.map((v) => dasar - (PUNCAK * v) / maks);
+  const garis = kurva(ys);
+  const bidang = `${garis}L${W} ${dasar}L0 ${dasar}Z`;
+  return { r, dasar, garis, bidang, i };
+});
+const xLansia = px(awalLansia) - px(1) / 2;
+---
+
+<div class="viz pg" style={`--h:${H}px`} {...kontainer(label)}>
+  <div class="pg__plot">
+    <svg class="pg__svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        {punggung.map((p) => (
+          <clipPath id={`pg-lansia-${p.i}`}>
+            <rect x={xLansia} y="0" width={W - xLansia} height={H} />
+          </clipPath>
+        ))}
+      </defs>
+      {punggung.map((p) => (
+        <g class="pg__baris" data-anim="naik" style={`--tunda-k:${p.i * 140}ms`} data-g={`r${p.i}`}>
+          <path d={p.bidang} fill={campur(p.r.warna, "#ffffff", 0.9)} class="pg__bidang" />
+          <path d={p.bidang} fill={campur(p.r.warna, "#ffffff", 0.5)} clip-path={`url(#pg-lansia-${p.i})`} />
+          <path d={p.garis} fill="none" stroke={p.r.warna} stroke-width={p.r.sorot ? 2.6 : 1.8} vector-effect="non-scaling-stroke" />
+          <line x1="0" x2={W} y1={p.dasar} y2={p.dasar} class="pg__dasar" vector-effect="non-scaling-stroke" />
+        </g>
+      ))}
+      <line x1={xLansia} x2={xLansia} y1={ATAS - 10} y2={H - 6} class="pg__batas" vector-effect="non-scaling-stroke" />
+    </svg>
+
+    {
+      punggung.map((p) => (
+        <>
+          <div
+            class:list={["pg__nama", p.r.sorot && "is-sorot"]}
+            style={`top:${p.dasar}px`}
+            data-g={`r${p.i}`}
+            {...tip({ judul: p.r.label, nilai: p.r.ringkas, baris: [p.r.sub], warna: p.r.warna })}
+          >
+            <b>{p.r.label}</b>
+            <span>{p.r.ringkas}</span>
+          </div>
+          {p.r.nilai.map((v, j) => (
+            <span
+              class="pg__titik"
+              style={`left:${css((100 * px(j)) / W)};top:${q(p.dasar - (PUNCAK * v) / maks)}px`}
+              data-g={`r${p.i}`}
+              {...tip({ judul: `${p.r.label} · umur ${x[j]}`, nilai: p.r.tampil[j] ?? "", warna: p.r.warna })}
+            />
+          ))}
+        </>
+      ))
+    }
+    <span class="pg__lansia" style={`left:${css((100 * xLansia) / W)};top:${ATAS - 10}px`} aria-hidden="true">Lansia</span>
+  </div>
+  <div class="pg__x" aria-hidden="true">
+    {tikX.map((i) => <span style={`left:${css((100 * px(i)) / W)}`}>{x[i]}</span>)}
+  </div>
+</div>
+
+<style>
+  .pg {
+    padding-left: 9.5rem;
+  }
+  .pg__plot {
+    position: relative;
+    height: var(--h);
+  }
+  .pg__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .pg__dasar {
+    stroke: var(--c-sumbu);
+    stroke-width: 1px;
+  }
+  .pg__batas {
+    stroke: var(--red);
+    stroke-width: 1px;
+    stroke-dasharray: 3 4;
+  }
+  .pg__lansia {
+    position: absolute;
+    transform: translate(8px, -50%);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    color: var(--red);
+  }
+  .pg__nama {
+    position: absolute;
+    right: calc(100% + 16px);
+    transform: translateY(-100%);
+    padding-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    font-size: var(--fs-small);
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: default;
+  }
+  .pg__nama b {
+    font-weight: 600;
+  }
+  .pg__nama span {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .pg__nama.is-sorot span {
+    color: var(--red);
+    font-weight: 600;
+  }
+  .pg__titik {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 50%;
+  }
+  .pg__titik.is-aktif {
+    background: var(--ink);
+    border: 2px solid var(--white);
+    width: 11px;
+    height: 11px;
+    margin: -5.5px 0 0 -5.5px;
+  }
+  .pg__x {
+    position: relative;
+    height: 2em;
+    margin-top: 6px;
+  }
+  .pg__x span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .pg {
+      padding-left: 6.5rem;
+    }
+    .pg__nama {
+      right: calc(100% + 8px);
+      font-size: var(--fs-micro);
+    }
+  }
+</style>

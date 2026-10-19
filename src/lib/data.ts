@@ -15,6 +15,8 @@ import pilar3Raw from "../data/derived/pilar3.json";
 import pilar4Raw from "../data/derived/pilar4.json";
 import pilar5Raw from "../data/derived/pilar5.json";
 import pilar6Raw from "../data/derived/pilar6.json";
+import wilayahRaw from "../data/derived/wilayah.json";
+import petaRaw from "../data/derived/peta.json";
 
 // ── Bentuk data ─────────────────────────────────────────────────────────────
 
@@ -293,6 +295,57 @@ export const pilar6 = pilar6Raw as {
     indeksKhusus: number;
     indeksPenerimaLD: number;
   };
+};
+
+/** Kode wilayah Kemendagri lima kabupaten/kota, atau "DIY" untuk provinsi. */
+export type KodeWilayah = "3401" | "3402" | "3403" | "3404" | "3471" | "DIY";
+type PerWilayah<T> = Record<string, T>;
+
+/** Perbandingan antarkabupaten/kota: dari tabel LPPD hal 463–948. */
+export const wilayah = wilayahRaw as {
+  sumber: Sumber[];
+  kabkota: { kode: KodeWilayah; nama: string }[];
+  ipm: { tahun: string[]; nilai: PerWilayah<number[]>; kategori: PerWilayah<string> };
+  /** Kolom: ahh, hls, rls (tahun), pengeluaran (ribu rupiah). */
+  komponen: { tahun: string; kolom: string[]; nilai: PerWilayah<number[]> };
+  pengeluaran: { tahun: string[]; nilai: PerWilayah<number[]> };
+  /** Persen penduduk miskin; null = sel tak terbaca (dicatat di manifes). */
+  kemiskinan: { periode: string[]; nilai: PerWilayah<(number | null)[]> };
+  pertumbuhan: { tahun: string[]; nilai: PerWilayah<number[]>; diy: number[] };
+  sektor: { tahun: string[]; baris: { nama: string; nilai: number[] }[] };
+  williamson: {
+    seri: { tahun: string; nilai: number }[];
+    target2023: number;
+    capaianPersen: number;
+    proyeksi2023: boolean;
+  };
+  hotel: { kolom: string[]; nilai: PerWilayah<number[]> };
+  airMinum: { kolom: string[]; satuan: string; nilai: PerWilayah<number[]> };
+  sanitasi: { kolom: string[]; satuan: string; nilai: PerWilayah<number[]> };
+  cagarBudaya: { baris: { jenis: string; jumlah: number }[]; jumlahTertulis: number; jumlahRincian: number };
+};
+
+/** Jalur SVG hasil proyeksi GeoJSON (scripts/build_geo.mjs), satu ruang koordinat. */
+export interface PetaWilayah {
+  kode: string;
+  nama: string;
+  d: string;
+  lx: number;
+  ly: number;
+}
+export const peta = petaRaw as {
+  sumber: string;
+  catatan: string;
+  lebar: number;
+  tinggi: number;
+  /** viewBox rapat DIY untuk peta kecil: [x, y, w, h]. */
+  diyBox: [number, number, number, number];
+  /** viewBox sisipan Kota Yogyakarta: [x, y, w, h]. */
+  kotaBox: [number, number, number, number];
+  kab: (PetaWilayah & { luasPeta: number })[];
+  kapanewon: (PetaWilayah & { kodeKab: string })[];
+  sekitar: { nama: string; d: string }[];
+  penanda: { nama: string; jenis: "sumbu" | "laut" | "provinsi"; urut: number | null; ikon: string | null; x: number; y: number }[];
 };
 
 // ── Helper kecil ────────────────────────────────────────────────────────────

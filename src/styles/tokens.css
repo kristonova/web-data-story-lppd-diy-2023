@@ -46,7 +46,7 @@
   font-display: swap;
   src: url("./fonts/SourceSans3-600-normal.woff2") format("woff2");
 }
-/* Jogjakartype © Locomotype — hanya untuk 1–3 kata (penutup "Matur Nuwun").
+/* Jogjakartype © Locomotype — judul bab, judul adegan, judul grafik, dan "Matur Nuwun".
    Berkas dibagikan utuh; lisensinya ada di ./lisensi/. */
 @font-face {
   font-family: "Jogjakartype";

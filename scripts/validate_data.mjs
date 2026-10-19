@@ -7,6 +7,9 @@
  *  · Identitas aritmetika antarberkas tetap berdiri (jumlah kelompok persetujuan,
  *    hasil berbobot nilai akhir, jumlah BKK, dst.).
  *  · CSV unduhan barisnya masuk akal (≥1 baris data, jumlah kolom sama).
+ *  · Perbandingan antarkabupaten/kota (wilayah.json) bersilang dengan angka DIY,
+ *    dan jalur peta (peta.json) memuat 5 kabupaten/kota dan 78 kapanewon.
+ *  · GeoJSON unduhan sah dan jumlah fiturnya benar.
  *  · Tidak ada angka ")" negatif elemen, NaN, atau null tak berizin yang
  *    bocor ke CSV.
  * Berjalan cepat tanpa membaca sumber; dipanggil oleh `npm run verify`.
@@ -25,7 +28,7 @@ const cek = (nama, kondisi, rincian = "") => {
   if (!kondisi) gagal.push(`${nama} — ${rincian}`);
 };
 
-const wajib = ["pembuka", "pilar1", "pilar2", "pilar2-urusan", "pilar3", "pilar4", "pilar5", "pilar6", "manifes"];
+const wajib = ["pembuka", "pilar1", "pilar2", "pilar2-urusan", "pilar3", "pilar4", "pilar5", "pilar6", "wilayah", "peta", "manifes"];
 for (const f of wajib) {
   const p = join(OUT, `${f}.json`);
   cek(`berkas.${f}`, existsSync(p), p);
@@ -122,13 +125,50 @@ const sumUrReal = ur.baris.reduce((a, x) => a + x.realisasi, 0);
 cek("p5.urusan.jumlah", hampir(ur.total.anggaran, sumUrAng, 1) && hampir(ur.total.realisasi, sumUrReal, 1), JSON.stringify(ur.total));
 cek("p5.urusan.jmlhLPPD", hampir(ur.total.anggaran, 1420000000000, 1) && hampir(ur.total.realisasi, 1396163539432, 1), JSON.stringify(ur.total));
 
+// ── Wilayah: lima kabupaten/kota + DIY, bersilang dengan angka provinsi ──────
+const w = baca("wilayah");
+const KODE = ["3401", "3402", "3403", "3404", "3471"];
+cek("w.kabkota", JSON.stringify(w.kabkota.map((k) => k.kode)) === JSON.stringify(KODE), "");
+cek("w.ipm.DIY", hampir(w.ipm.nilai.DIY.at(-1), pembuka.indikator[0].nilai2023), String(w.ipm.nilai.DIY));
+cek("w.ipm.lengkap", [...KODE, "DIY"].every((k) => w.ipm.nilai[k]?.length === w.ipm.tahun.length), "");
+cek("w.kemiskinan.DIY", hampir(w.kemiskinan.nilai.DIY.at(-1), pembuka.indikator[1].nilai2023), String(w.kemiskinan.nilai.DIY));
+cek("w.pertumbuhan.DIY", hampir(w.pertumbuhan.diy.at(-1), pembuka.indikator[3].perubahan), String(w.pertumbuhan.diy));
+cek("w.sektor.17", w.sektor.baris.length === 17 && w.sektor.baris.every((x) => x.nilai.length === 6), String(w.sektor.baris.length));
+const sumKab = (obj, j) => KODE.reduce((a, k) => a + obj[k][j], 0);
+cek("w.air.DIY", sumKab(w.airMinum.nilai, 0) + sumKab(w.airMinum.nilai, 1) + sumKab(w.airMinum.nilai, 2) === w.sanitasi.nilai.DIY[5], "air vs rumah tangga sanitasi");
+cek("w.hotel", sumKab(w.hotel.nilai, 5) === sumKab(w.hotel.nilai, 1) + sumKab(w.hotel.nilai, 3), "jumlah hotel 2023");
+cek("w.williamson", w.williamson.seri.length >= 4 && w.williamson.seri.every((x) => x.nilai > 0.4 && x.nilai < 0.6), JSON.stringify(w.williamson.seri));
+cek("w.cagar", w.cagarBudaya.baris.length === 5, String(w.cagarBudaya.baris.length));
+
+// ── Peta: jalur siap pakai ──────────────────────────────────────────────────
+const p1 = baca("pilar1");
+const pt = baca("peta");
+cek("peta.kab", pt.kab.length === 5 && pt.kab.every((k) => KODE.includes(k.kode) && k.d.startsWith("M")), String(pt.kab.length));
+cek("peta.kap", pt.kapanewon.length === p1.administrasi.kapanewon, String(pt.kapanewon.length));
+cek("peta.label", pt.kab.every((k) => k.lx > 0 && k.lx < pt.lebar && k.ly > 0 && k.ly < pt.tinggi), "titik label di luar bingkai");
+
 // ── Manifes: catatan celah & unduhan terisi ──────────────────────────────────
 const m = baca("manifes");
 cek("manifes.catatan", Array.isArray(m.catatanCelah) && m.catatanCelah.length >= 6, String(m.catatanCelah?.length));
-cek("manifes.unduhan.18", m.unduhan?.length === 18, String(m.unduhan?.length));
+const csvUnduh = m.unduhan.filter((u) => u.berkas.endsWith(".csv"));
+const geoUnduh = m.unduhan.filter((u) => u.berkas.endsWith(".geojson"));
+cek("manifes.unduhan.csv", csvUnduh.length === 24, String(csvUnduh.length));
+cek("manifes.unduhan.geojson", geoUnduh.length === 2, String(geoUnduh.length));
+
+// ── GeoJSON unduhan: sah dan lengkap ────────────────────────────────────────
+for (const u of geoUnduh) {
+  const p = join(PUB, u.berkas);
+  if (!existsSync(p)) {
+    gagal.push(`geojson.hilang — ${u.berkas}`);
+    continue;
+  }
+  const g = JSON.parse(readFileSync(p, "utf8"));
+  const harus = u.berkas.includes("kapanewon") ? p1.administrasi.kapanewon : 5;
+  cek(`geojson.${u.berkas}`, g.type === "FeatureCollection" && g.features.length === harus, `${g.features?.length} fitur`);
+}
 
 // ── CSV unduhan: tidak kosong, tidak ada NaN, jumlah kolom konsisten ─────────
-for (const u of m.unduhan) {
+for (const u of csvUnduh) {
   const p = join(PUB, u.berkas);
   if (!existsSync(p)) {
     gagal.push(`csv.hilang — ${u.berkas}`);
@@ -156,4 +196,4 @@ if (gagal.length) {
   console.error(`[validate] validasi keluaran GAGAL dengan ${gagal.length} pelanggaran`);
   process.exit(1);
 }
-console.log(`[validate] validasi keluaran lolos — ${wajib.length} JSON, ${m.unduhan.length} CSV, ${m.catatanCelah.length} catatan celah.`);
+console.log(`[validate] validasi keluaran lolos — ${wajib.length} JSON, ${csvUnduh.length} CSV, ${geoUnduh.length} GeoJSON, ${m.catatanCelah.length} catatan celah.`);

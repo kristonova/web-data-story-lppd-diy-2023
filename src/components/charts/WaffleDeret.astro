@@ -1,0 +1,135 @@
+---
+/**
+ * WaffleDeret — beberapa waffle kecil berdampingan dengan satu legenda.
+ * Satu waffle = satu wilayah, seratus kotak = seluruh rumah tangganya;
+ * kotak dibagi dengan metode sisa terbesar sehingga jumlahnya tepat seratus.
+ */
+import { kontainer, tip, sisaTerbesar } from "../../lib/viz";
+
+interface Kat {
+  label: string;
+  warna: string;
+}
+interface Baris {
+  label: string;
+  n: number[];
+  tampil: string[];
+  porsi: string[];
+  ringkas: string;
+  sub?: string;
+  sorot?: boolean;
+}
+interface Props {
+  label: string;
+  kat: Kat[];
+  rows: Baris[];
+}
+
+const { label, kat, rows } = Astro.props;
+---
+
+<div class="viz wd" {...kontainer(label)}>
+  <ul class="wd__legenda" aria-hidden="true">
+    {
+      kat.map((k) => (
+        <li>
+          <i style={`background:${k.warna}`} />
+          {k.label}
+        </li>
+      ))
+    }
+  </ul>
+  <div class="wd__deret">
+    {
+      rows.map((r, ri) => {
+        const unit = sisaTerbesar(r.n, 100);
+        const sel: number[] = [];
+        unit.forEach((u, k) => {
+          for (let i = 0; i < u; i++) sel.push(k);
+        });
+        return (
+          <div class:list={["wd__satu", r.sorot && "is-sorot"]}>
+            <div class="wd__kisi">
+              {sel.map((k, i) => (
+                <i
+                  data-anim="titik"
+                  data-g={`w${ri}-${k}`}
+                  style={`background:${kat[k]!.warna};--tunda-k:${ri * 90 + (Math.floor(i / 10) + (i % 10)) * 22}ms`}
+                  {...(sel.indexOf(k) === i
+                    ? tip({ judul: `${r.label} · ${kat[k]!.label}`, nilai: r.tampil[k] ?? "", baris: [r.porsi[k]], warna: kat[k]!.warna })
+                    : {})}
+                />
+              ))}
+            </div>
+            <p class="wd__nama">{r.label}</p>
+            <p class="wd__ringkas">{r.ringkas}</p>
+            {r.sub && <p class="wd__sub">{r.sub}</p>}
+          </div>
+        );
+      })
+    }
+  </div>
+</div>
+
+<style>
+  .wd__legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-small);
+  }
+  .wd__legenda li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .wd__legenda i {
+    width: 12px;
+    height: 12px;
+  }
+  .wd__deret {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-6);
+  }
+  .wd__kisi {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 2px;
+    max-width: 180px;
+  }
+  .wd__kisi i {
+    aspect-ratio: 1;
+    cursor: default;
+  }
+  .wd__nama {
+    margin-top: var(--space-3);
+    font-size: var(--fs-small);
+    font-weight: 600;
+  }
+  .wd__ringkas {
+    font-size: var(--fs-small);
+    font-variant-numeric: tabular-nums;
+  }
+  .wd__sub {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .wd__satu.is-sorot .wd__ringkas {
+    color: var(--red);
+    font-weight: 600;
+  }
+  @media (max-width: 900px) {
+    .wd__deret {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 520px) {
+    .wd__deret {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -10,7 +10,8 @@ import { q } from "../../lib/chart";
 
 interface Seri {
   label: string;
-  nilai: number[];
+  /** null = periode tanpa angka terbaca; garis diputus di titik itu. */
+  nilai: (number | null)[];
   tampil: string[];
   warna: string;
   putus?: boolean;
@@ -24,17 +25,28 @@ interface Props {
   max: number;
   tik: { nilai: number; label: string }[];
   tinggi?: number;
+  /** Garis acuan mendatar, mis. ambang kategori atau nol. */
+  acuan?: { nilai: number; label: string }[];
+  /** Pita latar, mis. rentang kategori "sangat tinggi". */
+  zona?: { dari: number; ke: number; label: string };
 }
 
-const { label, x, seri, min, max, tik, tinggi = 320 } = Astro.props;
+const { label, x, seri, min, max, tik, tinggi = 320, acuan = [], zona } = Astro.props;
 const px = (i: number) => (x.length === 1 ? 50 : 3 + (94 * i) / (x.length - 1));
 const py = (v: number) => 100 - (100 * (v - min)) / (max - min);
-const path = (s: Seri) => s.nilai.map((v, i) => `${i ? "L" : "M"}${q(px(i) * 10)} ${q(py(v) * 10)}`).join(" ");
+const path = (s: Seri) =>
+  s.nilai
+    .map((v, i) => (v == null ? "" : `${i === 0 || s.nilai[i - 1] == null ? "M" : "L"}${q(px(i) * 10)} ${q(py(v) * 10)}`))
+    .join(" ");
+const terakhir = (s: Seri) => {
+  for (let i = s.nilai.length - 1; i >= 0; i--) if (s.nilai[i] != null) return i;
+  return 0;
+};
 
 // Label ujung: urutkan menurut posisi, lalu dorong supaya tidak bertumpuk.
 const JARAK = (24 / tinggi) * 100;
 const ujung = seri
-  .map((s, i) => ({ i, y: py(s.nilai[s.nilai.length - 1]!) }))
+  .map((s, i) => ({ i, y: py(s.nilai[terakhir(s)]!) }))
   .sort((a, b) => a.y - b.y);
 for (let k = 1; k < ujung.length; k++) {
   if (ujung[k]!.y - ujung[k - 1]!.y < JARAK) ujung[k]!.y = ujung[k - 1]!.y + JARAK;
@@ -45,9 +57,23 @@ const yLabel = new Map(ujung.map((u) => [u.i, u.y]));
 <div class="viz gr" style={`--h:${tinggi}px`} {...kontainer(label)}>
   <div class="gr__plot">
     {
+      zona && (
+        <div class="gr__zona" style={`top:${css(py(Math.min(max, zona.ke)))};bottom:${css(100 - py(Math.max(min, zona.dari)))}`} aria-hidden="true">
+          <span>{zona.label}</span>
+        </div>
+      )
+    }
+    {
       tik.map((t) => (
         <div class="gr__kisi" style={`top:${css(py(t.nilai))}`} aria-hidden="true">
           <span>{t.label}</span>
+        </div>
+      ))
+    }
+    {
+      acuan.map((a) => (
+        <div class="gr__acuan" style={`top:${css(py(a.nilai))}`} aria-hidden="true">
+          <span>{a.label}</span>
         </div>
       ))
     }
@@ -69,7 +95,7 @@ const yLabel = new Map(ujung.map((u) => [u.i, u.y]));
     </svg>
     {
       seri.map((s, si) =>
-        s.nilai.map((v, i) => (
+        s.nilai.map((v, i) => v == null ? null : (
           <span
             class="gr__titik"
             data-anim="titik"
@@ -83,7 +109,8 @@ const yLabel = new Map(ujung.map((u) => [u.i, u.y]));
     {
       seri.map((s, si) => (
         <span class="gr__ujung" data-anim="pudar" style={`top:${css(yLabel.get(si) ?? 0)};--w:${s.warna};--tunda-k:1100ms`}>
-          <b>{s.tampil[s.tampil.length - 1]}</b> {s.label}
+          <i aria-hidden="true" />
+          <b>{s.tampil[terakhir(s)]}</b> {s.label}
         </span>
       ))
     }
@@ -148,10 +175,46 @@ const yLabel = new Map(ujung.map((u) => [u.i, u.y]));
     white-space: nowrap;
     color: var(--text);
   }
+  .gr__ujung i {
+    display: inline-block;
+    width: 12px;
+    height: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+    border-radius: 2px;
+    background: var(--w);
+  }
   .gr__ujung b {
-    color: var(--w);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+  }
+  .gr__zona {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: var(--cream);
+  }
+  .gr__zona span {
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .gr__acuan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1.5px dashed var(--c-dasar);
+  }
+  .gr__acuan span {
+    position: absolute;
+    right: 6px;
+    bottom: 3px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    background: var(--white);
+    padding: 0 4px;
   }
   .gr__x {
     position: relative;

@@ -1,5 +1,5 @@
 {
-  "dibuat": "2026-10-19T05:12:25.650Z",
+  "dibuat": "2026-10-19T06:31:06.991Z",
   "sumber": {
     "dokumen": "Laporan Penyelenggaraan Pemerintahan Daerah (LPPD) DIY Tahun 2023",
     "teks": "data-story/source/*.md dan markdown-per-bab/*.md (konversi PDF asli)"
@@ -16,7 +16,17 @@
     "Baris SPM SMA \"Proporsi PTK bersertifikat\" dilepas: pasangan capaian 0/target 87.55 tidak konsisten dengan persentase terbaca 100% — salah satu sel rusak OCR.",
     "Baris SPM SMA \"Proporsi PTK penggerak\" dilepas: pasangan capaian 0/target 0.17 tidak konsisten dengan persentase terbaca 100% — salah satu sel rusak OCR.",
     "Baris SPM SMK \"Angka partisipasi kasar\" dilepas dari data: sel capaian tidak terbaca mesin (format desimal berubah akibat OCR, mis. \"0.46\"); hubungan target–capaian tidak dapat diverifikasi.",
-    "Baris SPM SMK \"Tingkat penyerapan\" dilepas dari data: sel capaian tidak terbaca mesin (format desimal berubah akibat OCR, mis. \"0.46\"); hubungan target–capaian tidak dapat diverifikasi."
+    "Baris SPM SMK \"Tingkat penyerapan\" dilepas dari data: sel capaian tidak terbaca mesin (format desimal berubah akibat OCR, mis. \"0.46\"); hubungan target–capaian tidak dapat diverifikasi.",
+    "Umur harapan hidup DIY 2023 tertulis 75,18 tahun pada tabel komponen IPM (hal. 189) dan 75,12 tahun pada tabel komponen per kabupaten/kota (hal. 941); keduanya ditampilkan apa adanya di adegannya masing-masing.",
+    "Tabel pengeluaran per kapita disesuaikan per kabupaten/kota (hal. 945) menulis kolom 2019–2020 dengan koma sebagai pemisah ribuan (\"10,275\") dan kolom 2021–2023 dengan titik (\"10.069\"); keduanya dibaca sebagai ribu rupiah.",
+    "Persentase penduduk miskin Sleman Maret 2022 tertulis \"7,,74\" (hal. 948, tabel ke-1) — tidak ditampilkan sebagai angka; titik periode itu dikosongkan di grafik.",
+    "Kolom 2023 pada tabel pertumbuhan menurut lapangan usaha (hal. 923–924) bertanda bintang di laporan: angka sementara.",
+    "Indeks Williamson 2020 ditulis dengan titik desimal (\"0.4937\", hal. 931); dibaca 0,4937.",
+    "Paragraf hal. 930 menyebut indeks Williamson 2018 sebesar 0,4594 lalu \"menurun menjadi 0,4504\", sedangkan hal. 931 menyebut 0,4591 (2018) dan 0,4831 (2023); halaman ini memakai deret hal. 931.",
+    "Pertumbuhan Kulon Progo 2018 tertulis 10,83% di naskah hal. 931 dan 10,84% di tabel hal. 924; grafik memakai angka tabel.",
+    "Rincian akses sanitasi Kota Yogyakarta (hal. 463) berjumlah 143.690 rumah tangga, satu kurang dari jumlah barisnya (143.691); kolom \"akses belum layak\" seluruh kabupaten/kota berjumlah 29.725, sedangkan baris DIY menulis 29.726. Angka ditampilkan apa adanya.",
+    "Tabel akses air minum per kabupaten/kota (Tabel 2-39, hal. 467) berjudul \"penduduk\", tetapi setiap barisnya berjumlah sama dengan jumlah rumah tangga pada tabel sanitasi (Tabel 2-33, hal. 463); satuannya dibaca sebagai rumah tangga.",
+    "Rincian cagar budaya yang dikelola (hal. 615) berjumlah 885, sedangkan baris jumlahnya tertulis 884; grafik menampilkan rincian."
   ],
   "unduhan": [
     {
@@ -108,6 +118,46 @@
       "berkas": "spm-pendidikan.csv",
       "tentang": "Indikator SPM pendidikan menengah (target vs capaian)",
       "sumber": "LPPD DIY 2023, halaman 1046–1048, tabel ke-1"
+    },
+    {
+      "berkas": "ipm-kabkota.csv",
+      "tentang": "IPM per kabupaten/kota 2019–2023 dan komponennya 2023",
+      "sumber": "LPPD DIY 2023, halaman 939 tabel ke-5 dan halaman 941 tabel ke-1"
+    },
+    {
+      "berkas": "kemiskinan-kabkota.csv",
+      "tentang": "Persentase penduduk miskin per kabupaten/kota, Maret 2019–2023",
+      "sumber": "LPPD DIY 2023, halaman 948, tabel ke-1"
+    },
+    {
+      "berkas": "pertumbuhan-kabkota.csv",
+      "tentang": "Pertumbuhan ekonomi per kabupaten/kota 2018–2023",
+      "sumber": "LPPD DIY 2023, halaman 924 tabel ke-5; baris DIY dari halaman 924 tabel ke-1"
+    },
+    {
+      "berkas": "pertumbuhan-sektor.csv",
+      "tentang": "Pertumbuhan PDRB DIY menurut lapangan usaha 2018–2023 (2023 angka sementara)",
+      "sumber": "LPPD DIY 2023, halaman 923 tabel ke-2 dan halaman 924 tabel ke-1"
+    },
+    {
+      "berkas": "hotel-kabkota.csv",
+      "tentang": "Jumlah hotel bintang dan nonbintang per kabupaten/kota 2022–2023",
+      "sumber": "LPPD DIY 2023, halaman 639, tabel ke-1"
+    },
+    {
+      "berkas": "air-sanitasi-kabkota.csv",
+      "tentang": "Akses air minum dan sanitasi rumah tangga per kabupaten/kota 2023",
+      "sumber": "LPPD DIY 2023, halaman 467 tabel ke-3 dan halaman 463 tabel ke-1"
+    },
+    {
+      "berkas": "diy-kabupaten.geojson",
+      "tentang": "Batas 5 kabupaten/kota DIY (GeoJSON, disederhanakan)",
+      "sumber": "Portal GIS Dukcapil Kemendagri (data 2018 semester 1), disederhanakan dengan mapshaper"
+    },
+    {
+      "berkas": "diy-kapanewon.geojson",
+      "tentang": "Batas 78 kapanewon dan kemantren DIY (GeoJSON, disederhanakan)",
+      "sumber": "Portal GIS Dukcapil Kemendagri (data 2018 semester 1), disederhanakan dengan mapshaper"
     }
   ],
   "tabelStats": [
@@ -160,6 +210,26 @@
       "berkas": "data-story/source/bab-4-penerapan-standar.md",
       "tabel": 158,
       "tabelBerangka": 51
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_13_4_pengukuran-capaian-kinerja-dibandingkan-dengan-target-dalam.md",
+      "tabel": 128,
+      "tabelBerangka": 17
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_7_2_urusan-pariwisata-dinas-pariwisata-diy.md",
+      "tabel": 59,
+      "tabelBerangka": 14
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_6_4_urusan-kesehatan-rs-respira-diy.md",
+      "tabel": 72,
+      "tabelBerangka": 20
+    },
+    {
+      "berkas": "data-story/source/bab2-2_2_6_26_urusan-kebudayaan-dinas-kebudayaan-diykundha-kabudayan-diy.md",
+      "tabel": 37,
+      "tabelBerangka": 7
     }
   ]
 }

@@ -1,0 +1,174 @@
+---
+/**
+ * PetakPanas — tabel panas: baris (mis. lapangan usaha) × kolom (tahun),
+ * isian divergen: merah untuk kontraksi, hijau untuk pertumbuhan, putih di
+ * nol. Setiap sel tetap menuliskan angkanya, sehingga warna hanya membantu
+ * mata menemukan pola — seperti kain bermotif yang dibaca dari kejauhan.
+ */
+import { kontainer, tip } from "../../lib/viz";
+import { divergen, teksDi } from "../../lib/warna";
+
+interface Baris {
+  label: string;
+  pendek?: string;
+  nilai: number[];
+  tampil: string[];
+  tebal?: boolean;
+}
+interface Props {
+  label: string;
+  kolom: string[];
+  rows: Baris[];
+  /** Nilai mutlak yang mencapai warna terpekat. */
+  batas: number;
+  satuan?: string;
+  ketKolom?: Record<number, string>;
+}
+
+const { label, kolom, rows, batas, satuan = "%", ketKolom = {} } = Astro.props;
+---
+
+<div class="viz pp" style={`--n:${kolom.length}`} {...kontainer(label)}>
+  <div class="pp__kepala" aria-hidden="true">
+    <span />
+    {
+      kolom.map((k, j) => (
+        <span>
+          {k}
+          {ketKolom[j] && <small>{ketKolom[j]}</small>}
+        </span>
+      ))
+    }
+  </div>
+  {
+    rows.map((r, i) => (
+      <div class:list={["pp__baris", r.tebal && "is-tebal"]}>
+        <span class="pp__nama">
+          <span class="pp__np">{r.label}</span>
+          <span class="pp__ns">{r.pendek ?? r.label}</span>
+        </span>
+        {r.nilai.map((v, j) => {
+          const isi = divergen(v, batas);
+          return (
+            <span
+              class="pp__sel"
+              style={`background:${isi};color:${teksDi(isi)};--tunda-k:${(i + j) * 26}ms`}
+              data-anim="pudar"
+              data-g={`b${i}`}
+              {...tip({ judul: `${r.label} · ${kolom[j]}`, nilai: `${r.tampil[j]}${satuan}`, warna: isi })}
+            >
+              {r.tampil[j]}
+            </span>
+          );
+        })}
+      </div>
+    ))
+  }
+  <div class="pp__kunci" aria-hidden="true">
+    <span>Kontraksi</span>
+    <i style={`background:linear-gradient(90deg, ${divergen(-batas, batas)}, ${divergen(-batas / 2, batas)}, #ffffff, ${divergen(batas / 2, batas)}, ${divergen(batas, batas)})`} />
+    <span>Tumbuh</span>
+    <small>warna terpekat pada ±{batas}{satuan} atau lebih</small>
+  </div>
+</div>
+
+<style>
+  .pp {
+    --lebar-nama: minmax(12rem, 1.4fr);
+  }
+  .pp__kepala,
+  .pp__baris {
+    display: grid;
+    grid-template-columns: var(--lebar-nama) repeat(var(--n), minmax(0, 1fr));
+    gap: 2px;
+  }
+  .pp__kepala {
+    margin-bottom: 4px;
+  }
+  .pp__kepala span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: var(--fs-small);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .pp__kepala small {
+    font-size: var(--fs-micro);
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  .pp__baris {
+    margin-top: 2px;
+  }
+  .pp__nama {
+    display: flex;
+    align-items: center;
+    padding-right: var(--space-3);
+    font-size: var(--fs-small);
+    line-height: 1.2;
+  }
+  .pp__ns {
+    display: none;
+  }
+  .pp__baris.is-tebal .pp__nama {
+    font-weight: 600;
+  }
+  .pp__baris.is-tebal {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 2px solid var(--ink);
+  }
+  .pp__sel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    font-size: var(--fs-small);
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+  }
+  .pp__baris.is-tebal .pp__sel {
+    font-weight: 600;
+  }
+  .pp__kunci {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .pp__kunci i {
+    width: 160px;
+    height: 10px;
+  }
+  .pp__kunci small {
+    flex-basis: 100%;
+    font-size: var(--fs-micro);
+  }
+  @media (max-width: 640px) {
+    .pp {
+      --lebar-nama: 6.5rem;
+    }
+    .pp__np {
+      display: none;
+    }
+    .pp__ns {
+      display: inline;
+    }
+    .pp__nama,
+    .pp__sel,
+    .pp__kepala span {
+      font-size: var(--fs-micro);
+    }
+    .pp__sel {
+      min-height: 30px;
+    }
+    .pp__kepala small {
+      display: none;
+    }
+  }
+</style>

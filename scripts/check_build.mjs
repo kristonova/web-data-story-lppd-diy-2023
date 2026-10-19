@@ -3,7 +3,8 @@
  *
  * Yang diperiksa:
  *  · Tidak ada satu pun permintaan ke domain luar (huruf, skrip, gaya, gambar).
- *  · Halaman penuh di bawah 2 MB.
+ *  · Halaman penuh di bawah 4 MB.
+ *  · Peta: jalur batas wilayah dikirim sekali dan dipakai ulang; GeoJSON ada.
  *  · Seluruh adegan bernomor dan bagian penutup ada di HTML.
  *  · Setiap grafik punya label aksesibel dan tabel angka alternatif.
  *  · Tidak ada markup yang tampil sebagai teks.
@@ -59,10 +60,10 @@ const adeganWajib = [
   "0-1",
   "1-1", "1-2", "1-3",
   "2-1", "2-2", "2-3",
-  "3-1", "3-2", "3-3", "3-4",
-  "4-1", "4-2", "4-3", "4-4",
-  "5-1", "5-2", "5-3",
-  "6-1", "6-2", "6-3",
+  "3-1", "3-2", "3-3", "3-4", "3-5",
+  "4-1", "4-2", "4-3", "4-4", "4-5",
+  "5-1", "5-2", "5-3", "5-4",
+  "6-1", "6-2", "6-3", "6-4", "6-5", "6-6",
   "7-1", "7-2",
 ];
 const hilang = adeganWajib.filter((id) => !html.includes(`id="adegan-${id}"`));
@@ -128,7 +129,7 @@ else catatan.push("tidak ada dugaan angka manual di naskah");
 
 // ── 7. Unduhan agregat, huruf, dan service worker tersedia ──────────────────
 const csv = berkas.filter((f) => f.endsWith(".csv"));
-if (csv.length < 18) gagal.push(`hanya ${csv.length} berkas unduhan agregat`);
+if (csv.length < 24) gagal.push(`hanya ${csv.length} berkas unduhan agregat`);
 else catatan.push(`${csv.length} berkas unduhan agregat`);
 
 const tautanCsv = [...html.matchAll(/href="\.\/data\/([^"]+\.csv)"/g)].map((m) => m[1]);
@@ -140,6 +141,18 @@ if (tautanCsv.length && csvHilang.length) gagal.push(`tautan unduhan menunjuk be
 const fonts = berkas.filter((f) => f.endsWith(".woff2"));
 if (fonts.length < 5) gagal.push(`hanya ${fonts.length} berkas huruf di dist/fonts`);
 else catatan.push(`${fonts.length} berkas huruf di-host sendiri`);
+
+const geojson = berkas.filter((f) => f.endsWith(".geojson"));
+if (geojson.length < 2) gagal.push(`hanya ${geojson.length} berkas GeoJSON batas wilayah`);
+else catatan.push(`${geojson.length} berkas GeoJSON batas wilayah`);
+
+// Peta: jalur batas dikirim sekali (PetaDefs) lalu dipakai ulang lewat <use>.
+const defsKab = (html.match(/<path id="pk-\d{4}"/g) || []).length;
+const defsKap = (html.match(/<path id="pc-\d{6}"/g) || []).length;
+const pakaiUlang = (html.match(/<use href="#pk-\d{4}"/g) || []).length;
+if (defsKab !== 5 || defsKap < 78) gagal.push(`jalur peta tidak lengkap: ${defsKab} kabupaten/kota, ${defsKap} kapanewon`);
+else if (pakaiUlang < 10) gagal.push(`peta tidak memakai ulang jalur batas (${pakaiUlang} <use>)`);
+else catatan.push(`jalur peta dikirim sekali (5 kabupaten/kota, ${defsKap} kapanewon), dipakai ulang ${pakaiUlang} kali`);
 
 if (!berkas.some((f) => f.endsWith("sw.js"))) gagal.push("service worker tidak dibangun");
 else catatan.push("service worker dibangun");

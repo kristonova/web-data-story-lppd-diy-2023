@@ -22,22 +22,35 @@ bukan di dalam `data-story/`) — satu berkas per bab, dengan penanda
 2. Rujukan per adegan (bagian dari halaman)
 -------------------------------------------
 
-| Adegan | Rujukan LPPD                                        |
-|--------|-----------------------------------------------------|
-| 0-1    | hal. 188, tabel ke-2                                |
-| 1-1    | hal. 27, naskah geografi wilayah                    |
-| 1-2    | hal. 29 t1 + hal. 31 t4                              |
-| 1-3    | hal. 31, tabel ke-1                                 |
-| 2-1    | hal. 60 t1                                           |
-| 2-2    | hal. 61, 62, 63 (tabel ke-1)                          |
-| 2-3    | hal. 64–68 (5 adegan tabel ke-1)                      |
-| 3-1    | hal. 189 t1 · 3-2 hal. 191 t1 · 3-3 hal. 192 t1 · 3-4 hal. 198 t1 |
-| 4-1    | hal. 333–334, blok rasio partisipasi sekolah (teks)   |
-| 4-2    | hal. 335–337 + 337–341, blok (teks)                   |
-| 4-3    | hal. 585 t1 · 4-4 hal. 586 t1                         |
-| 5-1    | hal. 800 t1 · 5-2 hal. 800 t2 · 5-3 hal. 739/740 t1   |
-| 6-1    | hal. 1046–1105, kategori & indikator SPM per bidang   |
-| 6-2/6-3| hal. 1046/1047 t1                                     |
+| Adegan | Visual                         | Rujukan LPPD                                   |
+|--------|--------------------------------|------------------------------------------------|
+| 0-1    | angka kunci                    | hal. 188 t2                                    |
+| 1-1    | peta berlapis + peringkat      | hal. 27 (naskah luas), hal. 30 t1              |
+| 1-2    | peta 78 kapanewon + titik      | hal. 30 t1, hal. 31 t4                         |
+| 1-3    | komposisi + punggung umur      | hal. 30 t2, hal. 31 t1                         |
+| 2-1    | arus (Sankey) APBD             | hal. 60–63 t1                                  |
+| 2-2    | bullet anggaran–realisasi      | hal. 61–63 t1                                  |
+| 2-3    | titik serapan per urusan       | hal. 64–68 t1                                  |
+| 3-1    | empat peta kecil + Williamson  | hal. 939 t5, 941 t1, 948 t1, 931 t2 (naskah)   |
+| 3-2    | garis IPM + koordinat paralel  | hal. 939 t5, 941 t1, 189 t1                    |
+| 3-3    | garis kota–desa + lintasan     | hal. 191 t1, 948 t1                            |
+| 3-4    | batang tumpuk pasar kerja      | hal. 192 t1                                    |
+| 3-5    | batang tumpuk Bank Dunia       | hal. 198 t1, 188 t2                            |
+| 4-1    | garis pertumbuhan wilayah      | hal. 924 t5 + t1, 930 t3 (naskah)              |
+| 4-2    | tabel panas lapangan usaha     | hal. 923 t2, 924 t1                            |
+| 4-3    | kolom tumpuk investasi         | hal. 585 t1                                    |
+| 4-4    | peta gelembung per tahun       | hal. 586 t1                                    |
+| 4-5    | peta gelembung hotel           | hal. 639 t1                                    |
+| 5-1    | peta Sumbu Filosofi + titik    | hal. 1107 (naskah penutup), hal. 615 t1        |
+| 5-2    | skor berbobot                  | hal. 800 t1                                    |
+| 5-3    | tumpuk + bullet Danais         | hal. 800 t2                                    |
+| 5-4    | treemap BKK                    | hal. 739/740 t1                                |
+| 6-1    | batang IKK pendidikan          | hal. 333–335 (blok teks)                       |
+| 6-2    | cincin infrastruktur           | hal. 335–341 (blok teks)                       |
+| 6-3    | waffle air minum + sanitasi    | hal. 467 t3, 463 t1                            |
+| 6-4    | cincin SPM per bidang          | hal. 1046–1105                                 |
+| 6-5    | daftar capaian SPM pendidikan  | hal. 1046/1047 t1                              |
+| 6-6    | waffle pendidikan khusus       | hal. 1047 t1                                   |
 
 Blok yang ekstraksinya bukan tabel (rasio IKK, ABK, infrastruktur) dipetik dari paragraf
 teks dan disebut apa adanya sebagai sumber ("blok …", bukan "tabel ke-N") — `prov()` di
@@ -53,14 +66,39 @@ pembulatannya dicatat di manifes.
 4. Idiom grafik
 ---------------
 
+- **Peta (GIS).** `data-story/geo/*.geojson` adalah batas kapanewon dan kabupaten/kota
+  yang disiapkan sekali oleh `scripts/siapkan_geo.mjs` (mapshaper, penyederhanaan dengan
+  topologi terjaga; kabupaten dilebur dari kapanewon sehingga garisnya identik).
+  `scripts/build_geo.mjs` memproyeksikannya (ekuirektangular, faktor cos lintang tengah)
+  menjadi `src/data/derived/peta.json`, menguji kode wilayah, jumlah kapanewon per
+  kabupaten, dan luas geometri (≤ 5% dari luas LPPD), lalu menyalin GeoJSON ke unduhan.
+  Jalurnya dikirim **sekali** lewat `PetaDefs.astro` dan setiap peta memakai
+  `<use href="#pk-3404">`; warna diwariskan dari elemen `<use>` ke jalur.
+  Komponen `Peta.astro` punya empat mode: `koroplet` (lapis dapat dipilih), `kategori`
+  (78 kapanewon), `gelembung` (lingkaran berskala sama antarlapis, dapat diputar) dan
+  `penanda` (Sumbu Filosofi + sisipan Kota). Penanda tempat di `penanda.geojson` adalah
+  koordinat perkiraan untuk ilustrasi, bukan angka LPPD, dan disebut begitu di sumber adegan.
+- **Lapis**: grafik berlapis dibungkus `[data-lapis-induk]`; tombol `[data-pilih]`
+  mengganti atribut `data-lapis`, CSS memilih isian `--f0…--f4`, skala `--s0…`, dan
+  label `[data-l]` yang sesuai. Isi tooltip per lapis ada di `data-t0/data-v0/data-s0`.
+  Tanpa JavaScript tombol disembunyikan, lapis awal tampil, dan semua lapis ada di tabel.
+- **Warna identitas wilayah** (`src/lib/warna.ts`): Kulon Progo magenta, Bantul oranye,
+  Gunungkidul hijau khas, Sleman biru khas, Kota marun, DIY tinta — dipakai sama di peta
+  kategori, garis, koordinat paralel, punggung umur, lintasan, dan gelembung. Gradasi
+  koroplet (merah, hijau, biru, emas) dan warna divergen tabel panas dicampur dari warna
+  pedoman ke krem/putih, jadi tidak ada warna asing.
+- **Komponen generasi ketiga**: `Arus` (Sankey tiga lajur; versi ringkas per kelompok di
+  layar sempit), `Punggung` (ridgeline umur), `Paralel` (koordinat paralel), `Lintasan`
+  (titik per periode dengan panah awal→akhir), `PetakPanas` (tabel panas divergen),
+  `WaffleDeret` (waffle kecil berdampingan).
 - **Grafik HTML lebih dahulu.** Batang, ruas, titik, dan seluruh teks adalah elemen HTML
   yang diposisikan dengan persen, sehingga label tetap berukuran asli di layar ponsel.
   SVG hanya dipakai untuk garis (`preserveAspectRatio="none"` + `vector-effect:
   non-scaling-stroke`) dan busur cincin.
 - **Warna grafik** (`src/styles/tokens.css`): `--c-sorot` (merah resmi, satu angka yang
   dibicarakan), `--c-tinta` / `--c-dasar` / `--c-redup` (turunan `ink`), `--c-trek` (rel
-  dan bayangan anggaran), `--c-emas` (aksen). Satu grafik paling banyak memakai merah dan
-  satu warna pendukung, sesuai pedoman.
+  dan bayangan anggaran), `--c-emas` (aksen). Grafik satu seri tetap netral dengan satu
+  sorotan merah; grafik antarwilayah memakai warna identitas wilayah (lihat butir peta).
 - **Gerak** (`data-anim`, dipagari `.js`, bergerak sesudah bloknya `[data-reveal]` mendapat
   `.is-in`): `x`, `x-kanan`, `y`, `titik`, `pudar`, `naik`, `sapu` (garis tergambar kiri ke
   kanan), `angkat` (kolom naik dari dasar), `busur` (cincin). Jenjang waktunya dipasang
@@ -93,6 +131,15 @@ pembulatannya dicatat di manifes.
 - **SPAL bukan cakupan rumah tangga**: indikator hal. 338–339 adalah rasio volume limbah
   domestik yang masuk SPAL regional terhadap kapasitas olahnya (27.205 / 75.000). Naskah
   menyebutnya pemanfaatan kapasitas, bukan "rumah terlayani".
+- **`x! / y` dibaca sebagai regex**: kompilator Astro berbasis Rust (compiler-rs 0.5)
+  salah mengurai operator non-null yang langsung disusul garis miring pembagian, lalu
+  `astro check` meledak memakai memori (> 6 GB) dan build gagal di baris yang salah.
+  Tulis `(x!) / y`. Pemeriksaan cepat: `grep -n '!\s*/\s' src -r`.
+- **Satuan tabel air minum**: Tabel 2-39 berjudul "penduduk", tetapi tiap barisnya sama
+  dengan jumlah rumah tangga Tabel 2-33; pipeline menguji kesamaan itu dan memakai
+  satuan rumah tangga.
+- **Sel pengeluaran per kapita**: kolom 2019–2020 memakai koma sebagai pemisah ribuan
+  ("10,275"), kolom 2021–2023 memakai titik; `ribuRupiah()` membaca keduanya.
 - **Nama kelas bertabrakan**: komponen bergaya terlingkup tetap mewarisi kelas global.
   Kelas `.akhir` milik bagian penutup sempat terpasang pada titik grafik dan membuatnya
   sebesar layar; pakai nama berawalan komponen (`mk__titik--akhir`).
@@ -116,9 +163,14 @@ bersih — angka di tabel alternatif dinilai terpisah (wadah
     src/components/Bab.astro      pembatas merah (SectionDivider) + pengantar bab berikon
     src/components/Adegan.astro   judul bergaris (SectionTitle) → visual → tafsir → sumber
     src/components/Figur.astro    judul grafik, satuan, legenda, slot tabel angka
-    src/components/charts/        Angka, BarH, BulletH, Kupu, UnitTitik, Kolom, Tumpuk,
-                                  Treemap, DotSerapan, Garis, MultiKecil, Cincin,
-                                  KolomTumpuk, SkorBobot, Waffle, DaftarCapaian
+    src/lib/warna.ts              warna identitas wilayah, gradasi koroplet, divergen
+    src/components/charts/        Angka, BarH, BulletH, UnitTitik, Tumpuk, Treemap,
+                                  DotSerapan, Garis, Cincin, KolomTumpuk, SkorBobot,
+                                  Waffle, DaftarCapaian, Peta, PetaDefs, Arus, Punggung,
+                                  Paralel, Lintasan, PetakPanas, WaffleDeret
+    data-story/geo/               batas wilayah GeoJSON + penanda (sumber peta)
+    scripts/siapkan_geo.mjs       sekali jalan: shapefile nasional → GeoJSON DIY ringkas
+    scripts/build_geo.mjs         setiap `npm run data`: GeoJSON → jalur SVG + asersi
 
 8. Identitas visual Jogja Istimewa
 ----------------------------------
@@ -132,11 +184,20 @@ Icon System). Aturan yang dijaga:
   kepala halaman memadat.
 - Sampul dan penutup: latar sampul resmi, judul Light putih rata tengah, deret ikon emas.
   Pembatas bab: bidang merah penuh, judul Light putih, deret ikon putih di tepi bawah.
-- Judul adegan mengikuti SectionTitle: judul Regular, lalu garis 2,27 px yang berawal
-  dari tepi kiri layar — ruas merah terang 62,53 px disusul garis abu.
+- Judul adegan mengikuti SectionTitle: judul pendek, pertanyaan adegan sebagai anak
+  judul Light, lalu garis 2,27 px yang berawal dari tepi kiri layar — ruas merah terang
+  62,53 px disusul garis abu.
 - Huruf Source Sans 3 (pengganti Myriad Pro di web) Light/Regular/Semibold, di-host
-  sendiri. Jogjakartype hanya untuk "Matur Nuwun"; berkasnya dibagikan utuh bersama
-  lisensinya di `public/lisensi/`.
+  sendiri, untuk naskah, label, dan angka. **Jogjakartype** untuk judul bab, judul adegan,
+  judul grafik, nama bab di daftar isi, dan "Matur Nuwun" — atas permintaan pemilik
+  proyek, melampaui anjuran pedoman (1–3 kata). Karena itu judul adegan dibuat pendek
+  (2–4 kata) dan pertanyaannya dipindah ke anak judul Source Sans. Glif yang tidak ada di
+  Jogjakartype (², ·, ×, huruf beraksen) jatuh ke Source Sans 3 lewat tumpukan huruf.
+  Berkas TTF dibagikan utuh (tanpa konversi) bersama lisensinya di `public/lisensi/`.
 - Tanpa kartu, bayangan, sudut membulat, huruf kapital semua, atau emoji. Pemisah adalah
-  ruang putih dan garis rambut. Pil hanya untuk tombol dan penanda pertumbuhan.
+  ruang putih dan garis rambut. Pil hanya untuk tombol (pemilih lapis, putar) dan penanda
+  pertumbuhan. Label peta duduk di pelat warna wilayahnya, bukan bayangan teks.
+- Ikon Icon System dipakai sebagai penanda topik (pengantar bab, daftar isi) dan sebagai
+  penanda tempat di peta Sumbu Filosofi (Merapi, Tugu, Keraton), sesuai anjuran
+  "peta wisata" pedoman; tidak dicampur dengan set ikon lain.
 - Tidak ada mode gelap: pedoman hanya mengenal tema putih dan tema merah.

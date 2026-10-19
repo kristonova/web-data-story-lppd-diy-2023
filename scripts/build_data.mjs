@@ -1492,6 +1492,363 @@ tulisCsv(
 );
 
 // ═════════════════════════════════════════════════════════════════════════════
+// WILAYAH — perbandingan antarkabupaten/kota (bab 2.2.13.4, hal 923–949),
+// pariwisata (hal 639), air minum dan sanitasi (hal 463, 467), cagar budaya (hal 615)
+// ═════════════════════════════════════════════════════════════════════════════
+
+const F7 = "bab2-2_2_13_4_pengukuran-capaian-kinerja-dibandingkan-dengan-target-dalam.md";
+const F7p = "bab2-2_2_7_2_urusan-pariwisata-dinas-pariwisata-diy.md";
+const F7a = "bab2-2_2_6_4_urusan-kesehatan-rs-respira-diy.md";
+const F7b = "bab2-2_2_6_26_urusan-kebudayaan-dinas-kebudayaan-diykundha-kabudayan-diy.md";
+
+/** Kode wilayah Kemendagri — kunci penghubung tabel LPPD dengan batas GeoJSON. */
+const KABKOTA = [
+  { kode: "3401", nama: "Kulon Progo", re: /kulon\s*progo/i },
+  { kode: "3402", nama: "Bantul", re: /bantul/i },
+  { kode: "3403", nama: "Gunungkidul", re: /gunung\s*kidul/i },
+  { kode: "3404", nama: "Sleman", re: /sleman/i },
+  { kode: "3471", nama: "Kota Yogyakarta", re: /^(kota\s*)?yogyakarta$/i },
+];
+/** Label baris → kode wilayah ("DIY" untuk provinsi), null bila bukan baris wilayah. */
+function kodeWilayah(label) {
+  const t = String(label ?? "").replace(/^Kabupaten\s+/i, "").trim();
+  if (/^(DIY|Daerah Istimewa Yogyakarta|Total DIY)$/i.test(t)) return "DIY";
+  return KABKOTA.find((k) => k.re.test(t))?.kode ?? null;
+}
+const namaWilayah = (kode) => (kode === "DIY" ? "DIY" : KABKOTA.find((k) => k.kode === kode).nama);
+
+/** Gabungkan sel berurutan yang identik (sel ganda hasil OCR: "2,16 | 2,16"). */
+function selTunggal(cells) {
+  const out = [];
+  cells.forEach((c, j) => {
+    if (c !== "" && j > 0 && cells[j - 1] === c) return;
+    out.push(c);
+  });
+  return out;
+}
+
+/**
+ * Tabel baris-per-wilayah: label wilayah lalu `n` angka. `urai` mengganti
+ * pengurai angka; sel yang tak terbaca menjadi null dan dicatat pemanggil.
+ */
+function tabelWilayah(berkas, hal, ke, n, nama, { urai = angka, denganDIY = true, lewati = 0 } = {}) {
+  const hasil = new Map();
+  for (const b of isi(tabelN(berkas, hal, ke))) {
+    const c = sel(b);
+    const iLabel = c.findIndex((x) => /[A-Za-z]/.test(x));
+    if (iLabel < 0) continue;
+    const kode = kodeWilayah(c[iLabel]);
+    if (!kode || hasil.has(kode)) continue;
+    const sisa = c.slice(iLabel + 1).filter((x) => x !== "" && !/^[A-Za-z ]+$/.test(x)).slice(lewati);
+    const nilai = sisa.map((x) => urai(x));
+    cek(`${nama}.${kode}.kolom`, nilai.length === n, `${nilai.length} sel: ${sisa.join(" | ")}`);
+    hasil.set(kode, nilai.slice(0, n));
+  }
+  const harus = [...KABKOTA.map((k) => k.kode), ...(denganDIY ? ["DIY"] : [])];
+  for (const k of harus) cek(`${nama}.${k}`, hasil.has(k), "baris wilayah tidak ditemukan");
+  return hasil;
+}
+/** Bilangan bulat dengan titik ribuan untuk kalimat catatan. */
+const ribuan = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const dekat = (a, b, tol = 1e-6) => a != null && b != null && Math.abs(a - b) <= tol;
+
+// W1. IPM per kabupaten/kota 2019–2023 + kategori (hal 939 t5)
+const TAHUN_IPM = ["2019", "2020", "2021", "2022", "2023"];
+const ipmKab = tabelWilayah(F7, 939, 5, 5, "wilayah.ipm");
+const kategoriIpm = new Map();
+for (const b of isi(tabelN(F7, 939, 5))) {
+  const c = sel(b).filter((x) => x !== "");
+  const kode = kodeWilayah(c[0]);
+  if (kode) kategoriIpm.set(kode, c[c.length - 1]);
+}
+for (const [kode, v] of ipmKab) {
+  const kat = kategoriIpm.get(kode) ?? "";
+  // Konsistensi kategori BPS: ≥ 80 "Sangat Tinggi", 70–80 "Tinggi".
+  cek(`wilayah.ipm.${kode}.kategori`, (v[4] >= 80) === /sangat/i.test(kat) && /tinggi/i.test(kat), `${v[4]} → ${kat}`);
+}
+cek("wilayah.ipm.DIY=pembuka", dekat(ipmKab.get("DIY")[3], makro[0].nilai2022) && dekat(ipmKab.get("DIY")[4], makro[0].nilai2023), JSON.stringify(ipmKab.get("DIY")));
+cek("wilayah.ipm.DIY.2023=hal939t1", /81,09/.test(isi(tabelN(F7, 939, 1)).join(" ")), "realisasi IPM 2023 di tabel ringkas");
+
+// W2. Komponen IPM per kabupaten/kota 2023 (hal 941 t1) + deret RLS, HLS, pengeluaran
+const komponenKab = tabelWilayah(F7, 941, 1, 4, "wilayah.komponen");
+const rlsKab = tabelWilayah(F7, 942, 1, 4, "wilayah.rls");
+const hlsKab = tabelWilayah(F7, 944, 1, 4, "wilayah.hls");
+/** Pengeluaran ribu rupiah: "10.723" dan "10,275" sama-sama berarti 10.275 ribu. */
+const ribuRupiah = (s) => (/^\d{1,2}[.,]\d{3}$/.test(String(s).trim()) ? +String(s).trim().replace(/[.,]/, "") : null);
+const pengeluaranKab = tabelWilayah(F7, 945, 1, 5, "wilayah.pengeluaran", { urai: ribuRupiah });
+for (const [kode, k] of komponenKab) {
+  cek(`wilayah.rls2023.${kode}`, dekat(rlsKab.get(kode)?.[3], k[2]), `${rlsKab.get(kode)} vs ${k[2]}`);
+  cek(`wilayah.hls2023.${kode}`, dekat(hlsKab.get(kode)?.[3], k[1]), `${hlsKab.get(kode)} vs ${k[1]}`);
+  cek(`wilayah.ppp2023.${kode}`, dekat(pengeluaranKab.get(kode)?.[4], k[3]), `${pengeluaranKab.get(kode)} vs ${k[3]}`);
+}
+{
+  const diy = komponenKab.get("DIY");
+  const t23 = (re) => ipmKomponen.find((x) => re.test(x.nama))?.nilai.t2023;
+  cek("wilayah.komponen.DIY.hls", dekat(diy[1], t23(/Harapan lama/)), "");
+  cek("wilayah.komponen.DIY.rls", dekat(diy[2], t23(/Rata-rata/)), "");
+  cek("wilayah.komponen.DIY.ppp", dekat(diy[3], t23(/Pengeluaran/)), "");
+  const ahh189 = t23(/Umur harapan/);
+  if (!dekat(diy[0], ahh189)) {
+    catat(
+      `Umur harapan hidup DIY 2023 tertulis ${String(ahh189).replace(".", ",")} tahun pada tabel komponen IPM (hal. 189) ` +
+      `dan ${String(diy[0]).replace(".", ",")} tahun pada tabel komponen per kabupaten/kota (hal. 941); keduanya ditampilkan apa adanya di adegannya masing-masing.`
+    );
+  }
+}
+catat(
+  "Tabel pengeluaran per kapita disesuaikan per kabupaten/kota (hal. 945) menulis kolom 2019–2020 dengan koma sebagai pemisah ribuan " +
+  "(\"10,275\") dan kolom 2021–2023 dengan titik (\"10.069\"); keduanya dibaca sebagai ribu rupiah."
+);
+
+// W3. Kemiskinan per kabupaten/kota Maret 2019–2023 (hal 948 t1)
+const PERIODE_KAB = ["Maret 2019", "Maret 2020", "Maret 2021", "Maret 2022", "Maret 2023"];
+const kemKab = tabelWilayah(F7, 948, 1, 5, "wilayah.kemiskinan");
+for (const [kode, v] of kemKab) {
+  v.forEach((x, j) => {
+    if (x == null) {
+      const mentah = isi(tabelN(F7, 948, 1)).find((b) => kodeWilayah(sel(b).find((y) => /[A-Za-z]/.test(y))) === kode);
+      const selMentah = sel(mentah ?? "").filter((y) => y !== "" && !/[A-Za-z]/.test(y))[j];
+      catat(
+        `Persentase penduduk miskin ${namaWilayah(kode)} ${PERIODE_KAB[j]} tertulis "${selMentah}" (hal. 948, tabel ke-1) — ` +
+        "tidak ditampilkan sebagai angka; titik periode itu dikosongkan di grafik."
+      );
+    }
+  });
+}
+cek("wilayah.kemiskinan.nullTunggal", [...kemKab.values()].flat().filter((x) => x == null).length <= 1, "terlalu banyak sel rusak");
+{
+  const diy = kemKab.get("DIY");
+  const total = (per) => kemiskinan.find((x) => x.daerah === "Total" && x.periode === per)?.persen;
+  cek("wilayah.kemiskinan.DIY.2023=hal191", dekat(diy[4], total("Maret 2023")), `${diy[4]} vs ${total("Maret 2023")}`);
+  cek("wilayah.kemiskinan.DIY.2022=hal191", dekat(diy[3], total("Maret 2022")), `${diy[3]} vs ${total("Maret 2022")}`);
+  cek("wilayah.kemiskinan.DIY.2023=pembuka", dekat(diy[4], makro[1].nilai2023), "");
+}
+
+// W4. Pertumbuhan ekonomi per kabupaten/kota 2018–2023 (hal 924 t5) + kalimat pengantar
+const TAHUN_PE = ["2018", "2019", "2020", "2021", "2022", "2023"];
+const peKab = tabelWilayah(F7, 924, 5, 6, "wilayah.pertumbuhan", { denganDIY: false });
+{
+  const teks = isi(tabelN(F7, 924, 4)).map((b) => sel(b).join(" ")).join(" ").replace(/\s+/g, " ");
+  const s21 = satu(teks, /masing-masing\s+([\d,]+)%\s*\(2021\)/, "wilayah.pe.teks.sleman21");
+  const s22 = satu(teks, /\(2021\)\s*dan\s+([\d,]+)%\s*\(2022\)\.\s*Kabupaten Kulon/, "wilayah.pe.teks.sleman22");
+  const k21 = satu(teks, /terendah yaitu\s+([\d,]+)%/, "wilayah.pe.teks.kp21");
+  cek("wilayah.pe.sleman=teks", dekat(peKab.get("3404")[3], s21) && dekat(peKab.get("3404")[4], s22), `${s21} ${s22}`);
+  cek("wilayah.pe.kp=teks", dekat(peKab.get("3401")[3], k21), String(k21));
+  cek("wilayah.pe.semua2023>5", [...peKab.values()].every((v) => v[5] > 5), "teks: semua di atas 5% pada 2023");
+}
+
+// W5. Pertumbuhan menurut lapangan usaha 2018–2023 (hal 923 t2 + hal 924 t1)
+const sektor = [];
+let pdrbTumbuh = null;
+for (const [hal, ke] of [[923, 2], [924, 1]]) {
+  for (const b of isi(tabelN(F7, hal, ke))) {
+    const c = selTunggal(sel(b));
+    const label = c
+      .filter((x) => /[A-Za-z]/.test(x) && angka(x) == null)
+      .sort((a, b2) => b2.length - a.length)[0];
+    const nilai = c.filter((x) => x !== "" && !/[A-Za-z]/.test(x)).map(angka).filter((v) => v != null);
+    if (!label || /^Lapangan Usaha$/i.test(label)) continue;
+    if (nilai.length === 0) {
+      // Baris sambungan nama ("Sepeda Motor", "Sosial Wajib").
+      const akhir = sektor[sektor.length - 1];
+      if (akhir && !akhir.nama.endsWith(label)) akhir.nama = `${akhir.nama} ${label}`;
+      continue;
+    }
+    cek(`wilayah.sektor.${label}.kolom`, nilai.length === 6, `${nilai.length}: ${c.join(" | ")}`);
+    if (/^P\s*D\s*R\s*B$/i.test(label)) pdrbTumbuh = nilai;
+    else sektor.push({ nama: label, nilai });
+  }
+}
+cek("wilayah.sektor.jumlah", sektor.length === 17, String(sektor.length));
+cek("wilayah.sektor.pdrb2023=pembuka", dekat(pdrbTumbuh?.[5], makro[3].perubahan), `${pdrbTumbuh}`);
+{
+  const pdrbPengeluaran = isi(tabelN(F7, 924, 3))
+    .map((b) => sel(b))
+    .find((c) => c.some((x) => /^P\s*D\s*R\s*B$/i.test(x)));
+  const v = (pdrbPengeluaran ?? []).filter((x) => /^-?[\d.]+$/.test(x)).map(Number);
+  cek("wilayah.sektor.pdrb=tabelPengeluaran", v.length === 6 && v.every((x, j) => dekat(x, pdrbTumbuh?.[j])), v.join(" "));
+}
+catat("Kolom 2023 pada tabel pertumbuhan menurut lapangan usaha (hal. 923–924) bertanda bintang di laporan: angka sementara.");
+
+// W6. Indeks Williamson (teks hal 930–931)
+const williamson = (() => {
+  const teks = isi(tabelN(F7, 931, 2)).map((b) => sel(b).join(" ")).join(" ").replace(/\s+/g, " ");
+  const desimal = (s) => (/^0\.\d+$/.test(s) ? Number(s) : angka(s));
+  const m18 = teks.match(/indeks dari\s+([\d,.]+)\s+di\s+tahun 2018 menjadi\s+([\d,.]+)\s+di tahun 2023/);
+  const m21 = teks.match(/([\d,.]+)\s*\(2021\)/);
+  const m20 = teks.match(/menjadi\s+([\d,.]+)\s+di tahun 2020/);
+  const mt = teks.match(/target pada RPD 2023-2026 sebesar\s+([\d,.]+)/);
+  const mc = teks.match(/persentase capaian sebesar\s+([\d,.]+)%/);
+  cek("wilayah.williamson.pola", !!(m18 && m21 && m20 && mt && mc), teks.slice(0, 160));
+  const w = {
+    seri: [
+      { tahun: "2018", nilai: desimal(m18?.[1] ?? "") },
+      { tahun: "2020", nilai: desimal(m20?.[1] ?? "") },
+      { tahun: "2021", nilai: desimal(m21?.[1] ?? "") },
+      { tahun: "2023", nilai: desimal(m18?.[2] ?? "") },
+    ],
+    target2023: desimal(mt?.[1] ?? ""),
+    capaianPersen: desimal(mc?.[1] ?? ""),
+    proyeksi2023: /angka\s+proyeksi/.test(teks),
+  };
+  cek("wilayah.williamson.angka", w.seri.every((x) => x.nilai != null && x.nilai > 0.4 && x.nilai < 0.6), JSON.stringify(w.seri));
+  // Capaian indikator "semakin kecil semakin baik" menurut laporan: (2 − realisasi/target) × 100.
+  cek("wilayah.williamson.capaian", dekat(100 * (2 - w.seri[3].nilai / w.target2023), w.capaianPersen, 0.01), `${w.capaianPersen}`);
+  if (/^0\.\d+$/.test(m20?.[1] ?? "")) catat(`Indeks Williamson 2020 ditulis dengan titik desimal ("${m20[1]}", hal. 931); dibaca ${String(w.seri[1].nilai).replace(".", ",")}.`);
+  const t930 = isi(tabelN(F7, 930, 3)).map((b) => sel(b).join(" ")).join(" ").replace(/\s+/g, " ");
+  const m930 = t930.match(/Williamsons? tahun 2018 adalah\s+([\d,]+)\s+yang kemudian menurun menjadi\s+([\d,]+)/);
+  if (m930) {
+    catat(
+      `Paragraf hal. 930 menyebut indeks Williamson 2018 sebesar ${m930[1]} lalu "menurun menjadi ${m930[2]}", ` +
+      `sedangkan hal. 931 menyebut ${m18?.[1]} (2018) dan ${m18?.[2]} (2023); halaman ini memakai deret hal. 931.`
+    );
+  }
+  const kp18teks = teks.match(/Kulon Progo yaitu masing-masing sebesar\s+([\d,]+)%/);
+  if (kp18teks && !dekat(angka(kp18teks[1]), peKab.get("3401")[0])) {
+    catat(`Pertumbuhan Kulon Progo 2018 tertulis ${kp18teks[1]}% di naskah hal. 931 dan ${String(peKab.get("3401")[0]).replace(".", ",")}% di tabel hal. 924; grafik memakai angka tabel.`);
+  }
+  return w;
+})();
+
+// W7. Hotel bintang dan nonbintang per kabupaten/kota 2022–2023 (hal 639 t1)
+const hotelKab = tabelWilayah(F7p, 639, 1, 6, "wilayah.hotel", { denganDIY: false });
+{
+  const jumlahBaris = isi(tabelN(F7p, 639, 1)).map((b) => sel(b)).find((c) => c.some((x) => /^Jumlah$/i.test(x)));
+  const j = (jumlahBaris ?? []).map(angka).filter((v) => v != null);
+  cek("wilayah.hotel.jumlah.kolom", j.length === 6, j.join(" "));
+  for (let k = 0; k < 6; k++) {
+    cek(`wilayah.hotel.kolom${k}`, [...hotelKab.values()].reduce((s, v) => s + v[k], 0) === j[k], `${j[k]}`);
+  }
+  for (const [kode, v] of hotelKab) cek(`wilayah.hotel.${kode}.jumlah`, v[0] + v[2] === v[4] && v[1] + v[3] === v[5], v.join(" "));
+}
+
+// W8. Akses air minum dan sanitasi rumah tangga per kabupaten/kota 2023 (hal 467 t3, 463 t1)
+const strip0 = (s) => (/^[-–]$/.test(String(s).trim()) ? 0 : angka(s));
+const airKab = tabelWilayah(F7a, 467, 3, 3, "wilayah.air", { urai: strip0, denganDIY: false });
+const sanKab = tabelWilayah(F7a, 463, 1, 6, "wilayah.sanitasi", { urai: strip0 });
+{
+  const baris = isi(tabelN(F7a, 467, 3)).map((b) => sel(b));
+  const jumlah = baris.find((c) => c.some((x) => /^Jumlah$/i.test(x)))?.map(angka).filter((v) => v != null) ?? [];
+  const totalAkses = angka(baris.find((c) => c.some((x) => /Total Akses/i.test(x)))?.find((x) => /^\d{1,3}(\.\d{3})+$/.test(x)));
+  const capaian = persenSel(baris.find((c) => c.some((x) => /Capaian Akses/i.test(x)))?.find((x) => /%/.test(x)));
+  cek("wilayah.air.jumlah", jumlah.length === 3 && [0, 1, 2].every((k) => [...airKab.values()].reduce((s, v) => s + v[k], 0) === jumlah[k]), jumlah.join(" "));
+  cek("wilayah.air.totalAkses", totalAkses === jumlah[0] + jumlah[1], `${totalAkses}`);
+  cek("wilayah.air.capaian", dekat((100 * totalAkses) / (jumlah[0] + jumlah[1] + jumlah[2]), capaian, 0.01), `${capaian}`);
+  for (const [kode, v] of airKab) {
+    // Penyebut sama dengan jumlah rumah tangga tabel sanitasi (Tabel 2-33).
+    cek(`wilayah.air.${kode}=rumahTangga`, v[0] + v[1] + v[2] === sanKab.get(kode)[5], `${v} vs ${sanKab.get(kode)}`);
+  }
+  // Selisih satu rumah tangga dianggap pembulatan laporan dan dicatat, selebihnya gagal.
+  for (const [kode, v] of sanKab) {
+    const selisih = v[5] - (v[0] + v[1] + v[2] + v[3] + v[4]);
+    cek(`wilayah.sanitasi.${kode}.jumlah`, Math.abs(selisih) <= 1, v.join(" "));
+    if (selisih !== 0) {
+      const kolomDIY = KABKOTA.reduce((s, kk) => s + sanKab.get(kk.kode)[1], 0);
+      catat(
+        `Rincian akses sanitasi ${namaWilayah(kode)} (hal. 463) berjumlah ${ribuan(v[5] - selisih)} rumah tangga, satu kurang dari jumlah barisnya (${ribuan(v[5])}); ` +
+        `kolom "akses belum layak" seluruh kabupaten/kota berjumlah ${ribuan(kolomDIY)}, sedangkan baris DIY menulis ${ribuan(sanKab.get("DIY")[1])}. Angka ditampilkan apa adanya.`
+      );
+    }
+  }
+  cek(
+    "wilayah.sanitasi.DIY",
+    [0, 1, 2, 3, 4, 5].every((k) => Math.abs(KABKOTA.reduce((s, kk) => s + sanKab.get(kk.kode)[k], 0) - sanKab.get("DIY")[k]) <= 1),
+    ""
+  );
+  catat(
+    "Tabel akses air minum per kabupaten/kota (Tabel 2-39, hal. 467) berjudul \"penduduk\", tetapi setiap barisnya berjumlah sama dengan " +
+    "jumlah rumah tangga pada tabel sanitasi (Tabel 2-33, hal. 463); satuannya dibaca sebagai rumah tangga."
+  );
+}
+
+// W9. Cagar budaya yang dikelola dan dilestarikan sampai 2023 (hal 615 t1)
+const cagarBudaya = (() => {
+  const out = [];
+  let jumlahTertulis = null;
+  for (const b of isi(tabelN(F7b, 615, 1))) {
+    const c = sel(b).filter((x) => x !== "");
+    if (c.some((x) => /^Jumlah$/i.test(x))) {
+      jumlahTertulis = angka(c[c.length - 1]);
+      continue;
+    }
+    const label = c.find((x) => /[A-Za-z]/.test(x));
+    const v = angka(c[c.length - 1]);
+    if (!label || v == null || /^Uraian$/i.test(label)) continue;
+    out.push({ jenis: label, jumlah: v });
+  }
+  cek("wilayah.cagar.baris", out.length === 5, String(out.length));
+  const total = out.reduce((s, x) => s + x.jumlah, 0);
+  if (total !== jumlahTertulis) {
+    catat(`Rincian cagar budaya yang dikelola (hal. 615) berjumlah ${total}, sedangkan baris jumlahnya tertulis ${jumlahTertulis}; grafik menampilkan rincian.`);
+  }
+  return { baris: out, jumlahTertulis, jumlahRincian: total };
+})();
+const teksSumbu = readFileSync(join(TEKS, "bab-5-penutup.md"), "utf8").replace(/\s+/g, " ");
+cek("wilayah.sumbuFilosofi", /Penetapan Sumbu Filosofi sebagai Warisan Budaya Dunia oleh UNESCO/.test(teksSumbu), "kalimat penutup bab 5");
+
+// Keluaran wilayah
+const perKab = (peta) => Object.fromEntries([...peta].map(([k, v]) => [k, v]));
+tulisJson("wilayah", {
+  sumber: [prov(F7, 939, 5), prov(F7, 941, 1), prov(F7, 948, 1), prov(F7, 924, 5), prov(F7, 923, 2), prov(F7, 931, 2), prov(F7p, 639, 1), prov(F7a, 467, 3), prov(F7a, 463, 1), prov(F7b, 615, 1)],
+  kabkota: KABKOTA.map((k) => ({ kode: k.kode, nama: k.nama })),
+  ipm: { tahun: TAHUN_IPM, nilai: perKab(ipmKab), kategori: Object.fromEntries(kategoriIpm) },
+  komponen: { tahun: "2023", kolom: ["ahh", "hls", "rls", "pengeluaran"], nilai: perKab(komponenKab) },
+  pengeluaran: { tahun: TAHUN_IPM, nilai: perKab(pengeluaranKab) },
+  kemiskinan: { periode: PERIODE_KAB, nilai: perKab(kemKab) },
+  pertumbuhan: { tahun: TAHUN_PE, nilai: perKab(peKab), diy: pdrbTumbuh },
+  sektor: { tahun: TAHUN_PE, baris: sektor },
+  williamson,
+  hotel: { kolom: ["bintang2022", "bintang2023", "nonbintang2022", "nonbintang2023", "jumlah2022", "jumlah2023"], nilai: perKab(hotelKab) },
+  airMinum: { kolom: ["perpipaan", "nonPerpipaan", "belumAkses"], satuan: "rumah tangga", nilai: perKab(airKab) },
+  sanitasi: { kolom: ["babs", "belumLayak", "layakIndividu", "layakBersama", "aman", "jumlah"], satuan: "rumah tangga", nilai: perKab(sanKab) },
+  cagarBudaya,
+});
+const barisKab = (peta, kode) => [kode, namaWilayah(kode), ...peta.get(kode)];
+const kodeUrut = [...KABKOTA.map((k) => k.kode), "DIY"];
+tulisCsv(
+  "ipm-kabkota.csv",
+  ["kode", "wilayah", ...TAHUN_IPM.map((t) => `ipm_${t}`), "ahh_2023", "hls_2023", "rls_2023", "pengeluaran_ribu_2023"],
+  kodeUrut.map((k) => [...barisKab(ipmKab, k), ...komponenKab.get(k)]),
+  "IPM per kabupaten/kota 2019–2023 dan komponennya 2023",
+  "LPPD DIY 2023, halaman 939 tabel ke-5 dan halaman 941 tabel ke-1"
+);
+tulisCsv(
+  "kemiskinan-kabkota.csv",
+  ["kode", "wilayah", ...PERIODE_KAB.map((p) => `persen_${p.replace(" ", "_").toLowerCase()}`)],
+  kodeUrut.map((k) => barisKab(kemKab, k)),
+  "Persentase penduduk miskin per kabupaten/kota, Maret 2019–2023",
+  "LPPD DIY 2023, halaman 948, tabel ke-1"
+);
+tulisCsv(
+  "pertumbuhan-kabkota.csv",
+  ["kode", "wilayah", ...TAHUN_PE.map((t) => `persen_${t}`)],
+  [...KABKOTA.map((k) => barisKab(peKab, k.kode)), ["DIY", "DIY", ...pdrbTumbuh]],
+  "Pertumbuhan ekonomi per kabupaten/kota 2018–2023",
+  "LPPD DIY 2023, halaman 924 tabel ke-5; baris DIY dari halaman 924 tabel ke-1"
+);
+tulisCsv(
+  "pertumbuhan-sektor.csv",
+  ["lapangan_usaha", ...TAHUN_PE.map((t) => `persen_${t}`)],
+  [...sektor.map((s) => [s.nama, ...s.nilai]), ["PDRB", ...pdrbTumbuh]],
+  "Pertumbuhan PDRB DIY menurut lapangan usaha 2018–2023 (2023 angka sementara)",
+  "LPPD DIY 2023, halaman 923 tabel ke-2 dan halaman 924 tabel ke-1"
+);
+tulisCsv(
+  "hotel-kabkota.csv",
+  ["kode", "wilayah", "bintang_2022", "bintang_2023", "nonbintang_2022", "nonbintang_2023", "jumlah_2022", "jumlah_2023"],
+  KABKOTA.map((k) => barisKab(hotelKab, k.kode)),
+  "Jumlah hotel bintang dan nonbintang per kabupaten/kota 2022–2023",
+  "LPPD DIY 2023, halaman 639, tabel ke-1"
+);
+tulisCsv(
+  "air-sanitasi-kabkota.csv",
+  ["kode", "wilayah", "air_perpipaan", "air_nonperpipaan", "air_belum_akses", "san_babs", "san_belum_layak", "san_layak_individu", "san_layak_bersama", "san_aman", "rumah_tangga"],
+  KABKOTA.map((k) => [k.kode, k.nama, ...airKab.get(k.kode), ...sanKab.get(k.kode)]),
+  "Akses air minum dan sanitasi rumah tangga per kabupaten/kota 2023",
+  "LPPD DIY 2023, halaman 467 tabel ke-3 dan halaman 463 tabel ke-1"
+);
+
+// ═════════════════════════════════════════════════════════════════════════════
 // PENUTUP — statistik sumber, manifes, gerbang gagal
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -1507,6 +1864,10 @@ const berkasData = [
   "bab2-2_2_8_5_bantuan-keuangan-khusus-bkk-kalurahan.md",
   "bab2-2_2_11_2_perencanaan-pembangunan-paniradya-kaistimewan-diy.md",
   "bab-4-penerapan-standar.md",
+  "bab2-2_2_13_4_pengukuran-capaian-kinerja-dibandingkan-dengan-target-dalam.md",
+  "bab2-2_2_7_2_urusan-pariwisata-dinas-pariwisata-diy.md",
+  "bab2-2_2_6_4_urusan-kesehatan-rs-respira-diy.md",
+  "bab2-2_2_6_26_urusan-kebudayaan-dinas-kebudayaan-diykundha-kabudayan-diy.md",
 ];
 const tabelStats = [];
 for (const berkas of berkasData) {
@@ -1522,7 +1883,7 @@ for (const berkas of berkasData) {
   }
   tabelStats.push({ berkas: `data-story/source/${berkas}`, tabel: tabels.length, tabelBerangka: berangka });
 }
-cek("penutup.tabelstats", tabelStats.length === 10 && tabelStats.every((x) => x.tabel > 0), JSON.stringify(tabelStats));
+cek("penutup.tabelstats", tabelStats.length === berkasData.length && tabelStats.every((x) => x.tabel > 0), JSON.stringify(tabelStats));
 
 tulisJson("manifes", {
   dibuat: new Date().toISOString(),

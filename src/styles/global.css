@@ -360,11 +360,22 @@ th {
   color: var(--red);
   margin-bottom: var(--space-2);
 }
+/* Judul adegan dan judul grafik memakai Jogjakartype; glif yang tidak ada
+   di Jogjakartype (², ·, ×, huruf beraksen) jatuh ke Source Sans 3. */
 .jb__teks {
-  font-size: var(--fs-title);
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 1.5rem + 1.4vw, 2.625rem);
   font-weight: 400;
-  line-height: var(--lh-deck);
-  max-width: 28ch;
+  line-height: 1.08;
+  max-width: 24ch;
+}
+.jb__tanya {
+  margin-top: var(--space-3);
+  font-size: var(--fs-heading);
+  font-weight: 300;
+  line-height: 1.3;
+  max-width: 44ch;
+  color: var(--text);
 }
 .jb__garis {
   position: relative;
@@ -537,9 +548,10 @@ th {
   color: var(--text-muted);
 }
 .isi-laporan__nama {
-  font-size: 1.125rem;
-  font-weight: 300;
-  line-height: var(--lh-deck);
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 400;
+  line-height: 1.1;
 }
 .isi-laporan a:hover .isi-laporan__nama {
   color: var(--red);
@@ -571,10 +583,11 @@ th {
   margin-bottom: var(--space-4);
 }
 .pembatas h2 {
+  font-family: var(--font-display);
   font-size: var(--fs-headline);
-  font-weight: 300;
-  line-height: var(--lh-deck);
-  max-width: 16ch;
+  font-weight: 400;
+  line-height: 1.04;
+  max-width: 14ch;
 }
 .pembatas__sub {
   margin-top: var(--space-6);
@@ -742,9 +755,11 @@ th {
   margin-bottom: var(--space-6);
 }
 .fig__judul {
-  font-size: var(--fs-body);
-  font-weight: 600;
-  line-height: 1.35;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--ink);
 }
 .fig__satuan {
   font-size: var(--fs-small);
@@ -788,6 +803,78 @@ th {
   border-radius: 0;
   background: var(--c-trek);
   box-shadow: inset 0 0 0 1px var(--c-redup);
+}
+
+/* Tombol pil untuk memilih lapis peta/grafik (pil hanya untuk tombol, pedoman). */
+.pil {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--grey-rule);
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-cepat) ease,
+    border-color var(--dur-cepat) ease,
+    color var(--dur-cepat) ease;
+}
+.pil:hover {
+  border-color: var(--ink);
+}
+.pil[aria-pressed="true"] {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+}
+.pil--putar {
+  margin-left: var(--space-2);
+  border-color: var(--ink);
+}
+.pil--putar[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.pil__ikon {
+  width: 0;
+  height: 0;
+  border-block: 5px solid transparent;
+  border-left: 8px solid currentColor;
+}
+.pil--putar[aria-pressed="true"] .pil__ikon {
+  width: 8px;
+  height: 10px;
+  border: 0;
+  border-left: 3px solid currentColor;
+  border-right: 3px solid currentColor;
+}
+
+/* Kisi peta kecil (empat peta berdampingan) */
+.peta-kisi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-12) var(--space-8);
+}
+.peta-kisi__judul {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  line-height: 1.15;
+  margin-bottom: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 2px solid var(--ink);
+}
+@media (max-width: 640px) {
+  .peta-kisi {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+  }
 }
 
 /* Tabel angka alternatif — terbuka tanpa JavaScript */

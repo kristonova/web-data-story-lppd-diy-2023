@@ -1,0 +1,268 @@
+---
+/**
+ * Paralel — koordinat paralel: beberapa ukuran berbeda satuan, masing-masing
+ * pada sumbu tegaknya sendiri, satu garis per wilayah. Garis yang menyilang
+ * memperlihatkan wilayah yang unggul di satu ukuran tetapi tertinggal di
+ * ukuran lain. Setiap sumbu menuliskan nilai terendah dan tertingginya,
+ * sehingga skala yang berbeda tidak pernah tersamar.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+import { q } from "../../lib/chart";
+
+interface Sumbu {
+  label: string;
+  /** Nama pendek untuk layar sempit. */
+  pendek?: string;
+  sub: string;
+}
+interface Seri {
+  label: string;
+  nilai: number[];
+  tampil: string[];
+  warna: string;
+  putus?: boolean;
+  sorot?: boolean;
+  /** Nama pendek untuk layar sempit. */
+  pendek?: string;
+}
+interface Props {
+  label: string;
+  sumbu: Sumbu[];
+  seri: Seri[];
+  tinggi?: number;
+}
+
+const { label, sumbu, seri, tinggi = 360 } = Astro.props;
+const n = sumbu.length;
+const px = (j: number) => (100 * j) / (n - 1);
+const rentang = sumbu.map((_, j) => {
+  const vs = seri.map((s) => s.nilai[j]!);
+  const lo = Math.min(...vs);
+  const hi = Math.max(...vs);
+  const pad = (hi - lo) * 0.06 || 1;
+  return { lo: lo - pad, hi: hi + pad, min: lo, maks: hi };
+});
+const py = (j: number, v: number) => 100 - (100 * (v - rentang[j]!.lo)) / (rentang[j]!.hi - rentang[j]!.lo);
+const jalur = (s: Seri) => s.nilai.map((v, j) => `${j ? "L" : "M"}${q(px(j) * 10)} ${q(py(j, v) * 10)}`).join("");
+
+// Label ujung kanan dan kiri, didorong agar tidak bertumpuk.
+const JARAK = (22 / tinggi) * 100;
+const dorong = (j: number) => {
+  const u = seri.map((s, i) => ({ i, y: py(j, s.nilai[j]!) })).sort((a, b) => a.y - b.y);
+  for (let k = 1; k < u.length; k++) if (u[k]!.y - u[k - 1]!.y < JARAK) u[k]!.y = u[k - 1]!.y + JARAK;
+  const lebih = u.at(-1)!.y - 100;
+  if (lebih > 0) for (const x of u) x.y -= lebih;
+  return new Map(u.map((x) => [x.i, x.y]));
+};
+const yKiri = dorong(0);
+const yKanan = dorong(n - 1);
+const minTampil = sumbu.map((_, j) => seri.find((s) => s.nilai[j] === rentang[j]!.min)!.tampil[j]);
+const maksTampil = sumbu.map((_, j) => seri.find((s) => s.nilai[j] === rentang[j]!.maks)!.tampil[j]);
+---
+
+<div class="viz pr" style={`--h:${tinggi}px`} {...kontainer(label)}>
+  <div class="pr__kepala" aria-hidden="true">
+    {
+      sumbu.map((s, j) => (
+        <span style={`left:${css(px(j))}`} class:list={[j === 0 && "is-awal", j === n - 1 && "is-akhir"]}>
+          <b class="pr__lp">{s.label}</b>
+          <b class="pr__ls">{s.pendek ?? s.label}</b>
+          <span class="pr__lp">{s.sub}</span>
+        </span>
+      ))
+    }
+  </div>
+  <div class="pr__plot">
+    {
+      sumbu.map((_, j) => (
+        <div class="pr__sumbu" style={`left:${css(px(j))}`} aria-hidden="true">
+          <span class="pr__maks">{maksTampil[j]}</span>
+          <span class="pr__min">{minTampil[j]}</span>
+        </div>
+      ))
+    }
+    <svg class="pr__svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" data-anim="sapu">
+      {
+        seri.map((s, i) => (
+          <path
+            d={jalur(s)}
+            fill="none"
+            stroke={s.warna}
+            stroke-width={s.sorot ? 3.2 : 2.2}
+            stroke-dasharray={s.putus ? "6 5" : undefined}
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            vector-effect="non-scaling-stroke"
+            data-g={`p${i}`}
+          />
+        ))
+      }
+    </svg>
+    {
+      seri.map((s, i) =>
+        s.nilai.map((v, j) => (
+          <span
+            class="pr__titik"
+            data-anim="titik"
+            data-g={`p${i}`}
+            style={`left:${css(px(j))};top:${css(py(j, v))};--w:${s.warna};--tunda-k:${500 + j * 180}ms`}
+            {...tip({ judul: `${s.label} · ${sumbu[j]!.label}`, nilai: s.tampil[j] ?? "", warna: s.warna })}
+          />
+        )),
+      )
+    }
+    {
+      seri.map((s, i) => (
+        <>
+          <span class="pr__ujung pr__ujung--kiri" style={`top:${css(yKiri.get(i) ?? 0)}`} data-g={`p${i}`} data-anim="pudar">
+            {s.label}
+            <i style={`background:${s.warna}`} />
+          </span>
+          <span class="pr__ujung pr__ujung--kanan" style={`top:${css(yKanan.get(i) ?? 0)}`} data-g={`p${i}`} data-anim="pudar">
+            <i style={`background:${s.warna}`} />
+            <span class="pr__lp">{s.label}</span>
+            <span class="pr__ls">{s.pendek ?? s.label}</span>
+          </span>
+        </>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .pr {
+    padding: 0 8.5rem;
+  }
+  .pr__kepala {
+    position: relative;
+    height: 3.2em;
+    margin-bottom: var(--space-4);
+  }
+  .pr__kepala > span {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  .pr__kepala b {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .pr__plot {
+    position: relative;
+    height: var(--h);
+  }
+  .pr__sumbu {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 1px solid var(--c-sumbu);
+  }
+  .pr__maks,
+  .pr__min {
+    position: absolute;
+    left: 6px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .pr__maks {
+    top: -1.6em;
+  }
+  .pr__min {
+    bottom: -1.6em;
+  }
+  .pr__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .pr__svg path {
+    transition: opacity 200ms ease;
+  }
+  .pr__titik {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    margin: -5.5px 0 0 -5.5px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2.5px solid var(--w);
+    cursor: default;
+  }
+  .pr__titik::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+  }
+  .pr__ujung {
+    position: absolute;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-small);
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+  .pr__ujung i {
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .pr__ujung--kiri {
+    right: calc(100% + 14px);
+  }
+  .pr__ujung--kanan {
+    left: calc(100% + 14px);
+  }
+  .pr__ls {
+    display: none;
+  }
+  @media (max-width: 720px) {
+    .pr {
+      padding: 0 4.75rem 0 0.25rem;
+    }
+    .pr__ujung--kiri {
+      display: none;
+    }
+    .pr__ujung--kanan {
+      left: calc(100% + 8px);
+      font-size: var(--fs-micro);
+    }
+    .pr__lp {
+      display: none;
+    }
+    .pr__ls {
+      display: inline;
+    }
+    .pr__kepala {
+      height: 1.8em;
+    }
+    .pr__kepala > span {
+      font-size: 0.75rem;
+    }
+    .pr__kepala > span.is-awal {
+      transform: none;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .pr__kepala > span.is-akhir {
+      transform: translateX(-100%);
+      align-items: flex-end;
+      text-align: right;
+    }
+  }
+</style>

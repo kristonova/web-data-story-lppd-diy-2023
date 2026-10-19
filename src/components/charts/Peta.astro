@@ -1,0 +1,923 @@
+---
+/**
+ * Peta — peta tematik DIY dari batas GeoJSON (diproyeksikan saat build).
+ *
+ * Mode:
+ *  · koroplet  — isian kabupaten/kota mengikuti nilai; beberapa lapis dapat
+ *                dipilih dengan tombol (luas, penduduk, kepadatan, …).
+ *  · kategori  — 78 kapanewon/kemantren diwarnai menurut kabupaten/kotanya.
+ *  · gelembung — lingkaran sebanding nilai di tengah tiap kabupaten/kota;
+ *                lapis (mis. tahun) dapat dipilih atau diputar berurutan.
+ *  · penanda   — peta dasar netral dengan garis Sumbu Filosofi dan sisipan Kota.
+ *
+ * Jalur batas tidak diulang: setiap peta memakai <use href="#pk-…"> ke
+ * PetaDefs. Seluruh teks (nama, nilai, legenda) adalah HTML yang diletakkan
+ * dengan persen, sehingga tetap tajam dan terbaca di ponsel. Tanpa JavaScript
+ * lapis pertama yang tampil; seluruh lapis ada di tabel angka di bawahnya.
+ */
+import { peta } from "../../lib/data";
+import { kontainer, tip, css } from "../../lib/viz";
+import { RAMP, WARNA_KAB, padaRamp, teksDi, gradien, type NamaRamp } from "../../lib/warna";
+
+interface NilaiWil {
+  nilai: number | null;
+  tampil: string;
+  baris?: (string | false | null | undefined)[];
+  /** Nilai lingkaran dalam (mode gelembung), mis. hotel bintang dari seluruh hotel. */
+  dalam?: number | null;
+}
+interface Lapis {
+  judul: string;
+  nilai: Record<string, NilaiWil>;
+  ramp?: NamaRamp;
+  /** Judul legenda gradasi; bawaan = judul lapis. */
+  legenda?: string;
+}
+interface Props {
+  label: string;
+  mode?: "koroplet" | "kategori" | "gelembung" | "penanda";
+  lapis?: Lapis[];
+  /** Garis batas kapanewon di atas isian kabupaten. */
+  kapanewon?: boolean;
+  /** Baris teks tambahan di bawah nama kabupaten (mode kategori/penanda). */
+  catatanKab?: Record<string, string[]>;
+  kecil?: boolean;
+  panel?: boolean;
+  putar?: boolean;
+  judulPilih?: string;
+  /** Jari-jari lingkaran terbesar, satuan peta (lebar peta 1000). */
+  rMaks?: number;
+  /** Kabupaten/kota yang diberi garis tepi tebal. */
+  sorot?: string[];
+  tampilNama?: boolean;
+  /** Keterangan legenda gelembung. */
+  ketGelembung?: string;
+  /** Lapis yang tampil pertama (juga tanpa JavaScript). */
+  awal?: number;
+}
+
+const {
+  label,
+  mode = "koroplet",
+  lapis = [],
+  kapanewon = false,
+  catatanKab = {},
+  kecil = false,
+  panel = false,
+  putar = false,
+  judulPilih = "Pilih lapisan peta",
+  rMaks = 70,
+  sorot = [],
+  tampilNama = !kecil,
+  ketGelembung,
+  awal = 0,
+} = Astro.props;
+
+const vb = kecil ? peta.diyBox : ([0, 0, peta.lebar, peta.tinggi] as const);
+const [vx, vy, vw, vh] = vb;
+const pctX = (x: number) => css((100 * (x - vx)) / vw);
+const pctY = (y: number) => css((100 * (y - vy)) / vh);
+const KOTA = "3471";
+const KOSONG = "#ece8e4";
+const KAB_DASAR = "#f6f2ec";
+
+const kodeKab = peta.kab.map((k) => k.kode);
+const namaKab = (kode: string) => peta.kab.find((k) => k.kode === kode)?.nama ?? kode;
+const jenisKap = (kodeK: string) => (kodeK === KOTA ? "Kemantren" : "Kapanewon");
+
+// Kota terlalu kecil untuk label di dalamnya: label digeser dengan garis penunjuk.
+const geserKota = kecil ? { dx: 108, dy: -6 } : { dx: 92, dy: -4 };
+const posLabel = (k: (typeof peta.kab)[number]) =>
+  k.kode === KOTA ? { x: k.lx + geserKota.dx, y: k.ly + geserKota.dy } : { x: k.lx, y: k.ly };
+
+// ── Warna dan ukuran per lapis ───────────────────────────────────────────────
+const nilaiKab = (L: Lapis) => kodeKab.map((k) => L.nilai[k]?.nilai).filter((v): v is number => v != null);
+const isianLapis = lapis.map((L) => {
+  const vs = nilaiKab(L);
+  const [lo, hi] = [Math.min(...vs), Math.max(...vs)];
+  const stops = RAMP[L.ramp ?? "merah"];
+  const isi: Record<string, string> = {};
+  for (const k of kodeKab) {
+    const v = L.nilai[k]?.nilai;
+    isi[k] = v == null ? KOSONG : padaRamp(stops, 0.14 + (0.86 * (v - lo)) / (hi - lo || 1));
+  }
+  return { isi, stops, lo, hi };
+});
+const isiKab = (kode: string, i: number) =>
+  mode === "koroplet" ? isianLapis[i]?.isi[kode] ?? KOSONG : mode === "kategori" ? WARNA_KAB[kode]! : KAB_DASAR;
+
+const vMaksGel = Math.max(1, ...lapis.flatMap((L) => nilaiKab(L)));
+const skalaGel = (v: number | null | undefined) => (v == null || v <= 0 ? 0 : Math.sqrt(v / vMaksGel));
+
+const warnaTeks = (f: string) => (mode === "koroplet" || mode === "kategori" ? teksDi(f) : "var(--ink)");
+const gayaLapis = (kode: string) =>
+  (lapis.length ? lapis : [null])
+    .map((L, i) => {
+      const f = isiKab(kode, i);
+      const parts = [`--f${i}:${f}`, `--t${i}:${warnaTeks(f)}`];
+      if (mode === "gelembung" && L) {
+        parts.push(`--s${i}:${skalaGel(L.nilai[kode]?.nilai).toFixed(4)}`);
+        parts.push(`--d${i}:${skalaGel(L.nilai[kode]?.dalam).toFixed(4)}`);
+      }
+      return parts.join(";");
+    })
+    .join(";");
+
+const tipLapis = (kode: string) => {
+  const a: Record<string, string> = {};
+  lapis.forEach((L, i) => {
+    const t = tip({ judul: `${namaKab(kode)} · ${L.judul}`, nilai: L.nilai[kode]?.tampil ?? "tidak tercatat", baris: L.nilai[kode]?.baris });
+    a[`data-v${i}`] = t["data-v"]!;
+    a[`data-t${i}`] = t["data-t"]!;
+    if (t["data-s"]) a[`data-s${i}`] = t["data-s"];
+  });
+  const L0 = lapis[awal];
+  return {
+    ...tip({
+      judul: L0 ? `${namaKab(kode)} · ${L0.judul}` : namaKab(kode),
+      nilai: L0?.nilai[kode]?.tampil ?? catatanKab[kode]?.join(" · ") ?? namaKab(kode),
+      baris: L0?.nilai[kode]?.baris,
+      warna: mode === "kategori" ? WARNA_KAB[kode] : undefined,
+    }),
+    ...a,
+  };
+};
+
+// Panel peringkat per lapis.
+const panelLapis = lapis.map((L) => {
+  const rows = kodeKab
+    .map((k) => ({ kode: k, v: L.nilai[k]?.nilai ?? null, tampil: L.nilai[k]?.tampil ?? "" }))
+    .sort((a, b) => (b.v ?? -Infinity) - (a.v ?? -Infinity));
+  const maks = Math.max(...rows.map((r) => r.v ?? 0)) || 1;
+  return rows.map((r) => ({ ...r, lebar: (100 * (r.v ?? 0)) / maks }));
+});
+
+// ── Sumbu Filosofi ───────────────────────────────────────────────────────────
+const sumbu = peta.penanda.filter((p) => p.jenis === "sumbu");
+const ruas = (a: number, b: number) => sumbu.slice(a, b + 1).map((p, j) => `${j ? "L" : "M"}${p.x} ${p.y}`).join("");
+const sumbuImajiUtara = ruas(0, 1);
+const sumbuInti = ruas(1, 3);
+const sumbuImajiSelatan = ruas(3, 4);
+const labelLain = peta.penanda.filter((p) => p.jenis !== "sumbu");
+const [kx, ky, kw, kh] = peta.kotaBox;
+const pctKX = (x: number) => css((100 * (x - kx)) / kw);
+const pctKY = (y: number) => css((100 * (y - ky)) / kh);
+// Hanya kapanewon yang tampak di bingkai sisipan, supaya penjelajahan papan ketik tidak tersesat.
+const kapKota = peta.kapanewon.filter((c) => c.lx > kx - 45 && c.lx < kx + kw + 45 && c.ly > ky - 45 && c.ly < ky + kh + 45);
+
+const nLapis = Math.max(1, lapis.length);
+const kotaLabel = peta.kab.find((k) => k.kode === KOTA)!;
+const kotaPos = posLabel(kotaLabel);
+---
+
+<div
+  class:list={["peta", `peta--${mode}`, kecil && "peta--kecil", panel && "peta--panel"]}
+  data-lapis={String(awal)}
+  data-lapis-induk
+  style={`--n-lapis:${nLapis}`}
+>
+  {
+    lapis.length > 1 && (
+      <div class="peta__pilih" role="group" aria-label={judulPilih}>
+        {lapis.map((L, i) => (
+          <button type="button" class="pil" data-pilih={i} aria-pressed={i === awal ? "true" : "false"}>
+            {L.judul}
+          </button>
+        ))}
+        {putar && (
+          <button type="button" class="pil pil--putar" data-putar aria-pressed="false">
+            <span class="pil__ikon" aria-hidden="true" />
+            <span data-putar-teks>Putar</span>
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  <div class="peta__tubuh">
+    <div class="viz peta__kanvas" style={`aspect-ratio:${vw} / ${vh}`} {...kontainer(label)}>
+      <svg class="peta__svg" viewBox={vb.join(" ")} aria-hidden="true" focusable="false">
+        <rect class="peta__laut" x={vx} y={vy} width={vw} height={vh} />
+        <g class="peta__sekitar">{peta.sekitar.map((_, i) => <use href={`#ps-${i}`} />)}</g>
+
+        {
+          mode === "kategori" ? (
+            <g class="peta__kapisi">
+              {peta.kapanewon.map((c, j) => (
+                <use
+                  href={`#pc-${c.kode}`}
+                  class="peta__kapanewon"
+                  style={`--f0:${WARNA_KAB[c.kodeKab]};--tunda-k:${(j % 18) * 40}ms`}
+                  data-g={`kap${c.kode}`}
+                  {...tip({ judul: `${jenisKap(c.kodeKab)} · ${namaKab(c.kodeKab)}`, nilai: c.nama, warna: WARNA_KAB[c.kodeKab] })}
+                />
+              ))}
+            </g>
+          ) : (
+            <g class="peta__kabisi">
+              {peta.kab.map((k, j) => (
+                <use
+                  href={`#pk-${k.kode}`}
+                  class="peta__wil"
+                  style={`${gayaLapis(k.kode)};--k-i:${j}`}
+                  data-g={`k${k.kode}`}
+                  {...(mode === "koroplet" ? tipLapis(k.kode) : {})}
+                />
+              ))}
+            </g>
+          )
+        }
+
+        {kapanewon && mode !== "kategori" && <g class="peta__kapgaris">{peta.kapanewon.map((c) => <use href={`#pc-${c.kode}`} />)}</g>}
+        <g class="peta__kabgaris">{peta.kab.map((k) => <use href={`#pk-${k.kode}`} class:list={[sorot.includes(k.kode) && "is-sorot"]} />)}</g>
+
+        {
+          mode === "penanda" && (
+            <g class="peta__sumbu" data-anim="pudar">
+              <path class="peta__sumbu-imaji" d={sumbuImajiUtara + sumbuImajiSelatan} vector-effect="non-scaling-stroke" />
+              <path class="peta__sumbu-inti" d={sumbuInti} vector-effect="non-scaling-stroke" />
+              {sumbu.map((p) => <circle cx={p.x} cy={p.y} r="5" class="peta__sumbu-titik" vector-effect="non-scaling-stroke" />)}
+            </g>
+          )
+        }
+
+        {
+          mode === "gelembung" &&
+            peta.kab.map((k, j) => (
+              <g class="peta__gel" style={`${gayaLapis(k.kode)};--w:${WARNA_KAB[k.kode]};--tunda-k:${j * 120}ms`} transform={`translate(${k.lx} ${k.ly})`}>
+                <circle r={rMaks} class="peta__gel-luar" data-g={`k${k.kode}`} {...tipLapis(k.kode)} />
+                <circle r={rMaks} class="peta__gel-dalam" />
+              </g>
+            ))
+        }
+
+        <line class="peta__penunjuk" x1={kotaLabel.lx + 6} y1={kotaLabel.ly} x2={kotaPos.x - 2} y2={kotaPos.y} vector-effect="non-scaling-stroke" />
+      </svg>
+
+      {/* Label kabupaten/kota */}
+      {
+        peta.kab.map((k, j) => {
+          const pos = posLabel(k);
+          // Mode gelembung: label turun mengikuti jari-jari lingkaran lapis aktif.
+          // Sleman di utara Kota: labelnya naik ke atas lingkaran supaya tidak menimpa Kota.
+          const keAtas = k.kode === "3404";
+          const yGel =
+            mode === "gelembung" && k.kode !== KOTA
+              ? lapis.map((L, i) => `--y${i}:${pctY(k.ly + (keAtas ? -1 : 1) * (rMaks * skalaGel(L.nilai[k.kode]?.nilai) + 6))}`).join(";")
+              : "";
+          return (
+            <div
+              class:list={["peta__label", k.kode === KOTA && "peta__label--kota", mode === "gelembung" && "peta__label--gel", keAtas && "peta__label--atas"]}
+              style={`left:${pctX(pos.x)};top:${pctY(pos.y)};${gayaLapis(k.kode)};${yGel};--tunda-k:${700 + j * 120}ms`}
+              data-anim="pudar"
+              aria-hidden="true"
+            >
+              {tampilNama && <b>{k.kode === KOTA && kecil ? "Kota" : k.nama}</b>}
+              {mode !== "penanda" &&
+                mode !== "kategori" &&
+                lapis.map((L, i) => (
+                  <span class="peta__v" data-l={i}>
+                    {L.nilai[k.kode]?.tampil}
+                  </span>
+                ))}
+              {(catatanKab[k.kode] ?? []).map((c) => <small>{c}</small>)}
+            </div>
+          );
+        })
+      }
+
+      {
+        !kecil &&
+          labelLain.map((p) => (
+            <span class:list={["peta__teks", `peta__teks--${p.jenis}`]} style={`left:${pctX(p.x)};top:${pctY(p.y)}`} aria-hidden="true">
+              {p.nama}
+            </span>
+          ))
+      }
+      {
+        mode === "penanda" && (
+          <>
+            <span class="peta__ikon" style={`left:${pctX(sumbu[0]!.x)};top:${pctY(sumbu[0]!.y)}`} aria-hidden="true">
+              <img src="./brand/ikon-merapi.svg" alt="" width="40" height="40" loading="lazy" data-anim="titik" />
+            </span>
+            <span
+              class="peta__teks peta__teks--sumbu peta__teks--kanan"
+              style={`left:${pctX(sumbu[0]!.x)};top:${pctY(sumbu[0]!.y)}`}
+              data-t={sumbu[0]!.nama}
+              data-v="Ujung utara sumbu imajiner"
+            >
+              {sumbu[0]!.nama}
+            </span>
+            <span
+              class="peta__teks peta__teks--sumbu peta__teks--kiri"
+              style={`left:${pctX(sumbu[4]!.x)};top:${pctY(sumbu[4]!.y)}`}
+              data-t={sumbu[4]!.nama}
+              data-v="Ujung selatan sumbu imajiner"
+            >
+              {sumbu[4]!.nama}
+            </span>
+            <span
+              class="peta__teks peta__teks--sumbu peta__teks--inti"
+              style={`left:${pctX(sumbu[2]!.x)};top:${pctY(sumbu[2]!.y)}`}
+              data-t="Tugu, Keraton, Panggung Krapyak"
+              data-v="Sumbu Filosofi"
+              data-s="Warisan Budaya Dunia UNESCO"
+            >
+              Sumbu Filosofi
+            </span>
+          </>
+        )
+      }
+    </div>
+
+    {
+      mode === "penanda" && (
+        <div class="viz peta__sisipan" {...kontainer("Perbesaran Kota Yogyakarta: Tugu, Keraton, dan Panggung Krapyak pada Sumbu Filosofi")}>
+          <p class="peta__sisipan-judul">Perbesaran Kota Yogyakarta</p>
+          <div class="peta__sisipan-kanvas" style={`aspect-ratio:${kw} / ${kh}`}>
+            <svg class="peta__svg" viewBox={peta.kotaBox.join(" ")} aria-hidden="true" focusable="false">
+              <rect class="peta__laut" x={kx} y={ky} width={kw} height={kh} />
+              {kapKota.map((c) => (
+                <use
+                  href={`#pc-${c.kode}`}
+                  class:list={["peta__kapsisip", c.kodeKab === KOTA && "is-kota"]}
+                  data-g={`ks${c.kode}`}
+                  {...tip({ judul: `${jenisKap(c.kodeKab)} · ${namaKab(c.kodeKab)}`, nilai: c.nama })}
+                />
+              ))}
+              <use href={`#pk-${KOTA}`} class="peta__kotagaris" />
+              <path class="peta__sumbu-inti" d={sumbuInti} vector-effect="non-scaling-stroke" />
+              <path class="peta__sumbu-imaji" d={`${ruas(0, 1)}${ruas(3, 4)}`} vector-effect="non-scaling-stroke" />
+              {sumbu.slice(1, 4).map((p) => (
+                <circle cx={p.x} cy={p.y} r="1.4" class="peta__sumbu-titik" vector-effect="non-scaling-stroke" />
+              ))}
+            </svg>
+            {sumbu.slice(1, 4).map((p) => (
+              <span class="peta__teks peta__teks--sisip" style={`left:${pctKX(p.x)};top:${pctKY(p.y)}`} aria-hidden="true">
+                {p.ikon && <img src={`./brand/${p.ikon}.svg`} alt="" width="30" height="30" loading="lazy" />}
+                <span>{p.nama}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      panel && lapis.length > 0 && (
+        <div class="peta__panel" aria-hidden="true">
+          {panelLapis.map((rows, i) => (
+            <ol class="peta__peringkat" data-l={i}>
+              {rows.map((r, j) => (
+                <li data-g={`k${r.kode}`} style={`--tunda-k:${j * 80}ms`}>
+                  <span class="peta__pnama">
+                    <i style={`background:${mode === "koroplet" ? isianLapis[i]?.isi[r.kode] : WARNA_KAB[r.kode]}`} />
+                    {namaKab(r.kode)}
+                  </span>
+                  <span class="peta__pnilai">{r.tampil}</span>
+                  <span class="peta__pbatang">
+                    <i style={`width:${css(r.lebar)}`} data-anim="x" />
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ))}
+        </div>
+      )
+    }
+  </div>
+
+  {
+    mode === "koroplet" && lapis.length > 0 && (
+      <div class="peta__legenda" aria-hidden="true">
+        {lapis.map((L, i) => {
+          const lo = kodeKab.find((k) => L.nilai[k]?.nilai === isianLapis[i]!.lo)!;
+          const hi = kodeKab.find((k) => L.nilai[k]?.nilai === isianLapis[i]!.hi)!;
+          return (
+            <div class="peta__ramp" data-l={i}>
+              <span class="peta__ramp-judul">{L.legenda ?? L.judul}</span>
+              <span class="peta__ramp-ujung">{L.nilai[lo]?.tampil}</span>
+              <i style={`background:${gradien(isianLapis[i]!.stops.map((_, s, a) => padaRamp(a, 0.14 + (0.86 * s) / (a.length - 1))))}`} />
+              <span class="peta__ramp-ujung">{L.nilai[hi]?.tampil}</span>
+            </div>
+          );
+        })}
+      </div>
+    )
+  }
+  {mode === "gelembung" && ketGelembung && <p class="peta__ket">{ketGelembung}</p>}
+</div>
+
+<style>
+  .peta {
+    position: relative;
+  }
+  .peta__pilih {
+    display: none;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+  :global(.js) .peta__pilih {
+    display: flex;
+  }
+  .peta__tubuh {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .peta--panel .peta__tubuh {
+    grid-template-columns: minmax(0, 1.75fr) minmax(220px, 1fr);
+  }
+  .peta--penanda .peta__tubuh {
+    grid-template-columns: minmax(0, 1.75fr) minmax(220px, 1fr);
+  }
+  .peta__kanvas {
+    position: relative;
+    width: 100%;
+  }
+  .peta__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .peta__laut {
+    fill: var(--white);
+  }
+  .peta__sekitar use {
+    fill: #f1eeea;
+    stroke: var(--white);
+    stroke-width: 1px;
+  }
+  .peta__wil,
+  .peta__kapanewon {
+    fill: var(--f0);
+    stroke: none;
+    transition: fill 700ms var(--ease);
+  }
+  .peta[data-lapis="1"] .peta__wil {
+    fill: var(--f1);
+  }
+  .peta[data-lapis="2"] .peta__wil {
+    fill: var(--f2);
+  }
+  .peta[data-lapis="3"] .peta__wil {
+    fill: var(--f3);
+  }
+  .peta[data-lapis="4"] .peta__wil {
+    fill: var(--f4);
+  }
+  .peta__kapanewon {
+    stroke: var(--white);
+    stroke-width: 0.8px;
+  }
+  .peta__kapgaris use {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.55);
+    stroke-width: 0.6px;
+    pointer-events: none;
+  }
+  .peta--penanda .peta__kapgaris use {
+    stroke: #e3ddd6;
+  }
+  .peta__kabgaris use {
+    fill: none;
+    stroke: var(--white);
+    stroke-width: 1.6px;
+    pointer-events: none;
+  }
+  .peta--kategori .peta__kabgaris use {
+    stroke-width: 2.2px;
+  }
+  .peta--penanda .peta__kabgaris use,
+  .peta--gelembung .peta__kabgaris use {
+    stroke: #cfc7bf;
+    stroke-width: 1px;
+  }
+  .peta__kabgaris use.is-sorot {
+    stroke: var(--ink);
+    stroke-width: 2px;
+  }
+  .peta__penunjuk {
+    stroke: var(--ink);
+    stroke-width: 1px;
+  }
+
+  /* Gelembung: lingkaran berskala; skala per lapis lewat --s0…--s4. */
+  .peta__gel-luar,
+  .peta__gel-dalam {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(var(--s-aktif, var(--s0)));
+    transition: transform 900ms var(--ease);
+  }
+  .peta__gel-luar {
+    fill: var(--w, var(--red));
+    fill-opacity: 0.2;
+    stroke: var(--w, var(--red));
+    stroke-width: 1.75px;
+    vector-effect: non-scaling-stroke;
+    cursor: default;
+  }
+  .peta__gel-dalam {
+    fill: var(--w, var(--red));
+    transform: scale(var(--d-aktif, var(--d0)));
+    pointer-events: none;
+  }
+  .peta[data-lapis="1"] .peta__gel-luar {
+    --s-aktif: var(--s1);
+  }
+  .peta[data-lapis="2"] .peta__gel-luar {
+    --s-aktif: var(--s2);
+  }
+  .peta[data-lapis="3"] .peta__gel-luar {
+    --s-aktif: var(--s3);
+  }
+  .peta[data-lapis="4"] .peta__gel-luar {
+    --s-aktif: var(--s4);
+  }
+  .peta[data-lapis="1"] .peta__gel-dalam {
+    --d-aktif: var(--d1);
+  }
+  .peta[data-lapis="2"] .peta__gel-dalam {
+    --d-aktif: var(--d2);
+  }
+  .peta[data-lapis="3"] .peta__gel-dalam {
+    --d-aktif: var(--d3);
+  }
+  .peta[data-lapis="4"] .peta__gel-dalam {
+    --d-aktif: var(--d4);
+  }
+
+  /* Label kabupaten/kota */
+  .peta__label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    color: var(--t0);
+    font-size: var(--fs-small);
+    line-height: 1.15;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: color 700ms var(--ease);
+  }
+  .peta[data-lapis="1"] .peta__label {
+    color: var(--t1);
+  }
+  .peta[data-lapis="2"] .peta__label {
+    color: var(--t2);
+  }
+  .peta[data-lapis="3"] .peta__label {
+    color: var(--t3);
+  }
+  .peta[data-lapis="4"] .peta__label {
+    color: var(--t4);
+  }
+  .peta__label b {
+    font-weight: 600;
+  }
+  /* Di atas isian berwarna, label duduk di pelat warna wilayahnya sendiri
+     sehingga garis batas kapanewon tidak memotong huruf. */
+  .peta--koroplet .peta__label:not(.peta__label--kota),
+  .peta--kategori .peta__label:not(.peta__label--kota) {
+    background: var(--f0);
+    padding: 3px 7px 4px;
+    transition:
+      color 700ms var(--ease),
+      background-color 700ms var(--ease);
+  }
+  .peta[data-lapis="1"] .peta__label:not(.peta__label--kota) {
+    background: var(--f1);
+  }
+  .peta[data-lapis="2"] .peta__label:not(.peta__label--kota) {
+    background: var(--f2);
+  }
+  .peta[data-lapis="3"] .peta__label:not(.peta__label--kota) {
+    background: var(--f3);
+  }
+  .peta[data-lapis="4"] .peta__label:not(.peta__label--kota) {
+    background: var(--f4);
+  }
+  .peta__label small {
+    font-size: var(--fs-micro);
+    opacity: 0.9;
+  }
+  .peta__v {
+    display: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .peta__label--kota {
+    transform: translate(0, -50%);
+    align-items: flex-start;
+    text-align: left;
+    color: var(--ink) !important;
+    background: var(--white);
+    padding: 2px 6px 3px;
+    border: 1px solid var(--grey-rule);
+  }
+  .peta__label--gel {
+    color: var(--ink) !important;
+  }
+  .peta__label--gel:not(.peta__label--kota) {
+    top: var(--y-aktif, var(--y0)) !important;
+    transform: translate(-50%, 0);
+    transition:
+      top 900ms var(--ease),
+      opacity 700ms var(--ease);
+  }
+  .peta__label--gel.peta__label--atas {
+    transform: translate(-50%, -100%);
+  }
+  .peta[data-lapis="1"] .peta__label--gel {
+    --y-aktif: var(--y1);
+  }
+  .peta[data-lapis="2"] .peta__label--gel {
+    --y-aktif: var(--y2);
+  }
+  .peta[data-lapis="3"] .peta__label--gel {
+    --y-aktif: var(--y3);
+  }
+  .peta[data-lapis="4"] .peta__label--gel {
+    --y-aktif: var(--y4);
+  }
+  .peta__label--gel .peta__v {
+    font-weight: 600;
+  }
+  .peta[data-lapis="0"] [data-l="0"],
+  .peta[data-lapis="1"] [data-l="1"],
+  .peta[data-lapis="2"] [data-l="2"],
+  .peta[data-lapis="3"] [data-l="3"],
+  .peta[data-lapis="4"] [data-l="4"] {
+    display: block;
+  }
+  .peta__ramp[data-l],
+  .peta__peringkat[data-l] {
+    display: none;
+  }
+  .peta[data-lapis="0"] .peta__ramp[data-l="0"],
+  .peta[data-lapis="1"] .peta__ramp[data-l="1"],
+  .peta[data-lapis="2"] .peta__ramp[data-l="2"],
+  .peta[data-lapis="3"] .peta__ramp[data-l="3"],
+  .peta[data-lapis="4"] .peta__ramp[data-l="4"] {
+    display: grid;
+  }
+
+  /* Panel peringkat */
+  .peta__panel {
+    padding-top: var(--space-2);
+  }
+  .peta__peringkat {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .peta__peringkat li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px var(--space-3);
+    padding: 10px 0 12px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: var(--fs-small);
+  }
+  .peta__pnama {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .peta__pnama i {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(51, 44, 43, 0.12);
+  }
+  .peta__pnilai {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .peta__pbatang {
+    grid-column: 1 / -1;
+    height: 4px;
+    background: var(--c-trek);
+  }
+  .peta__pbatang i {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+  }
+
+  /* Legenda gradasi */
+  .peta__legenda {
+    margin-top: var(--space-4);
+  }
+  .peta__ramp {
+    grid-template-columns: auto auto minmax(80px, 220px) auto;
+    align-items: center;
+    justify-content: start;
+    gap: var(--space-3);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .peta__ramp i {
+    display: block;
+    height: 10px;
+  }
+  .peta__ramp-judul {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: var(--space-2);
+  }
+  .peta__ramp-ujung {
+    font-variant-numeric: tabular-nums;
+  }
+  .peta__ket {
+    margin-top: var(--space-3);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  /* Penanda dan Sumbu Filosofi */
+  .peta--penanda .peta__wil {
+    fill: var(--cream);
+  }
+  .peta__sumbu-imaji {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 2px;
+    stroke-dasharray: 2 6;
+    stroke-linecap: round;
+  }
+  .peta__sumbu-inti {
+    fill: none;
+    stroke: var(--red);
+    stroke-width: 3.5px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .peta__sumbu-titik {
+    fill: var(--white);
+    stroke: var(--red);
+    stroke-width: 2px;
+  }
+  .peta__teks {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .peta__teks--laut {
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--fs-small);
+    letter-spacing: 0;
+  }
+  .peta__teks--provinsi {
+    font-style: italic;
+    font-weight: 300;
+    color: #8a8381;
+  }
+  .peta__teks--sumbu {
+    pointer-events: auto;
+    color: var(--ink);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    cursor: default;
+  }
+  .peta__teks--kanan {
+    transform: translate(26px, -50%);
+  }
+  .peta__teks--kiri {
+    transform: translate(calc(-100% - 14px), -50%);
+  }
+  .peta__teks--inti {
+    transform: translate(calc(-100% - 22px), -50%);
+    color: var(--red);
+  }
+  .peta__ikon {
+    position: absolute;
+    transform: translate(-50%, -112%);
+  }
+  .peta__ikon img {
+    width: 40px;
+    height: 40px;
+  }
+  .peta__sisipan {
+    border-top: 2px solid var(--ink);
+    padding-top: var(--space-3);
+  }
+  .peta__sisipan-judul {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+  }
+  .peta__sisipan-kanvas {
+    position: relative;
+    width: 100%;
+  }
+  .peta__kapsisip {
+    fill: #f6f3ef;
+    stroke: var(--white);
+    stroke-width: 1.2px;
+    transition: fill 200ms ease;
+  }
+  .peta__kapsisip.is-kota {
+    fill: var(--cream);
+    stroke: #e3d9c4;
+  }
+  .peta__kotagaris {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.2px;
+    pointer-events: none;
+  }
+  .peta__teks--sisip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transform: translate(10px, -50%);
+    color: var(--ink);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+  }
+  .peta__teks--sisip img {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* Kecil */
+  .peta--kecil .peta__label {
+    font-size: var(--fs-micro);
+  }
+  .peta--kecil .peta__label b {
+    font-weight: 400;
+  }
+  .peta--kecil .peta__ramp-judul {
+    display: none;
+  }
+  .peta--kecil .peta__ramp {
+    grid-template-columns: auto minmax(80px, 200px) auto;
+  }
+  .peta--kecil .peta__v {
+    font-weight: 600;
+    font-size: var(--fs-small);
+  }
+  .peta--kecil .peta__label--kota {
+    padding: 1px 5px 2px;
+  }
+
+  /* Gerak saat gulir: wilayah terisi bergiliran, lingkaran tumbuh dari titik. */
+  :global(.js [data-reveal]:not(.is-in)) .peta__wil,
+  :global(.js [data-reveal]:not(.is-in)) .peta__kapanewon {
+    fill: #f3efe9;
+  }
+  :global(.js .is-in) .peta__wil {
+    transition-delay: calc(240ms + var(--k-i, 0) * 120ms);
+  }
+  :global(.js .is-in) .peta__kapanewon {
+    transition-delay: calc(240ms + var(--tunda-k, 0ms));
+  }
+  :global(.js [data-reveal]:not(.is-in)) .peta__gel-luar,
+  :global(.js [data-reveal]:not(.is-in)) .peta__gel-dalam {
+    transform: scale(0);
+  }
+  :global(.js .is-in) .peta__gel-luar,
+  :global(.js .is-in) .peta__gel-dalam {
+    transition-delay: calc(400ms + var(--tunda-k, 0ms));
+  }
+  .peta.is-siap .peta__wil,
+  .peta.is-siap .peta__kapanewon,
+  .peta.is-siap .peta__gel-luar,
+  .peta.is-siap .peta__gel-dalam {
+    transition-delay: 0ms;
+  }
+
+  @media (max-width: 960px) {
+    .peta--panel .peta__tubuh,
+    .peta--penanda .peta__tubuh {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .peta__label {
+      font-size: var(--fs-micro);
+    }
+    .peta__label--kota {
+      padding: 1px 5px 2px;
+    }
+    .peta__ikon img {
+      width: 28px;
+      height: 28px;
+    }
+    .peta__teks--sumbu {
+      font-size: var(--fs-micro);
+    }
+  }
+</style>

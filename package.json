@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "data": "node scripts/build_data.mjs",
+    "data": "node scripts/build_data.mjs && node scripts/build_geo.mjs",
     "validate:data": "node scripts/validate_data.mjs",
     "build": "astro check && astro build && node scripts/build_sw.mjs",
     "check:build": "node scripts/check_build.mjs",

@@ -1,0 +1,345 @@
+---
+/**
+ * Arus — diagram Sankey tiga lajur: sumber dana → kas daerah → penggunaan.
+ *
+ * Lebar pita sebanding nilai, satu skala untuk kedua sisi, sehingga
+ * "pendapatan + pembiayaan netto = belanja + SiLPA" terlihat sebagai dua
+ * tumpukan yang sama tinggi. Pita digambar SVG meregang mendatar; label HTML
+ * didorong agar tidak bertumpuk dan diberi garis penunjuk bila bergeser.
+ * Di layar sempit, tampilan beralih ke versi ringkas per kelompok.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+import { q } from "../../lib/chart";
+
+interface Simpul {
+  id: string;
+  label: string;
+  nilai: number;
+  tampil: string;
+  grup: string;
+  baris?: string[];
+}
+interface Grup {
+  id: string;
+  label: string;
+  /** Nama pendek untuk tampilan ringkas di layar sempit. */
+  pendek?: string;
+  warna: string;
+  tampil: string;
+}
+interface Props {
+  label: string;
+  kiri: Simpul[];
+  kanan: Simpul[];
+  grupKiri: Grup[];
+  grupKanan: Grup[];
+  tengah: { label: string; tampil: string };
+  porsi: (v: number) => string;
+}
+
+const { label, kiri, kanan, grupKiri, grupKanan, tengah, porsi } = Astro.props;
+
+interface Kotak {
+  s: Simpul;
+  y0: number;
+  y1: number;
+  c0: number;
+  c1: number;
+  warna: string;
+}
+interface Butir {
+  jenis: "label" | "grup";
+  y: number;
+  h: number;
+  k?: Kotak;
+  g?: Grup;
+}
+
+/** Tata letak satu tampilan. Semua satuan dalam px tinggi kanvas. */
+function tata(sKiri: Simpul[], sKanan: Simpul[], H: number, celahSimpul: number, celahGrup: number, tinggiLabel: number, denganGrup = true) {
+  const atas = 30;
+  const bawah = 8;
+  const total = sKiri.reduce((t, s) => t + s.nilai, 0);
+  const jumlahGrup = (xs: Simpul[]) => new Set(xs.map((s) => s.grup)).size;
+  const ruang = (xs: Simpul[]) => H - atas - bawah - (xs.length - jumlahGrup(xs)) * celahSimpul - (jumlahGrup(xs) - 1) * celahGrup;
+  const skala = Math.min(ruang(sKiri), ruang(sKanan)) / total;
+  const MIN = 1.5;
+
+  const susun = (xs: Simpul[], grup: Grup[]) => {
+    let y = atas;
+    let c = 0;
+    let gLalu = "";
+    const out: Kotak[] = [];
+    for (const s of xs) {
+      if (gLalu && s.grup !== gLalu) y += celahGrup - celahSimpul;
+      const h = Math.max(MIN, s.nilai * skala);
+      out.push({ s, y0: y, y1: y + h, c0: c, c1: c + h, warna: grup.find((g) => g.id === s.grup)!.warna });
+      y += h + celahSimpul;
+      c += h;
+      gLalu = s.grup;
+    }
+    return out;
+  };
+  const kotakKiri = susun(sKiri, grupKiri);
+  const kotakKanan = susun(sKanan, grupKanan);
+  const tinggiTengah = Math.max(kotakKiri.at(-1)!.c1, kotakKanan.at(-1)!.c1);
+  const tengahY0 = atas + (Math.max(kotakKiri.at(-1)!.y1, kotakKanan.at(-1)!.y1) - atas - tinggiTengah) / 2;
+
+  // Label: butir grup dan butir simpul berurutan, didorong agar tidak bertumpuk.
+  const butirSisi = (kk: Kotak[], grup: Grup[]): Butir[] => {
+    const out: Butir[] = [];
+    let gLalu = "";
+    for (const k of kk) {
+      const anggota = kk.filter((x) => x.s.grup === k.s.grup).length;
+      if (denganGrup && anggota > 1 && k.s.grup !== gLalu) {
+        out.push({ jenis: "grup", y: k.y0 - 13, h: 18, g: grup.find((g) => g.id === k.s.grup)! });
+        gLalu = k.s.grup;
+      }
+      out.push({ jenis: "label", y: (k.y0 + k.y1) / 2, h: tinggiLabel, k });
+    }
+    for (let i = 1; i < out.length; i++) {
+      const a = out[i - 1]!;
+      const b = out[i]!;
+      const min = a.y + a.h / 2 + b.h / 2 + 2;
+      if (b.y < min) b.y = min;
+    }
+    const lebih = out.at(-1)!.y + out.at(-1)!.h / 2 - H;
+    if (lebih > 0) {
+      out.at(-1)!.y -= lebih;
+      for (let i = out.length - 2; i >= 0; i--) {
+        const a = out[i]!;
+        const b = out[i + 1]!;
+        const maks = b.y - b.h / 2 - a.h / 2 - 2;
+        if (a.y > maks) a.y = maks;
+      }
+    }
+    return out;
+  };
+  return {
+    kotakKiri,
+    kotakKanan,
+    tengahY0,
+    tinggiTengah,
+    butirKiri: butirSisi(kotakKiri, grupKiri),
+    butirKanan: butirSisi(kotakKanan, grupKanan),
+  };
+}
+
+const X = { kiri: 300, lebarSimpul: 10, tengah: 496, lebarTengah: 8, kanan: 690 };
+/** Pita bezier dari (x0, a0..a1) ke (x1, b0..b1). */
+const pita = (x0: number, a0: number, a1: number, x1: number, b0: number, b1: number) => {
+  const m = (x0 + x1) / 2;
+  return `M${q(x0)} ${q(a0)}C${q(m)} ${q(a0)} ${q(m)} ${q(b0)} ${q(x1)} ${q(b0)}L${q(x1)} ${q(b1)}C${q(m)} ${q(b1)} ${q(m)} ${q(a1)} ${q(x0)} ${q(a1)}Z`;
+};
+
+// Tampilan ringkas: satu simpul per grup.
+const ringkasDari = (xs: Simpul[], grup: Grup[]): Simpul[] =>
+  grup.map((g) => ({ id: g.id, label: g.pendek ?? g.label, nilai: xs.filter((s) => s.grup === g.id).reduce((t, s) => t + s.nilai, 0), tampil: g.tampil, grup: g.id }));
+
+const tampilan = [
+  { kelas: "ar--rinci", H: 640, ...tata(kiri, kanan, 640, 5, 30, 39) },
+  { kelas: "ar--ringkas", H: 470, ...tata(ringkasDari(kiri, grupKiri), ringkasDari(kanan, grupKanan), 470, 0, 22, 40, false) },
+];
+const W = 1000;
+---
+
+<div class="viz ar" {...kontainer(label)}>
+  {
+    tampilan.map((t) => (
+      <div class:list={["ar__kanvas", t.kelas]} style={`height:${t.H}px`}>
+        <svg class="ar__svg" viewBox={`0 0 ${W} ${t.H}`} preserveAspectRatio="none" aria-hidden="true" data-anim="sapu">
+          {t.kotakKiri.map((k) => (
+            <path
+              class="ar__pita"
+              d={pita(X.kiri + X.lebarSimpul, k.y0, k.y1, X.tengah, t.tengahY0 + k.c0, t.tengahY0 + k.c1)}
+              fill={k.warna}
+              data-g={`${t.kelas}-${k.s.id}`}
+            />
+          ))}
+          {t.kotakKanan.map((k) => (
+            <path
+              class="ar__pita"
+              d={pita(X.tengah + X.lebarTengah, t.tengahY0 + k.c0, t.tengahY0 + k.c1, X.kanan, k.y0, k.y1)}
+              fill={k.warna}
+              data-g={`${t.kelas}-${k.s.id}`}
+            />
+          ))}
+          {[...t.kotakKiri.map((k) => ({ k, x: X.kiri })), ...t.kotakKanan.map((k) => ({ k, x: X.kanan }))].map(({ k, x }) => (
+            <rect
+              x={x}
+              y={q(k.y0)}
+              width={X.lebarSimpul}
+              height={q(k.y1 - k.y0)}
+              fill={k.warna}
+              data-g={`${t.kelas}-${k.s.id}`}
+              {...tip({ judul: k.s.label, nilai: k.s.tampil, baris: [`${porsi(k.s.nilai)} dari dana tersedia`, ...(k.s.baris ?? [])], warna: k.warna })}
+            />
+          ))}
+          <rect class="ar__tengah" x={X.tengah} y={q(t.tengahY0)} width={X.lebarTengah} height={q(t.tinggiTengah)} />
+        </svg>
+
+        <div class="ar__pusat" style={`left:${css((100 * (X.tengah + X.lebarTengah / 2)) / W)};top:${t.tengahY0}px`} data-anim="pudar">
+          <span>{tengah.label}</span>
+          <b>{tengah.tampil}</b>
+        </div>
+
+        {[
+          { sisi: "kiri", butir: t.butirKiri },
+          { sisi: "kanan", butir: t.butirKanan },
+        ].map(({ sisi, butir }) =>
+          butir.map((b) =>
+            b.jenis === "grup" ? (
+              <span class:list={["ar__grup", `ar__grup--${sisi}`]} style={`top:${q(b.y)}px;--w:${b.g!.warna}`} data-anim="pudar">
+                {b.g!.label} <b>{b.g!.tampil}</b>
+              </span>
+            ) : (
+              <span
+                class:list={["ar__label", `ar__label--${sisi}`]}
+                style={`top:${q(b.y)}px;--w:${b.k!.warna}`}
+                data-g={`${t.kelas}-${b.k!.s.id}`}
+                data-anim="pudar"
+              >
+                <span class="ar__nama">{b.k!.s.label}</span>
+                <b>{b.k!.s.tampil}</b>
+                {Math.abs(b.y - (b.k!.y0 + b.k!.y1) / 2) > 3 && (
+                  <i class="ar__penunjuk" style={`--dy:${q((b.k!.y0 + b.k!.y1) / 2 - b.y)}px`} aria-hidden="true" />
+                )}
+              </span>
+            ),
+          ),
+        )}
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .ar {
+    position: relative;
+  }
+  .ar__kanvas {
+    position: relative;
+    width: 100%;
+  }
+  .ar--ringkas {
+    display: none;
+  }
+  .ar__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .ar__pita {
+    fill-opacity: 0.26;
+    transition: fill-opacity 200ms ease, opacity 200ms ease;
+  }
+  .ar__pita.is-aktif {
+    fill-opacity: 0.55;
+  }
+  .ar__tengah {
+    fill: var(--ink);
+  }
+  .ar__pusat {
+    position: absolute;
+    transform: translate(-50%, calc(-100% - 8px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    white-space: nowrap;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    line-height: 1.2;
+  }
+  .ar__pusat b {
+    font-size: var(--fs-body);
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .ar__label,
+  .ar__grup {
+    position: absolute;
+    transform: translateY(-50%);
+    font-size: var(--fs-small);
+    line-height: 1.15;
+  }
+  .ar__label {
+    display: flex;
+    flex-direction: column;
+    cursor: default;
+  }
+  .ar__nama {
+    border-bottom: 2px solid var(--w);
+    padding-bottom: 1px;
+    margin-bottom: 2px;
+  }
+  .ar__label b {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-micro);
+  }
+  .ar__label--kiri,
+  .ar__grup--kiri {
+    right: calc(70% + 12px);
+    text-align: right;
+    align-items: flex-end;
+  }
+  .ar__label--kanan,
+  .ar__grup--kanan {
+    left: calc(70% + 12px);
+  }
+  .ar__grup {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    color: var(--w);
+    white-space: nowrap;
+  }
+  .ar__grup b {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .ar__penunjuk {
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 0;
+    border-top: 1px solid var(--grey-line);
+    transform-origin: 0 0;
+  }
+  .ar__label--kiri .ar__penunjuk {
+    left: calc(100% + 1px);
+    transform: translateY(0) skewY(calc(atan2(var(--dy), 10px)));
+  }
+  .ar__label--kanan .ar__penunjuk {
+    right: calc(100% + 1px);
+    transform-origin: 100% 0;
+    transform: skewY(calc(-1 * atan2(var(--dy), 10px)));
+  }
+  @media (max-width: 720px) {
+    .ar--rinci {
+      display: none;
+    }
+    .ar--ringkas {
+      display: block;
+    }
+    .ar__label,
+    .ar__grup {
+      font-size: var(--fs-micro);
+    }
+    .ar__label--kiri,
+    .ar__grup--kiri {
+      right: calc(70% + 6px);
+      max-width: 30%;
+    }
+    .ar__label--kanan,
+    .ar__grup--kanan {
+      left: calc(70% + 6px);
+      max-width: 30%;
+    }
+    .ar__label {
+      white-space: normal;
+    }
+  }
+</style>
