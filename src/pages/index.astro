@@ -1,1109 +1,1240 @@
 ---
 /**
- * Satu halaman, tegas berurutan: pembuka, enam pilar, penutup.
+ * Satu halaman berurutan: sampul, ringkasan, enam bab, penutup, Matur Nuwun.
  *
- * Seluruh angka di halaman ini disusun dari src/lib/data.ts (JSON turunan
- * pipeline). Tak ada angka hasil pengukuran yang diketik manual; kalimat yang
- * memuat angka disusun dengan templat agar tetap konsisten bila data segar.
+ * Seluruh angka disusun dari src/lib/data.ts (JSON turunan pipeline). Tidak
+ * ada angka hasil pengukuran yang diketik manual; kalimat yang memuat angka
+ * disusun dengan templat sehingga tetap benar bila data diperbarui.
  *
- * Setiap adegan: satu pertanyaan → satu visual → tabel angka alternatif →
- * satu kalimat tafsir → penunjuk sumber (halaman + tabel LPPD).
+ * Setiap adegan: satu pertanyaan → satu atau dua visual → tabel angka →
+ * tafsir → penunjuk sumber (halaman + tabel LPPD).
  */
 import Layout from "../layouts/Cerita.astro";
-import StatCards from "../components/charts/StatCards.astro";
-import HorizontalBar from "../components/charts/HorizontalBar.astro";
-import KolomLolipop from "../components/charts/KolomLolipop.astro";
-import DuaTitik from "../components/charts/DuaTitik.astro";
-import GarisTren from "../components/charts/GarisTren.astro";
-import BatangSelisih from "../components/charts/BatangSelisih.astro";
-import MeterRing from "../components/charts/MeterRing.astro";
-import TabelAlt from "../components/TabelAlt.astro";
-import Legenda from "../components/Legenda.astro";
+import Bab from "../components/Bab.astro";
 import Adegan from "../components/Adegan.astro";
-import Pilar from "../components/Pilar.astro";
-import {
-  manifes,
-  pembuka,
-  pilar1,
-  pilar2,
-  pilar2u,
-  pilar3,
-  pilar4,
-  pilar5,
-  pilar6,
-  type Sumber,
-} from "../lib/data";
-import { n, d, p } from "../lib/format";
+import Figur from "../components/Figur.astro";
+import TabelAlt from "../components/TabelAlt.astro";
+import Angka from "../components/charts/Angka.astro";
+import BarH from "../components/charts/BarH.astro";
+import BulletH from "../components/charts/BulletH.astro";
+import Kupu from "../components/charts/Kupu.astro";
+import UnitTitik from "../components/charts/UnitTitik.astro";
+import Kolom from "../components/charts/Kolom.astro";
+import Tumpuk from "../components/charts/Tumpuk.astro";
+import Treemap from "../components/charts/Treemap.astro";
+import DotSerapan from "../components/charts/DotSerapan.astro";
+import MultiKecil from "../components/charts/MultiKecil.astro";
+import Garis from "../components/charts/Garis.astro";
+import Cincin from "../components/charts/Cincin.astro";
+import KolomTumpuk from "../components/charts/KolomTumpuk.astro";
+import SkorBobot from "../components/charts/SkorBobot.astro";
+import Waffle from "../components/charts/Waffle.astro";
+import DaftarCapaian from "../components/charts/DaftarCapaian.astro";
+import { manifes, pembuka, pilar1, pilar2, pilar2u, pilar3, pilar4, pilar5, pilar6, prov, type Sumber } from "../lib/data";
+import { n, d, p, rp, rpS, sel2, kata, namaKab, kalimat } from "../lib/format";
 import * as i from "../i18n/id";
 
-// ── Pembantu kecil ───────────────────────────────────────────────────────────
-/** Potong label panjang untuk batang. */
-const pangkas = (s: string, m = 44): string => (s.length > m ? `${s.slice(0, m - 1)}…` : s);
-/** Tanda arah perubahan: "+" naik, "−" turun, "±" tetap. */
-const arrh = (v: number): string => (v === 0 ? "±" : v > 0 ? "+" : "−");
-const SB = (hal: string | number, tabel: string | number, berkas: string): Sumber => ({
-  berkas,
-  halaman: hal,
-  tabel,
-});
+// ── Pembantu ────────────────────────────────────────────────────────────────
+const SB = (halaman: string | number, tabel: string | number, berkas: string): Sumber => ({ berkas, halaman, tabel });
 const F1 = "bab-1-pendahuluan.md";
+const FM = "bab2-2_1_capaian-kinerja-makro.md";
 const F2 = "bab2-2_2_2_indikator-kinerja-kunci-hasil.md";
 const FP = "bab2-2_2_6_22_urusan-penanaman-modal-dinas-penanaman-modal-dan-pelayanan.md";
 const FK = "bab2-2_2_11_2_perencanaan-pembangunan-paniradya-kaistimewan-diy.md";
 const FB = "bab2-2_2_8_5_bantuan-keuangan-khusus-bkk-kalurahan.md";
-const FB4 = "bab-4-penerapan-standar.md";
-/** Singkatan yang dipakai di adesan 2-3. */
-const p2u = pilar2u;
+const FS = "bab-4-penerapan-standar.md";
+const maks = <T,>(xs: T[], f: (x: T) => number): T => xs.reduce((m, x) => (f(x) > f(m) ? x : m), xs[0]!);
+const mins = <T,>(xs: T[], f: (x: T) => number): T => xs.reduce((m, x) => (f(x) < f(m) ? x : m), xs[0]!);
+const jumlah = (xs: number[]) => xs.reduce((s, v) => s + v, 0);
+const arahKata = (v: number) => (v > 0 ? "naik" : v < 0 ? "turun" : "tetap");
+const arah = (v: number): "naik" | "turun" => (v >= 0 ? "naik" : "turun");
+const awalKecil = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+const awalBesar = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const gabungDan = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")}, dan ${xs[xs.length - 1]}`);
 
-// ── Pembuka: enam indikator makro ────────────────────────────────────────────
-const md = pembuka.indikator;
-const cariM = (j: string) => md.find((x) => x.jenis === j)!;
-const ipmC = cariM("ipm");
-const kemC = cariM("kemiskinan");
-const pptC = cariM("pengangguran");
-const grwC = cariM("pertumbuhan");
-const pkpC = cariM("perkapita");
-const ginC = cariM("gini");
-const berHasil = (x: (typeof md)[number], digit: number): string => {
-  const ang = x.jenis === "gini" ? d(x.nilai2023, digit) : d(x.nilai2023, digit);
-  const sat = x.satuan.startsWith("persen") ? "%" : x.satuan.startsWith("rasio") ? "" : "";
-  return `${ang}${sat}`;
+const C = {
+  sorot: "var(--c-sorot)",
+  tinta: "var(--c-tinta)",
+  dasar: "var(--c-dasar)",
+  redup: "var(--c-redup)",
+  emas: "var(--c-emas)",
+  ink: "var(--ink)",
 };
-const heroKartu = [
-  { ...ipmC, tampil: berHasil(ipmC, 2) },
-  { ...kemC, tampil: berHasil(kemC, 2) },
-  { ...pptC, tampil: berHasil(pptC, 2) },
-  { ...grwC, tampil: `${d(grwC.perubahan, 2)}%` },
-  { ...pkpC, tampil: `${d(pkpC.nilai2023, 2)} juta` },
-  { ...ginC, tampil: berHasil(ginC, 3) },
+
+// Klasifikasi rujukan di luar LPPD — disebut namanya di kalimat tafsir.
+/** BPS: IPM ≥ 80 berkategori "sangat tinggi". */
+const IPM_SANGAT_TINGGI = 80;
+/** Bank Dunia: porsi pengeluaran 40% terbawah < 12% ketimpangan tinggi, 12–17% sedang, > 17% rendah. */
+const BD = { tinggi: 12, rendah: 17 };
+const kategoriBD = (v: number) => (v < BD.tinggi ? "tinggi" : v <= BD.rendah ? "sedang" : "rendah");
+
+// ══ Ringkasan: enam indikator makro ═════════════════════════════════════════
+const md = pembuka.indikator;
+const cari = (j: string) => md.find((x) => x.jenis === j)!;
+const ipmC = cari("ipm");
+const kemC = cari("kemiskinan");
+const pptC = cari("pengangguran");
+const grwC = cari("pertumbuhan");
+const pkpC = cari("perkapita");
+const ginC = cari("gini");
+const membaik = [
+  ipmC.nilai2023 > ipmC.nilai2022,
+  kemC.nilai2023 < kemC.nilai2022,
+  pptC.nilai2023 < pptC.nilai2022,
+  grwC.perubahan > 0,
+  pkpC.nilai2023 > pkpC.nilai2022,
+  ginC.nilai2023 < ginC.nilai2022,
+].filter(Boolean).length;
+const kpi = [
+  {
+    nilai: ipmC.nilai2023, desimal: 2, tampil: d(ipmC.nilai2023, 2),
+    label: "Indeks Pembangunan Manusia",
+    sub: `${arahKata(ipmC.nilai2023 - ipmC.nilai2022)} ${d(Math.abs(ipmC.nilai2023 - ipmC.nilai2022), 2)} poin dari ${d(ipmC.nilai2022, 2)} pada 2022`,
+    arah: arah(ipmC.nilai2023 - ipmC.nilai2022), baik: ipmC.nilai2023 >= ipmC.nilai2022, sorot: true,
+  },
+  {
+    nilai: kemC.nilai2023, desimal: 2, tampil: d(kemC.nilai2023, 2), satuan: "%",
+    label: "Penduduk miskin",
+    sub: `${arahKata(kemC.nilai2023 - kemC.nilai2022)} ${d(Math.abs(kemC.nilai2023 - kemC.nilai2022), 2)} poin persen dari ${d(kemC.nilai2022, 2)}%`,
+    arah: arah(kemC.nilai2023 - kemC.nilai2022), baik: kemC.nilai2023 <= kemC.nilai2022,
+  },
+  {
+    nilai: pptC.nilai2023, desimal: 2, tampil: d(pptC.nilai2023, 2), satuan: "%",
+    label: "Tingkat pengangguran terbuka",
+    sub: `${arahKata(pptC.nilai2023 - pptC.nilai2022)} ${d(Math.abs(pptC.nilai2023 - pptC.nilai2022), 2)} poin persen dari ${d(pptC.nilai2022, 2)}%`,
+    arah: arah(pptC.nilai2023 - pptC.nilai2022), baik: pptC.nilai2023 <= pptC.nilai2022,
+  },
+  {
+    nilai: grwC.perubahan, desimal: 2, tampil: d(grwC.perubahan, 2), satuan: "%",
+    label: "Pertumbuhan ekonomi",
+    sub: `PDRB atas dasar harga konstan ${rp(grwC.nilai2023 * 1e6)}`,
+    arah: arah(grwC.perubahan), baik: grwC.perubahan >= 0,
+  },
+  {
+    awalan: "Rp", nilai: pkpC.nilai2023, desimal: 2, tampil: d(pkpC.nilai2023, 2), satuan: "juta",
+    label: "Pendapatan per kapita",
+    sub: `${arahKata(pkpC.perubahan)} ${d(Math.abs(pkpC.perubahan), 2)}% dari Rp${d(pkpC.nilai2022, 2)} juta`,
+    arah: arah(pkpC.perubahan), baik: pkpC.perubahan >= 0,
+  },
+  {
+    nilai: ginC.nilai2023, desimal: 3, tampil: d(ginC.nilai2023, 3),
+    label: "Rasio gini",
+    sub: `${arahKata(ginC.nilai2023 - ginC.nilai2022)} dari ${d(ginC.nilai2022, 3)} pada 2022`,
+    arah: arah(ginC.nilai2023 - ginC.nilai2022), baik: ginC.nilai2023 <= ginC.nilai2022,
+  },
 ];
+const leadRingkasan =
+  `Sepanjang 2023, ${membaik === md.length ? `ke${kata(md.length)}` : `${kata(membaik)} dari ${kata(md.length)}`} indikator makro DIY bergerak ke arah yang lebih baik. ` +
+  `Indeks pembangunan manusia mencapai <strong>${d(ipmC.nilai2023, 2)}</strong>, kemiskinan turun menjadi <strong>${d(kemC.nilai2023, 2)}%</strong>, dan ekonomi tumbuh <strong>${d(grwC.perubahan, 2)}%</strong>.`;
 
-// ── Pilar 1: wilayah, penduduk, usia ────────────────────────────────────────
+// ══ Bab 1: wilayah dan penduduk ═════════════════════════════════════════════
 const luas = pilar1.luas;
-const luasTerbesar = luas.perKab.reduce((m, x) => (x.km2 > m.km2 ? x : m), luas.perKab[0]);
-const barLuas = luas.perKab.map((x) => ({
-  label: x.nama.replace("Kabupaten ", ""),
-  n: x.km2,
-  pct: x.persen,
-}));
-
-const pd = pilar1.penduduk;
+const pdk = pilar1.penduduk;
 const adm = pilar1.administrasi;
-const barPenduduk = pd.perKab.map((k) => ({ label: k.nama, n: k.jumlah, pct: k.jumlahPersen }));
-const pendudukTerbanyak = pd.perKab.reduce((m, k) => (k.jumlah > m.jumlah ? k : m), pd.perKab[0]);
-const pendudukTersedikit = pd.perKab.reduce((m, k) => (k.jumlah < m.jumlah ? k : m), pd.perKab[0]);
-const duaGender = pd.perKab.map((k) => ({
-  label: k.nama,
-  a: k.laki,
-  b: k.perempuan,
-  sorot: k.nama === "Sleman",
-}));
+const kab = luas.perKab.map((l) => {
+  const nm = namaKab(l.nama);
+  const pk = pdk.perKab.find((k) => namaKab(k.nama) === nm)!;
+  const ad = adm.perKab.find((a) => namaKab(a.nama) === nm)!;
+  return {
+    nama: nm,
+    km2: l.km2,
+    luasPct: l.persen,
+    jiwa: pk.jumlah,
+    jiwaPct: pk.jumlahPersen,
+    laki: pk.laki,
+    perempuan: pk.perempuan,
+    padat: pk.jumlah / l.km2,
+    kap: ad.kapanewonKemantren,
+    kal: ad.kalurahan ?? 0,
+    kel: ad.kelurahan ?? 0,
+  };
+});
+const kabLuas = [...kab].sort((a, b) => b.km2 - a.km2);
+const kabTerluas = kabLuas[0]!;
+const kabTerpadat = maks(kab, (k) => k.padat);
+const kabTerramai = maks(kab, (k) => k.jiwa);
+const padatDIY = pdk.total / luas.total;
+const kaliPadat = Math.floor(kabTerpadat.padat / kabTerluas.padat);
+const kabRamai = [...kab].sort((a, b) => b.jiwa - a.jiwa);
+const kabDesa = [...kab].sort((a, b) => b.kal + b.kel - (a.kal + a.kel));
+const kabDesaTerbanyak = kabDesa[0]!;
 
-const usia = pilar1.usia;
-const lolUsia = usia.perKelompok.map((g) => ({ label: g.label, n: g.jumlah, pct: g.persen }));
-const usiaTerbesar = usia.perKelompok.reduce((m, g) => (g.jumlah > m.jumlah ? g : m), usia.perKelompok[0]);
-const usiaTerkecil = usia.perKelompok.reduce((m, g) => (g.jumlah < m.jumlah ? g : m), usia.perKelompok[0]);
+const usia = pilar1.usia.perKelompok;
+const ikhtisar = pilar1.usia.ikhtisar;
+const [ikAnak, ikProd, ikLansia] = [ikhtisar[0]!, ikhtisar[1]!, ikhtisar[2]!];
+const labelUsia = (s: string) => s.replace(/^usia\s*/i, "").replace(/^produktif\s*/i, "").replace("-", "–");
+const rasioTanggungan = (100 * (ikAnak.jumlah + ikLansia.jumlah)) / ikProd.jumlah;
+const awalLansia = Number(labelUsia(ikLansia.nama).replace(/\D+$/, ""));
+const awalProduktif = Number(labelUsia(ikProd.nama).split("–")[0]);
+const grupUsia = (label: string) => {
+  const awal = Number(label.split("-")[0]!.replace(/\D/g, ""));
+  return awal >= awalLansia ? C.sorot : awal >= awalProduktif ? C.dasar : C.redup;
+};
+const usiaTerbesar = maks(usia, (g) => g.jumlah);
+const satuDari = Math.round(100 / ikLansia.persen);
 
-// ── Pilar 2: APBD ───────────────────────────────────────────────────────────
+// ══ Bab 2: keuangan daerah ══════════════════════════════════════════════════
 const pdp = pilar2.pendapatan;
 const bln = pilar2.belanja;
-const barPendapatan = [
-  { label: "PAD", n: pdp.pad.realisasi, pct: pdp.pad.persen },
-  { label: "Pajak daerah", n: pdp.pajak.realisasi, pct: pdp.pajak.persen },
-  { label: "Retribusi", n: pdp.retribusi.realisasi, pct: pdp.retribusi.persen },
-  { label: "Kekayaan daerah", n: pdp.kekayaan.realisasi, pct: pdp.kekayaan.persen },
-  { label: "Lain PAD", n: pdp.lainPad.realisasi, pct: pdp.lainPad.persen },
-  { label: "Transfer pusat", n: pdp.transferPusat.realisasi, pct: pdp.transferPusat.persen },
-  { label: "Transfer antar-DK", n: pdp.transferAntar.realisasi, pct: pdp.transferAntar.persen },
-  { label: "Lain sah", n: pdp.lainSah.realisasi, pct: pdp.lainSah.persen },
-  { label: "Hibah", n: pdp.hibah.realisasi, pct: pdp.hibah.persen },
-] as const;
-const barBelanja = [
-  { label: "Belanja operasi", n: bln.operasi.realisasi, pct: bln.operasi.persen },
-  { label: "Gaji pegawai", n: bln.pegawai.realisasi, pct: bln.pegawai.persen },
-  { label: "Barang & jasa", n: bln.barangJasa.realisasi, pct: bln.barangJasa.persen },
-  { label: "Subsidi", n: bln.subsidi.realisasi, pct: bln.subsidi.persen },
-  { label: "Hibah", n: bln.hibah.realisasi, pct: bln.hibah.persen },
-  { label: "Bansos", n: bln.bansos.realisasi, pct: bln.bansos.persen },
-  { label: "Belanja modal", n: bln.modal.realisasi, pct: bln.modal.persen },
-  { label: "Tak terduga", n: bln.takTerduga.realisasi, pct: bln.takTerduga.persen },
-  { label: "Transfer bagi hasil", n: bln.bagiHasil.realisasi, pct: bln.bagiHasil.persen },
-  { label: "Bantuan keuangan", n: bln.bantuanKeuangan.realisasi, pct: bln.bantuanKeuangan.persen },
+const tumbuhPendapatan = 100 * (pdp.total.realisasi / pdp.total.realisasi2022 - 1);
+const sharePdp = (v: number) => p((100 * v) / pdp.total.realisasi, 1);
+const petakPendapatan = [
+  { label: "Pajak daerah", n: pdp.pajak.realisasi, warna: C.sorot },
+  { label: "Retribusi daerah", n: pdp.retribusi.realisasi, warna: C.sorot },
+  { label: "Hasil kekayaan daerah yang dipisahkan", n: pdp.kekayaan.realisasi, warna: C.sorot },
+  { label: "Lain-lain PAD yang sah", n: pdp.lainPad.realisasi, warna: C.sorot },
+  { label: "Transfer pemerintah pusat", n: pdp.transferPusat.realisasi, warna: C.tinta },
+  { label: "Transfer antardaerah", n: pdp.transferAntar.realisasi, warna: C.tinta },
+  { label: "Lain-lain pendapatan daerah yang sah", n: pdp.lainSah.realisasi, warna: C.emas, teks: "var(--ink)" },
+].map((x) => ({ ...x, tampil: rpS(x.n), porsi: sharePdp(x.n), sub: x.warna === C.sorot ? "Pendapatan asli daerah" : undefined }));
+const shareTransferPusat = (100 * pdp.transferPusat.realisasi) / pdp.total.realisasi;
+const sharePajak = (100 * pdp.pajak.realisasi) / pdp.total.realisasi;
+
+const B = (label: string, x: { anggaran: number; realisasi: number; persen: number }, tingkat: 0 | 1, sorot = false) => ({
+  label,
+  anggaran: x.anggaran,
+  realisasi: x.realisasi,
+  tampilA: rp(x.anggaran),
+  tampilR: rpS(x.realisasi),
+  serapan: p(x.persen, 1),
+  tingkat,
+  sorot,
+});
+const barisBelanja = [
+  B("Belanja operasi", bln.operasi, 0),
+  B("Pegawai", bln.pegawai, 1),
+  B("Barang dan jasa", bln.barangJasa, 1, true),
+  B("Subsidi", bln.subsidi, 1),
+  B("Hibah", bln.hibah, 1),
+  B("Bantuan sosial", bln.bansos, 1),
+  B("Belanja modal", bln.modal, 0),
+  B("Tanah", bln.modalTanah, 1),
+  B("Peralatan dan mesin", bln.modalMesin, 1),
+  B("Gedung dan bangunan", bln.modalGeuting, 1),
+  B("Jalan, irigasi, dan jaringan", bln.modalJalan, 1),
+  B("Aset tetap lainnya", bln.modalAsetTetap, 1),
+  B("Belanja tidak terduga", bln.takTerduga, 0),
+  B("Belanja transfer", bln.transfer, 0),
+  B("Bagi hasil", bln.bagiHasil, 1),
+  B("Bantuan keuangan", bln.bantuanKeuangan, 1),
 ];
-const shareBln = (x: { realisasi: number }): string => d((100 * x.realisasi) / bln.total.realisasi, 1);
-const pangkatRupiah = (v: number): string => n(Math.round(v));
-const shareTransferPusat = 100 * (pdp.transferPusat.realisasi / pdp.total.realisasi);
-const shareTransferAntar = 100 * (pdp.transferAntar.realisasi / pdp.total.realisasi);
-const shareTransfer = shareTransferPusat + shareTransferAntar;
-const duoUrusan = p2u.kelompok.map((k) => ({
-  label: k.nama,
-  a: k.anggaran,
-  b: k.realisasi,
-  sorot: k.persen === Math.max(...p2u.kelompok.map((x) => x.persen)),
-}));
-const urusanTinggi = p2u.kelompok.reduce((m, k) => (k.persen > m.persen ? k : m), p2u.kelompok[0]);
-const urusanRendah = p2u.kelompok.reduce((m, k) => (k.persen < m.persen ? k : m), p2u.kelompok[0]);
+const shareBelanja = (x: { realisasi: number }) => (100 * x.realisasi) / bln.total.realisasi;
+const sisaBJ = bln.barangJasa.anggaran - bln.barangJasa.realisasi;
 
-// ── Pilar 3: makro ──────────────────────────────────────────────────────────
-const ipm = pilar3.ipm;
-const kem = pilar3.kemiskinan;
-const kk = pilar3.ketenagakerjaan;
-const ktd = pilar3.ketimpangan;
-const kemPeriod = [...new Set(kem.perDaerah.map((x) => x.periode))];
-const kemTerakhir = kemPeriod[kemPeriod.length - 1];
-const kemSebelum = kemPeriod[1];
-const ipmKomponen = ipm.komponen.map((k) => ({
-  label: pangkas(k.nama, 40),
-  a: k.nilai.t2020,
-  b: k.nilai.t2023,
-  catatan: k.satuan,
-}));
-const kemSeri = (["Perkotaan", "Perdesaan"] as const).map((nm, i) => ({
-  label: nm,
-  seri: String(i + 1),
-  nilai: kemPeriod.map((pd) =>
-    kem.perDaerah.filter((k) => k.daerah === nm && k.periode === pd).map((k) => k.ribu)[0] ?? null,
-  ),
-}));
-const kemTotalSeri = {
-  label: "DIY",
-  seri: "highlight" as const,
-  nilai: kemPeriod.map((pd) =>
-    kem.perDaerah.filter((k) => k.daerah === "Total" && k.periode === pd).map((k) => k.ribu)[0] ?? null,
-  ),
+const NAMA_KELOMPOK: Record<string, string> = {
+  "1": "Urusan wajib pelayanan dasar",
+  "2": "Urusan wajib non-pelayanan dasar",
+  "3": "Urusan pilihan",
+  "4": "Unsur pendukung",
+  "5": "Unsur penunjang",
+  "6": "Unsur pengawasan",
+  "8": "Unsur pemerintahan umum",
 };
-const kkDuo = kk.baris.map((b) => ({ label: b.label, a: b.t2022, b: b.t2023 }));
-const ktd22 = ktd.perDaerah.filter((x) => x.periode === "Maret 2022");
-const ktd23 = ktd.perDaerah.filter((x) => x.periode === "Maret 2023");
-const ktdDuo = ktd23
-  .filter((x) => x.daerah !== "Total")
-  .map((x) => {
-    const lama = ktd22.find((y) => y.daerah === x.daerah)!;
-    return {
-      label: x.daerah,
-      a: lama.p40Bawah,
-      b: x.p40Bawah,
-      catatan: `${d(x.p20Atas, 2)}% bagian 20% teratas pada Maret 2023`,
-    };
-  });
+const NAMA_DASAR: Record<string, string> = {
+  "1.01": "Pendidikan",
+  "1.02": "Kesehatan",
+  "1.03": "Pekerjaan umum dan penataan ruang",
+  "1.04": "Perumahan dan kawasan permukiman",
+  "1.05": "Ketenteraman, ketertiban umum, dan perlindungan masyarakat",
+  "1.06": "Sosial",
+};
+const urDasar = pilar2u.dasar;
+const urKes = mins(urDasar, (u) => u.persen);
+const urPend = maks(urDasar, (u) => u.anggaran);
+const dotBaris = (u: (typeof urDasar)[number], nama: string, sorot: boolean) => ({
+  label: nama,
+  persen: u.persen,
+  tampil: p(u.persen, 2),
+  bobot: u.anggaran,
+  sub: `Anggaran ${rpS(u.anggaran)} · realisasi ${rpS(u.realisasi)}`,
+  sorot,
+});
+const serapanMin = Math.floor(Math.min(...[...pilar2u.kelompok, ...urDasar].map((u) => u.persen)) / 5) * 5;
 
-// ── Pilar 4: IKK dan investasi ──────────────────────────────────────────────
+// ══ Bab 3: kesejahteraan ════════════════════════════════════════════════════
+const ipm = pilar3.ipm;
+const tahunIpm = ["2020", "2021", "2022", "2023"] as const;
+const nilaiIpm = (k: (typeof ipm.komponen)[number]) => [k.nilai.t2020, k.nilai.t2021, k.nilai.t2022, k.nilai.t2023];
+const fmtKomponen = (k: (typeof ipm.komponen)[number], v: number) =>
+  /rupiah/.test(k.satuan) ? `Rp${d(v / 1000, 2)} juta` : `${d(v, 2)} tahun`;
+const semuaNaik = ipm.komponen.every((k) => k.nilai.t2023 > k.nilai.t2020);
+const kPPP = ipm.komponen.find((k) => /rupiah/.test(k.satuan))!;
+const kRLS = ipm.komponen.find((k) => /Rata-rata/i.test(k.nama))!;
+const pppTumbuh = 100 * (kPPP.nilai.t2023 / kPPP.nilai.t2020 - 1);
+const panelIpm = ipm.komponen.map((k) => ({
+  judul: k.nama.replace(" (PPP)", ""),
+  ringkas: fmtKomponen(k, k.nilai.t2023),
+  perubahan: /rupiah/.test(k.satuan)
+    ? `${sel2(pppTumbuh, 1)}% sejak 2020`
+    : `${sel2(k.nilai.t2023 - k.nilai.t2020, 2)} tahun sejak 2020`,
+  nilai: nilaiIpm(k),
+  tampil: nilaiIpm(k).map((v) => fmtKomponen(k, v)),
+  sorot: k === kPPP,
+}));
+
+const kem = pilar3.kemiskinan;
+const periode = [...new Set(kem.perDaerah.map((x) => x.periode))];
+const pendek = (s: string) => s.replace("September", "Sep").replace("Maret", "Mar");
+const ambilKem = (daerah: string, per: string) => kem.perDaerah.find((x) => x.daerah === daerah && x.periode === per)!;
+const kemSeri = [
+  { label: "Perdesaan", warna: C.sorot },
+  { label: "DIY", warna: C.dasar, putus: true },
+  { label: "Perkotaan", warna: C.tinta },
+].map((s) => {
+  const daerah = s.label === "DIY" ? "Total" : s.label;
+  const v = periode.map((per) => ambilKem(daerah, per).persen);
+  return { ...s, nilai: v, tampil: v.map((x) => p(x, 2)) };
+});
+const perAkhir = periode[periode.length - 1]!;
+const perAwal = periode[0]!;
+const kemAkhir = ambilKem("Total", perAkhir);
+const kemAwal = ambilKem("Total", perAwal);
+const kemDesa = ambilKem("Perdesaan", perAkhir);
+const kemKota = ambilKem("Perkotaan", perAkhir);
+const desaSelaluLebih = periode.every((per) => ambilKem("Perdesaan", per).persen > ambilKem("Perkotaan", per).persen);
+const kemMin = Math.floor(Math.min(...kemSeri.flatMap((s) => s.nilai)) - 1);
+const kemMax = Math.ceil(Math.max(...kemSeri.flatMap((s) => s.nilai)) + 1);
+const kemTik = Array.from({ length: Math.floor((kemMax - kemMin) / 2) + 1 }, (_, j) => kemMin + 2 * j)
+  .filter((v) => v <= kemMax)
+  .map((v) => ({ nilai: v, label: `${v}%` }));
+
+const kk = pilar3.ketenagakerjaan;
+const kkB = (label: string) => kk.baris.find((b) => b.label.includes(label))!;
+const kkPUK = kkB("usia kerja");
+const kkKerja = kkB("Bekerja");
+const kkPeng = kkB("Pengangguran");
+const kkBAK = kkB("Bukan angkatan");
+const rowKerja = (["t2022", "t2023"] as const).map((t) => ({
+  label: `Agustus ${t.slice(1)}`,
+  total: `${n(kkPUK[t])} ribu penduduk usia kerja`,
+  ruas: [
+    { label: "Bekerja", n: kkKerja[t], tampil: `${n(kkKerja[t])} ribu`, warna: C.tinta },
+    { label: "Pengangguran", n: kkPeng[t], tampil: `${d(kkPeng[t], 2)} ribu`, warna: C.sorot },
+    { label: "Bukan angkatan kerja", n: kkBAK[t], tampil: `${n(kkBAK[t])} ribu`, warna: C.redup, teks: "var(--ink)" },
+  ],
+}));
+
+const ktd = pilar3.ketimpangan;
+const ktdAkhir = ktd.perDaerah.filter((x) => x.periode === "Maret 2023");
+const ktdAmbil = (dae: string) => ktdAkhir.find((x) => x.daerah === dae)!;
+const rowTimpang = (["Perkotaan", "Perdesaan", "Total"] as const).map((dae) => {
+  const x = ktdAmbil(dae);
+  return {
+    label: dae === "Total" ? "DIY" : dae,
+    sub: `Maret 2023 · kriteria Bank Dunia: ketimpangan ${kategoriBD(x.p40Bawah)}`,
+    ruas: [
+      { label: "40% terbawah", n: x.p40Bawah, tampil: p(x.p40Bawah, 2), warna: C.sorot },
+      { label: "40% menengah", n: x.p40Tengah, tampil: p(x.p40Tengah, 2), warna: C.dasar },
+      { label: "20% teratas", n: x.p20Atas, tampil: p(x.p20Atas, 2), warna: C.tinta },
+    ],
+  };
+});
+const tKota = ktdAmbil("Perkotaan");
+const tDesa = ktdAmbil("Perdesaan");
+
+// ══ Bab 4: kinerja kunci dan investasi ══════════════════════════════════════
 const ikkP = pilar4.ikkPendidikan;
 const ikkH = pilar4.ikkKesehatan;
 const ikkU = pilar4.ikkPU;
+const abkBelum = ikkP.abk.total - ikkP.abk.terlayani;
 const inv = pilar4.investasi;
-const invKumulatif = [
-  { label: "Total kumulatif", a: inv.seri[0].totalMiliar, b: inv.seri[1].totalMiliar, sorot: true },
-  { label: "PMDN", a: inv.seri[0].pmdnMiliar, b: inv.seri[1].pmdnMiliar },
-  { label: "PMA", a: inv.seri[0].pmaMiliar, b: inv.seri[1].pmaMiliar },
-  { label: "Tambahan pada tahun", a: inv.seri[0].tambahanMiliar, b: inv.seri[1].tambahanMiliar },
-];
-const invTahun = ["2019", "2020", "2021", "2022", "2023"];
-const invKabSeri = inv.perKab.map((k, i) => ({
-  label: k.kabkota.replace("Kabupaten ", "").replace("Kota ", ""),
-  seri: String(i + 1),
-  nilai: [k.t2019, k.t2020, k.t2021, k.t2022, k.t2023],
-}));
+const [inv22, inv23] = [inv.seri[0]!, inv.seri[1]!];
+const pmdnShare = (100 * inv23.pmdnTriliun) / inv23.totalTriliun;
+const tahunInv = ["2019", "2020", "2021", "2022", "2023"];
+const nilaiKab = (k: (typeof inv.perKab)[number]) => [k.t2019, k.t2020, k.t2021, k.t2022, k.t2023];
+const fmtM = (v: number) => (v === 0 ? "0" : v >= 1000 ? `Rp${d(v / 1000, 2)} T` : `Rp${n(v)} M`);
+const kabInv = [...inv.perKab].sort((a, b) => b.t2023 - a.t2023);
+const invTerbesar = kabInv[0]!;
+const totalInv23 = jumlah(inv.perKab.map((k) => k.t2023));
+const kp = inv.perKab.find((k) => /Kulon/.test(k.kabkota))!;
+const kpTurunTerus = nilaiKab(kp).every((v, j, a) => j === 0 || v < a[j - 1]!);
+const bantul = inv.perKab.find((k) => /Bantul/.test(k.kabkota))!;
+const bantulKali = bantul.t2023 / bantul.t2021;
 
-// ── Pilar 5: keistimewaan & BKK ─────────────────────────────────────────────
+// ══ Bab 5: keistimewaan ═════════════════════════════════════════════════════
 const nA = pilar5.nilaiAkhir;
 const urK = pilar5.urusan;
 const bkk = pilar5.bkk;
-const duoKes = urK.baris.map((b) => ({ label: pangkas(b.nama, 40), a: b.anggaran, b: b.realisasi }));
-const bkkRow = [...bkk.baris]
-  .filter((x) => x.realisasi !== null)
-  .sort((a, b) => b.pagu - a.pagu)
-  .map((x) => ({
-    label: pangkas(x.jenis, 46),
-    n: x.realisasi as number,
-    pct: x.keuangan,
-  }));
-
-// ── Pilar 6: SPM ────────────────────────────────────────────────────────────
-const kat = pilar6.kategori;
-const pInd = pilar6.pendidikanIndikator;
-const khus = pilar6.pendidikanKhusus;
-const barKat = kat.map((k) => ({ label: k.bidang, n: k.indeks }));
-const paripurna = kat.filter((k) => k.kategori === "PARIPURNA");
-const indSma = pInd.filter((x) => x.jenjang === "SMA").map((x) => ({
-  label: pangkas(x.label, 34),
-  delta: +(x.capaian - x.target).toFixed(2),
-  catatan: `${d(x.capaian, 2)} vs target ${d(x.target, 2)}`,
+const namaNA = [
+  "Capaian fisik dan keuangan urusan keistimewaan",
+  "Kepuasan masyarakat atas penyebarluasan informasi keistimewaan",
+  "Kepuasan Paramparapraja atas pelayanan",
+];
+const warnaNA = [C.tinta, C.sorot, C.dasar];
+const komponenNA = nA.baris.map((b, j) => ({
+  label: namaNA[j] ?? b.nama,
+  bobot: b.bobot,
+  hasil: b.hasil,
+  rincian: `${d(b.nilai, 2)} × ${b.bobot}% = ${d(b.hasil, 2)}`,
+  sisa: `${d(b.bobot - b.hasil, 2)} poin dari bobot ${b.bobot} tidak teraih`,
+  warna: warnaNA[j] ?? C.dasar,
 }));
-const indSmaTerang = indSma.reduce((m, x) => (x.delta < m.delta ? x : m), indSma[0]);
-const indSmaTembak = indSma.filter((x) => x.delta > 0).length;
+const naHilang = maks(nA.baris, (b) => b.bobot - b.hasil);
+const naHilangIdx = nA.baris.indexOf(naHilang);
+const urKeb = maks(urK.baris, (b) => b.anggaran);
+const urRendah = mins(urK.baris, (b) => b.keuangan);
+const warnaUrusan: Record<string, string> = { Kebudayaan: C.sorot, "Tata Ruang": C.tinta, Kelembagaan: C.dasar, Pertanahan: C.redup };
+const barisUrusanK = [...urK.baris]
+  .sort((a, b) => b.anggaran - a.anggaran)
+  .map((b) => ({
+    label: kalimat(b.nama),
+    anggaran: b.anggaran,
+    realisasi: b.realisasi,
+    tampilA: rp(b.anggaran),
+    tampilR: rpS(b.realisasi),
+    serapan: p(b.keuangan, 2),
+    tingkat: 0 as const,
+    sorot: b === urRendah,
+  }));
+const AKRONIM = ["DIY", "DLHK", "DPUPESDM", "DISBUD", "WBTB", "DPKP", "DINKOP", "DISPAR", "SATPOL", "PP", "RTLH", "DPTR", "DISNAKERTRAN", "TAPEM", "BKK"];
+const namaBkk = (s: string) =>
+  kalimat(s.replace(/^BKK\s*KALURAHAN\s*-\s*/i, "").replace(/^BKK\s*-\s*/i, "").replace(/^BKK\s*KALURAHAN-/i, ""), AKRONIM);
+const bkkUrut = [...bkk.baris].sort((a, b) => b.pagu - a.pagu);
+const bkkTerbesar = bkkUrut[0]!;
+const bkkFisikPenuh = bkk.baris.every((b) => b.fisik === 100);
 
-// ── Penutup: celah dan unduhan ──────────────────────────────────────────────
+// ══ Bab 6: SPM ══════════════════════════════════════════════════════════════
+const spmKat = pilar6.kategori;
+const paripurna = spmKat.filter((k) => k.kategori === "PARIPURNA");
+const nonParipurna = spmKat.filter((k) => k.kategori !== "PARIPURNA");
+const pInd = pilar6.pendidikanIndikator;
+const jenjang = [...new Set(pInd.map((x) => x.jenjang))];
+const kelompokSpm = jenjang.map((j) => {
+  const rows = pInd.filter((x) => x.jenjang === j);
+  const belum = rows.filter((x) => x.pct < 100).length;
+  return {
+    judul: j,
+    ringkas: `${belum} dari ${rows.length} indikator belum mencapai target`,
+    rows: rows.map((x) => ({
+      label: x.label,
+      persen: x.pct,
+      tampil: p(x.pct, 2),
+      rinci: `Capaian ${d(x.capaian, 2)} · target ${d(x.target, 2)}${x.satuan === "%" ? "%" : ""}`,
+    })),
+  };
+});
+const indBelum = pInd.filter((x) => x.pct < 100);
+const indTerendah = mins(pInd, (x) => x.pct);
+const labelBelumSmaSmk = [...new Set(indBelum.filter((x) => x !== indTerendah && x.jenjang !== indTerendah.jenjang).map((x) => x.label.toLowerCase()))];
+const khus = pilar6.pendidikanKhusus;
+
+// ══ Penutup ═════════════════════════════════════════════════════════════════
 const unduhan = manifes.unduhan;
 const celah = manifes.catatanCelah;
+
+const nav = [
+  { href: "#ringkasan", label: "Ringkasan" },
+  ...i.bab.map((b) => ({ href: `#${b.id}`, label: b.nav })),
+  { href: "#penutup", label: "Penutup" },
+];
+const leadBab = [
+  `DIY adalah provinsi dengan wilayah daratan terkecil kedua di Indonesia. Penduduknya padat di kota dan menyebar di perbukitan selatan; yang paling luas bukan yang paling ramai.`,
+  `Pendapatan hampir seluruhnya terealisasi, belanja menyusul sedikit di belakangnya. Porsi terbesar pendapatan masih datang dari transfer pemerintah pusat, bukan dari pungutan daerah sendiri.`,
+  `Ukuran-ukuran kesejahteraan bergerak ke arah yang sama: pembangunan manusia naik, kemiskinan dan pengangguran turun. Ketimpangan bergeser tipis, dan jarak antara kota dan desa masih terlihat.`,
+  `Sebagian layanan dasar sudah penuh, sebagian lain menyisakan pekerjaan rumah yang nyata. Penanaman modal terus tumbuh, tetapi petanya tidak merata antarkabupaten.`,
+  `Urusan keistimewaan dinilai dari capaian fisik dan keuangan serta kepuasan masyarakat. Sebagian besar dananya mengalir ke kebudayaan, dan sebagian diturunkan langsung ke kalurahan.`,
+  `${awalBesar(kata(paripurna.length))} dari ${kata(spmKat.length)} bidang layanan dasar meraih kategori tertinggi. ${nonParipurna.map((k) => k.bidang).join(", ")} menjadi bidang yang belum tuntas, dan rinciannya menunjukkan di mana celahnya.`,
+];
 ---
 
-<Layout judul={i.judul} deskripsi={i.deskripsi}>
-  {/* ═════════════════════════ 0. Pembuka ═════════════════════════ */}
-  <header class="hero" id="pembuka">
-    <div class="wrap">
-      <p class="hero__eyebrow">{i.pembuka.eyebrow}</p>
-      <h1>{i.pembuka.judul}</h1>
-      <p class="hero__lead">{i.pembuka.lead}</p>
-
-      <div class="hero__figures" data-anim="kartu">
-        {
-          heroKartu.map((k) => (
-            <div class="hero__figure" data-anim="kartu">
-              <span class="n">{k.tampil}</span>
-              <span class="l">
-                {k.nama} · {k.satuan}
-              </span>
-              <span class="l">
-                {k.perubahan > 0 ? "▲ naik" : k.perubahan < 0 ? "▼ turun" : "— tetap"} {d(Math.abs(k.perubahan), 2)} terhadap 2022
-              </span>
-            </div>
-          ))
-        }
-      </div>
-
-      <p class="hero__note">{i.pembuka.note}</p>
-    </div>
+<Layout judul={i.judul} deskripsi={i.deskripsi} nav={nav}>
+  {/* ═════════════════════════ Sampul ═════════════════════════ */}
+  <header class="sampul" id="sampul">
+    <p class="sampul__label" data-sampul style="--i:0">{i.sampul.label}</p>
+    <h1 data-sampul style="--i:1">{i.sampul.judul}</h1>
+    <p class="sampul__sub" data-sampul style="--i:2">{i.sampul.sub}</p>
+    <p class="sampul__meta" data-sampul style="--i:3">{i.sampul.meta}</p>
+    <img class="deret" src="./brand/deret-ikon-emas.svg" alt="" width="842" height="141" />
   </header>
 
-  {/* ═════════════════════════ 0-1 · Adegan pembuka ═════════════════════════ */}
-  <Pilar
-    no={0}
-    id="pilar-0"
-    judul="Enam indikator makro dulu"
-    bidang={["Capaian kinerja makro"]}
-    lead="Sebelum memasuki pilar, enam angka makro memetakan arah kebijakan: kesejahteraan naik, pengeluaran tertahan, dan ketimpangan nyaris tenang."
-  >
-    <Adegan
-      id="0-1"
-      pertanyaan="Ke mana arah kebijakan DIY pada tahun 2023?"
-      tafsir={`Enam angka pembuka: IPM <strong>${d(ipmC.nilai2023, 2)}</strong> poin, kemiskinan <strong>${d(kemC.nilai2023, 2)}%</strong>, pengangguran <strong>${d(pptC.nilai2023, 2)}%</strong>, pertumbuhan ekonomi <strong>${d(grwC.perubahan, 2)}%</strong> — masing-masing membaik dari 2022. Pendapatan per kapita <strong>${d(pkpC.nilai2023, 2)} juta rupiah</strong>; rasio gini <strong>${d(ginC.nilai2023, 3)}</strong>.`}
-      sumber={SB(188, 2, "bab2-2_1_capaian-kinerja-makro.md")}
-    >
-      <StatCards
-        judul="Enam indikator makro, 2022 berbanding 2023"
-        kartu={[
-          { label: `${ipmC.nama} (${ipmC.satuan})`, nilai: berHasil(ipmC, 2), sub: `2022 ${d(ipmC.nilai2022, 2)} · ${arrh(ipmC.perubahan)}${d(ipmC.perubahan, 2)}%`, sorot: true },
-          { label: `${kemC.nama} (${kemC.satuan})`, nilai: berHasil(kemC, 2), sub: `2022 ${d(kemC.nilai2022, 2)} · ${arrh(kemC.perubahan)}${d(kemC.perubahan, 2)}%` },
-          { label: `${pptC.nama} (${pptC.satuan})`, nilai: berHasil(pptC, 2), sub: `2022 ${d(pptC.nilai2022, 2)} · ${arrh(pptC.perubahan)}${d(pptC.perubahan, 2)}%` },
-          { label: `${grwC.nama} (${grwC.satuan})`, nilai: `${d(grwC.perubahan, 2)}%`, sub: `ADHK 2010 · ${d(grwC.nilai2022, 0)} — ${d(grwC.nilai2023, 0)} juta` },
-          { label: `${pkpC.nama} (${pkpC.satuan})`, nilai: `${d(pkpC.nilai2023, 2)}`, sub: `2022 ${d(pkpC.nilai2022, 2)} · ${arrh(pkpC.perubahan)}${d(pkpC.perubahan, 2)}%` },
-          { label: `${ginC.nama} (${ginC.satuan})`, nilai: berHasil(ginC, 3), sub: `2022 ${d(ginC.nilai2022, 3)} · ${arrh(ginC.perubahan)}${d(ginC.perubahan, 2)}%` },
-        ]}
-      />
-      <TabelAlt
-        judul="enam indikator makro"
-        keterangan="Enam indikator makro DIY — nilai 2022, 2023, dan perubahan"
-        kolom={[
-          { judul: "Indikator" },
-          { judul: "Satuan" },
-          { judul: "2022", num: true },
-          { judul: "2023", num: true },
-          { judul: "Perubahan (%)", num: true },
-        ]}
-        baris={md.map((x) => [
-          x.nama,
-          x.satuan,
-          x.jenis === "gini" ? d(x.nilai2022, 3) : d(x.nilai2022, 2),
-          x.jenis === "gini" ? d(x.nilai2023, 3) : d(x.nilai2023, 2),
-          d(x.perubahan, 2),
-        ])}
-      />
-    </Adegan>
-  </Pilar>
+  {/* ═════════════════════════ Ringkasan ═════════════════════════ */}
+  <section class="ringkasan" id="ringkasan" aria-labelledby="ringkasan-judul">
+    <div class="wrap">
+      <section id="adegan-0-1" aria-labelledby="ringkasan-judul">
+        <header class="jb" data-reveal>
+          <span class="jb__no">{i.ringkasan.label}</span>
+          <h2 class="jb__teks" id="ringkasan-judul">{i.ringkasan.judul}</h2>
+          <div class="jb__garis" aria-hidden="true"></div>
+        </header>
+        <p class="ringkasan__lead" data-reveal set:html={leadRingkasan} />
+        <Angka items={kpi} label="Enam indikator makro DIY 2023" />
+        <div data-reveal>
+          <TabelAlt
+            judul="enam indikator makro"
+            keterangan="Enam indikator makro DIY, nilai 2022 dan 2023, beserta persentase perubahannya"
+            kolom={[{ judul: "Indikator" }, { judul: "Satuan" }, { judul: "2022", num: true }, { judul: "2023", num: true }, { judul: "Perubahan (%)", num: true }]}
+            baris={md.map((x) => [
+              x.nama,
+              x.satuan,
+              x.jenis === "gini" ? d(x.nilai2022, 3) : d(x.nilai2022, 2),
+              x.jenis === "gini" ? d(x.nilai2023, 3) : d(x.nilai2023, 2),
+              d(x.perubahan, 2),
+            ])}
+          />
+          <p class="sumber"><b>Sumber</b> {prov(SB(188, 2, FM))}</p>
+          <p class="ringkasan__catatan">{i.ringkasan.catatan}</p>
+        </div>
+      </section>
 
-  {/* ═════════════════════════ 1. Pilar satu ═════════════════════════ */}
-  <Pilar no={1} id={i.pilar[0].id} judul={i.pilar[0].judul} bidang={i.pilar[0].bidang} lead={i.pilar[0].lead}>
+      <nav class="isi-laporan" aria-labelledby="isi-judul" data-reveal>
+        <h2 class="isi-laporan__judul" id="isi-judul">{i.ringkasan.isiJudul}</h2>
+        <ol>
+          {
+            i.bab.map((b, j) => (
+              <li>
+                <a href={`#${b.id}`}>
+                  <img src={`./brand/${b.ikon}.svg`} alt="" width="72" height="72" loading="lazy" />
+                  <span class="isi-laporan__no">Bab {j + 1}</span>
+                  <span class="isi-laporan__nama">{b.judul}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </div>
+  </section>
+
+  {/* ═════════════════════════ Bab 1 ═════════════════════════ */}
+  <Bab no={1} id={i.bab[0]!.id} judul={i.bab[0]!.judul} sub={i.bab[0]!.sub} lead={leadBab[0]!} ikon={i.bab[0]!.ikon} ikonNama={i.bab[0]!.ikonNama}>
     <Adegan
       id="1-1"
-      pertanyaan="Seberapa luas wilayah DIY dan bagaimana bagiannya?"
-      tafsir={`Luas daratan DIY <strong>${d(luas.total ?? 0, 2)} km persegi</strong> — ${d(luas.persenIndonesia ?? 0, 2)}% luas daratan Indonesia. Yang terluas <strong>${luasTerbesar?.nama ?? ""}</strong> menempati ${p(luasTerbesar?.persen ?? 0, 2)} dari luas DIY, membentuk ceruk karst selatan yang ikut menentukan tinggalnya penduduk Gunungkidul.`}
-      sumber={SB("27", "naskah geografi wilayah", F1)}
+      pertanyaan="Seberapa luas DIY, dan di mana penduduknya tinggal?"
+      tafsir={`Luas daratan DIY <strong>${d(luas.total, 2)} km²</strong>, hanya ${p(luas.persenIndonesia, 2)} daratan Indonesia. ${kabTerluas.nama} menempati <strong>${p(kabTerluas.luasPct, 2)}</strong> wilayah, tetapi dihuni ${p(kabTerluas.jiwaPct, 2)} penduduk. ${kabTerpadat.nama} sebaliknya: ${p(kabTerpadat.luasPct, 2)} wilayah untuk ${p(kabTerpadat.jiwaPct, 2)} penduduk, dengan kepadatan <strong>${n(kabTerpadat.padat)} jiwa per km²</strong>, lebih dari ${kaliPadat} kali kepadatan ${kabTerluas.nama}.`}
+      sumber={[SB(27, "naskah geografi wilayah", F1), SB(30, 1, F1)]}
     >
-      <HorizontalBar
-        caption="Luas daratan per kabupaten/kota (kilometer persegi)"
-        label="Luas daratan per kabupaten/kota"
-        rows={barLuas}
-        satuan="km²"
-        sorot="Gunungkidul"
-        penyebutLabel="dari luas DIY"
-      />
-      <TabelAlt
-        judul="luas daratan per kabupaten/kota"
-        kolom={[{ judul: "Kabupaten/Kota" }, { judul: "Luas (km²)", num: true }, { judul: "% DIY", num: true }]}
-        baris={luas.perKab.map((x) => [x.nama, d(x.km2, 2), d(x.persen, 2)])}
-      />
+      <Figur
+        judul="Porsi luas daratan berbanding porsi penduduk"
+        satuan="persen dari total DIY"
+        legenda={[
+          { label: "Luas daratan", warna: C.redup },
+          { label: "Penduduk", warna: C.dasar },
+          { label: "Terbesar di tiap sisi", warna: C.sorot },
+        ]}
+      >
+        <Kupu
+          label="Porsi luas daratan dan porsi penduduk per kabupaten/kota"
+          judulKiri="Luas daratan"
+          judulKanan="Penduduk"
+          rows={kabLuas.map((k) => ({
+            label: k.nama,
+            kiri: k.luasPct,
+            kanan: k.jiwaPct,
+            tampilKiri: p(k.luasPct, 1),
+            tampilKanan: p(k.jiwaPct, 1),
+            catatan: `${n(k.padat)} jiwa per km²`,
+            sorotKiri: k === kabTerluas,
+            sorotKanan: k === kabTerramai,
+          }))}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="luas, penduduk, dan kepadatan per kabupaten/kota"
+          kolom={[{ judul: "Kabupaten/kota" }, { judul: "Luas (km²)", num: true }, { judul: "% luas", num: true }, { judul: "Penduduk", num: true }, { judul: "% penduduk", num: true }, { judul: "Jiwa/km²", num: true }]}
+          baris={[
+            ...kabLuas.map((k) => [k.nama, d(k.km2, 2), d(k.luasPct, 2), n(k.jiwa), d(k.jiwaPct, 2), n(k.padat)]),
+            ["DIY", d(luas.total, 2), "100", n(pdk.total), "100", n(padatDIY)],
+          ]}
+        />
+      </Figur>
+      <Figur judul="Kepadatan penduduk" satuan="jiwa per km²">
+        <BarH
+          label="Kepadatan penduduk per kabupaten/kota"
+          rows={[...kab].sort((a, b) => b.padat - a.padat).map((k) => ({ label: k.nama, n: k.padat, tampil: n(k.padat), sorot: k === kabTerpadat }))}
+          acuan={{ nilai: padatDIY, label: `DIY ${n(padatDIY)}` }}
+          lebarLabel="9.5rem"
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="kepadatan penduduk"
+          kolom={[{ judul: "Kabupaten/kota" }, { judul: "Jiwa per km²", num: true }]}
+          baris={[...[...kab].sort((a, b) => b.padat - a.padat).map((k) => [k.nama, n(k.padat)]), ["DIY", n(padatDIY)]]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="1-2"
-      pertanyaan="Berapa jumlah penduduk dan bagaimana pembagiannya?"
-      tafsir={`Penduduk DIY <strong>${n(pd.total)} jiwa</strong> — ${d(pd.lakiPersen, 2)}% laki-laki dan ${d(pd.perempuanPersen, 2)}% perempuan yang tersebar tidak merata: ${pendudukTerbanyak.nama} menampung paling banyak (${d(pendudukTerbanyak.jumlahPersen, 2)}%), sedangkan ${pendudukTersedikit.nama} paling sedikit (${d(pendudukTersedikit.jumlahPersen, 2)}%). Pembagian administrasinya: ${adm.kapanewon} kapanewon/kemantren, ${adm.kalurahan} kalurahan, dan ${adm.kelurahan} kelurahan.`}
-      sumber={[
-        SB(29, 1, F1),
-        SB(31, 4, F1),
-      ]}
+      pertanyaan="Bagaimana penduduk dan wilayah administrasinya terbagi?"
+      tafsir={`Penduduk DIY <strong>${n(pdk.total)} jiwa</strong>, ${p(pdk.perempuanPersen, 1)} di antaranya perempuan. ${kabTerramai.nama} paling ramai dengan ${p(kabTerramai.jiwaPct, 2)} penduduk, disusul ${kabRamai[1]!.nama}. Pemerintahan di tingkat bawah dijalankan oleh <strong>${n(adm.kapanewon)}</strong> kapanewon dan kemantren, <strong>${n(adm.kalurahan)}</strong> kalurahan, dan <strong>${n(adm.kelurahan)}</strong> kelurahan; ${kabDesaTerbanyak.nama} sendiri memiliki ${n(kabDesaTerbanyak.kal)} kalurahan.`}
+      sumber={[SB(30, 1, F1), SB(31, 4, F1)]}
     >
-      <HorizontalBar
-        caption="Penduduk per kabupaten/kota (jiwa)"
-        label="Jumlah penduduk per kabupaten/kota"
-        rows={barPenduduk}
-        sorot="Sleman"
-        penyebutLabel="dari penduduk DIY"
-      />
-      <TabelAlt
-        judul="penduduk per kabupaten/kota menurut jenis kelamin"
-        kolom={[
-          { judul: "Kabupaten/Kota" },
-          { judul: "Laki-laki", num: true },
-          { judul: "Perempuan", num: true },
-          { judul: "Jumlah", num: true },
-          { judul: "% DIY", num: true },
-        ]}
-        baris={pd.perKab.map((k) => [k.nama, n(k.laki), n(k.perempuan), n(k.jumlah), d(k.jumlahPersen, 2)])}
-      />
-      <Legenda
-        items={[
-          { label: "Laki-laki", seri: "2" },
-          { label: "Perempuan", seri: "1" },
-        ]}
-      />
-      <DuaTitik
-        caption="Penduduk laki-laki berbanding perempuan per kabupaten/kota (jiwa)"
-        label="Penduduk laki-laki dan perempuan per kabupaten/kota"
-        rows={duaGender}
-        kiri="Laki-laki"
-        kanan="Perempuan"
-        satuan="jiwa"
-        digit={0}
-      />
-      <TabelAlt
-        judul="penduduk laki-laki dan perempuan per kabupaten/kota"
-        kolom={[
-          { judul: "Kabupaten/Kota" },
-          { judul: "Laki-laki", num: true },
-          { judul: "Perempuan", num: true },
-        ]}
-        baris={pd.perKab.map((k) => [k.nama, n(k.laki), n(k.perempuan)])}
-      />
+      <Figur judul="Penduduk per kabupaten/kota" satuan="jiwa, akhir 2023">
+        <BarH
+          label="Jumlah penduduk per kabupaten/kota"
+          rows={kabRamai.map((k) => ({
+            label: k.nama,
+            n: k.jiwa,
+            tampil: n(k.jiwa),
+            sub: p(k.jiwaPct, 1),
+            sorot: k === kabTerramai,
+            tip: [`Laki-laki ${n(k.laki)}`, `Perempuan ${n(k.perempuan)}`, `Rasio jenis kelamin ${d((100 * k.laki) / k.perempuan, 1)}`],
+          }))}
+          lebarLabel="9.5rem"
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="penduduk per kabupaten/kota menurut jenis kelamin"
+          kolom={[{ judul: "Kabupaten/kota" }, { judul: "Laki-laki", num: true }, { judul: "Perempuan", num: true }, { judul: "Jumlah", num: true }, { judul: "% DIY", num: true }]}
+          baris={[...kabRamai.map((k) => [k.nama, n(k.laki), n(k.perempuan), n(k.jiwa), d(k.jiwaPct, 2)]), ["DIY", n(pdk.laki), n(pdk.perempuan), n(pdk.total), "100"]]}
+        />
+      </Figur>
+      <Figur
+        judul="Kalurahan dan kelurahan per kabupaten/kota"
+        satuan="satu titik = satu kalurahan atau kelurahan"
+        legenda={[{ label: "Kalurahan", warna: C.dasar }, { label: "Kelurahan", warna: C.sorot }]}
+      >
+        <UnitTitik
+          label="Jumlah kalurahan dan kelurahan per kabupaten/kota"
+          rows={kabDesa.map((k) => ({
+            label: k.nama,
+            ringkas: `${n(k.kal + k.kel)} wilayah`,
+            sub: `${n(k.kap)} ${/Kota/.test(k.nama) ? "kemantren" : "kapanewon"}`,
+            jenis: [
+              { n: k.kal, label: "kalurahan", warna: C.dasar },
+              { n: k.kel, label: "kelurahan", warna: C.sorot },
+            ],
+          }))}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="wilayah administrasi per kabupaten/kota"
+          kolom={[{ judul: "Kabupaten/kota" }, { judul: "Kapanewon/kemantren", num: true }, { judul: "Kalurahan", num: true }, { judul: "Kelurahan", num: true }]}
+          baris={[...kabDesa.map((k) => [k.nama, n(k.kap), k.kal ? n(k.kal) : null, k.kel ? n(k.kel) : null]), ["DIY", n(adm.kapanewon), n(adm.kalurahan), n(adm.kelurahan)]]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="1-3"
-      pertanyaan="Bagaimana susunan umur penduduk?"
-      tafsir={`Kelompok umur paling ramai adalah usia <strong>${usiaTerbesar.label} tahun</strong> (${d(usiaTerbesar.persen, 2)}% penduduk), paling sedikit <strong>${usiaTerkecil.label} tahun</strong> (${d(usiaTerkecil.persen, 2)}%). Kedua ujung ceruk ini menandai penduduk yang melayani penduduk: generasi pekerja di puncak, anak-anak yang menyempit di dasar.`}
-      sumber={SB(31, 1, F1)}
+      pertanyaan="Bagaimana susunan umur penduduk DIY?"
+      tafsir={`Sekitar satu dari ${kata(satuDari)} penduduk DIY berusia ${labelUsia(ikLansia.nama).replace("+", "")} tahun ke atas: <strong>${p(ikLansia.persen, 1)}</strong>, hampir menyamai porsi anak usia ${labelUsia(ikAnak.nama)} tahun (${p(ikAnak.persen, 1)}). Usia produktif ${labelUsia(ikProd.nama)} tahun ${p(ikProd.persen, 1)}, sehingga setiap 100 penduduk usia produktif menanggung sekitar <strong>${d(rasioTanggungan, 0)}</strong> penduduk usia nonproduktif. Kelompok umur terbesar adalah ${usiaTerbesar.label.replace("-", "–")} tahun.`}
+      sumber={[SB(30, 2, F1), SB(31, 1, F1)]}
     >
-      <KolomLolipop
-        caption="Penduduk menurut kelompok umur (jiwa)"
-        label="Penduduk menurut kelompok umur"
-        rows={lolUsia}
-        satuan="jiwa"
-        penyebutLabel="dari penduduk DIY"
-        labelSumbu="Kelompok umur"
-        sorot={usia.perKelompok.reduce((m, g) => (g.jumlah > m.jumlah ? g : m)).label}
-      />
-      <TabelAlt
-        judul="penduduk menurut kelompok umur"
-        kolom={[
-          { judul: "Kelompok umur" },
-          { judul: "Jumlah (jiwa)", num: true },
-          { judul: "% DIY", num: true },
+      <Figur
+        judul="Komposisi umur penduduk"
+        satuan="persen penduduk"
+        legenda={[
+          { label: `Anak ${labelUsia(ikAnak.nama)} tahun`, warna: C.redup },
+          { label: `Usia produktif ${labelUsia(ikProd.nama)} tahun`, warna: C.dasar },
+          { label: `Lansia ${labelUsia(ikLansia.nama)} tahun`, warna: C.sorot },
         ]}
-        baris={usia.perKelompok.map((g) => [g.label, n(g.jumlah), d(g.persen, 2)])}
-      />
+      >
+        <Tumpuk
+          label="Komposisi penduduk menurut kelompok umur besar"
+          lebarLabel="0rem"
+          tebal={44}
+          rows={[
+            {
+              label: "",
+              ruas: [
+                { label: `Anak ${labelUsia(ikAnak.nama)} tahun`, n: ikAnak.persen, tampil: p(ikAnak.persen, 1), warna: C.redup, teks: "var(--ink)" },
+                { label: `Produktif ${labelUsia(ikProd.nama)} tahun`, n: ikProd.persen, tampil: p(ikProd.persen, 1), warna: C.dasar },
+                { label: `Lansia ${labelUsia(ikLansia.nama)} tahun`, n: ikLansia.persen, tampil: p(ikLansia.persen, 1), warna: C.sorot },
+              ],
+            },
+          ]}
+        />
+      </Figur>
+      <Figur judul="Penduduk menurut kelompok umur lima tahunan" satuan="jiwa · warna mengikuti kelompok umur di atas">
+        <Kolom
+          label="Penduduk menurut kelompok umur"
+          cols={usia.map((g) => ({
+            label: g.label.replace(" ke atas", "+").replace("-", "–"),
+            n: g.jumlah,
+            tampil: `${n(g.jumlah)} jiwa`,
+            sub: `${p(g.persen, 2)} penduduk`,
+            warna: grupUsia(g.label),
+          }))}
+          satuanKisi={(v) => (v >= 1000 ? `${n(v / 1000)} rb` : n(v))}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="penduduk menurut kelompok umur"
+          kolom={[{ judul: "Kelompok umur" }, { judul: "Jumlah (jiwa)", num: true }, { judul: "% DIY", num: true }]}
+          baris={[...usia.map((g) => [g.label, n(g.jumlah), d(g.persen, 2)]), ...ikhtisar.map((x) => [x.nama, n(x.jumlah), d(x.persen, 1)])]}
+        />
+      </Figur>
     </Adegan>
-  </Pilar>
+  </Bab>
 
-  {/* ═════════════════════════ 2. Pilar dua ═════════════════════════ */}
-  <Pilar no={2} id={i.pilar[1].id} judul={i.pilar[1].judul} bidang={i.pilar[1].bidang} lead={i.pilar[1].lead}>
+  {/* ═════════════════════════ Bab 2 ═════════════════════════ */}
+  <Bab no={2} id={i.bab[1]!.id} judul={i.bab[1]!.judul} sub={i.bab[1]!.sub} lead={leadBab[1]!} ikon={i.bab[1]!.ikon} ikonNama={i.bab[1]!.ikonNama}>
     <Adegan
       id="2-1"
-      pertanyaan="Bagaimana sebenarnya pendapatan daerah tahun 2023?"
-      tafsir={`Pendapatan DIY 2023 realisasi <strong>${pangkatRupiah(pdp.total.realisasi)}</strong> — ${d(pdp.total.persen, 2)}% dari anggarannya. PAD menyumbang ${d(pdp.sharePad, 2)}% pendapatan; transfer dari pusat ${d(shareTransferPusat, 2)}% dan transfer antar-daerah keuangan pusat ${d(shareTransferAntar, 2)}%, jadi ${d(shareTransfer, 2)}% pendapatan berasal di luar pungutan sendiri.`}
+      lebar
+      pertanyaan="Dari mana pendapatan daerah berasal?"
+      tafsir={`Pendapatan daerah terealisasi <strong>${rp(pdp.total.realisasi)}</strong>, ${p(pdp.total.persen, 2)} dari target dan ${arahKata(tumbuhPendapatan)} ${p(Math.abs(tumbuhPendapatan), 2)} dibanding 2022. Pendapatan asli daerah menyumbang <strong>${p(pdp.sharePad, 2)}</strong>, dengan pajak daerah sebagai tulang punggungnya (${p(sharePajak, 1)} dari seluruh pendapatan). Sumber terbesar tetap transfer pemerintah pusat: <strong>${p(shareTransferPusat, 2)}</strong>.`}
       sumber={SB(60, 1, F1)}
     >
-      <HorizontalBar
-        caption="Realisasi komponen pendapatan (rupiah)"
-        label="Realisasi komponen pendapatan DIY 2023"
-        rows={[...barPendapatan]}
-        satuan="Rp"
-        persen={false}
-        sorot="PAD"
-      />
-      <TabelAlt
-        judul="realisasi komponen pendapatan"
-        kolom={[
-          { judul: "Komponen" },
-          { judul: "Anggaran (Rp)", num: true },
-          { judul: "Realisasi (Rp)", num: true },
-          { judul: "%", num: true },
+      <Figur
+        judul="Realisasi pendapatan daerah 2023 menurut sumber"
+        satuan="luas petak sebanding dengan nilai"
+        legenda={[
+          { label: "Pendapatan asli daerah", warna: C.sorot },
+          { label: "Transfer", warna: C.tinta },
+          { label: "Lain-lain yang sah", warna: C.emas },
         ]}
-        baris={[
-          ...[
-            ["PAD", pdp.pad] as const,
-            ["Pajak daerah", pdp.pajak] as const,
-            ["Retribusi", pdp.retribusi] as const,
-            ["Kekayaan daerah", pdp.kekayaan] as const,
-            ["Lain PAD", pdp.lainPad] as const,
-            ["Transfer pusat", pdp.transferPusat] as const,
-            ["Transfer antar-DK", pdp.transferAntar] as const,
-            ["Lain sah", pdp.lainSah] as const,
-            ["Hibah", pdp.hibah] as const,
-          ].map(([nama, x]) => [nama, pangkatRupiah(x.anggaran), pangkatRupiah(x.realisasi), d(x.persen, 2)]),
-          ["TOTAL", pangkatRupiah(pdp.total.anggaran), pangkatRupiah(pdp.total.realisasi), d(pdp.total.persen, 2)],
-        ]}
-      />
+      >
+        <Treemap label="Komposisi realisasi pendapatan DIY 2023" items={petakPendapatan} />
+        <TabelAlt
+          slot="tabel"
+          judul="anggaran dan realisasi pendapatan"
+          kolom={[{ judul: "Komponen" }, { judul: "Anggaran (Rp)", num: true }, { judul: "Realisasi (Rp)", num: true }, { judul: "%", num: true }, { judul: "Realisasi 2022 (Rp)", num: true }]}
+          baris={[
+            ...([
+              ["Pendapatan asli daerah", pdp.pad],
+              ["Pajak daerah", pdp.pajak],
+              ["Retribusi daerah", pdp.retribusi],
+              ["Hasil kekayaan daerah yang dipisahkan", pdp.kekayaan],
+              ["Lain-lain PAD yang sah", pdp.lainPad],
+              ["Pendapatan transfer", pdp.transfer],
+              ["Transfer pemerintah pusat", pdp.transferPusat],
+              ["Transfer antardaerah", pdp.transferAntar],
+              ["Lain-lain pendapatan daerah yang sah", pdp.lainSah],
+              ["Hibah", pdp.hibah],
+            ] as const).map(([nama, x]) => [nama, n(x.anggaran), n(x.realisasi), d(x.persen, 2), n(x.realisasi2022)]),
+            ["Jumlah pendapatan", n(pdp.total.anggaran), n(pdp.total.realisasi), d(pdp.total.persen, 2), n(pdp.total.realisasi2022)],
+          ]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="2-2"
-      pertanyaan="Ke mana uang belanja daerah dibelanjakan?"
-      tafsir={`Belanja realisasi <strong>${pangkatRupiah(bln.total.realisasi)}</strong> (${d(bln.total.persen, 2)}% dari anggarannya), terbesar belanja operasi ${shareBln(bln.operasi)}% dari seluruh belanja. Belanja modal ${shareBln(bln.modal)}%; gaji pegawai ${shareBln(bln.pegawai)}%. SiLPA tahun ini <strong>${pangkatRupiah(bln.slpa.realisasi)}</strong> — dana yang belum terserap menjadi belanja.`}
-      sumber={[
-        SB(61, 1, F1),
-        SB(62, 1, F1),
-        SB(63, 1, F1),
-      ]}
+      pertanyaan="Ke mana belanja daerah mengalir, dan berapa yang terserap?"
+      tafsir={`Belanja terealisasi <strong>${rp(bln.total.realisasi)}</strong> atau ${p(bln.total.persen, 2)} dari anggaran. Belanja operasi mengambil ${p(shareBelanja(bln.operasi), 1)} dari seluruh belanja, belanja transfer ${p(shareBelanja(bln.transfer), 1)}, dan belanja modal ${p(shareBelanja(bln.modal), 1)}. Selisih terbesar ada pada belanja barang dan jasa: <strong>${rp(sisaBJ)}</strong> tidak terserap. Tahun anggaran ditutup dengan SiLPA ${rp(bln.slpa.realisasi)}.`}
+      sumber={[SB(61, 1, F1), SB(62, 1, F1), SB(63, 1, F1)]}
     >
-      <HorizontalBar
-        caption="Realisasi belanja menurut jenis (rupiah)"
-        label="Realisasi belanja DIY 2023 menurut jenis"
-        rows={barBelanja}
-        satuan="Rp"
-        persen={false}
-        sorot="Belanja operasi"
-      />
-      <TabelAlt
-        judul="realisasi belanja menurut jenis"
-        kolom={[
-          { judul: "Jenis belanja" },
-          { judul: "Anggaran (Rp)", num: true },
-          { judul: "Realisasi (Rp)", num: true },
-          { judul: "%", num: true },
-        ]}
-        baris={[
-          ...[
-            ["Operasi", bln.operasi] as const,
-            ["Gaji pegawai", bln.pegawai] as const,
-            ["Barang & jasa", bln.barangJasa] as const,
-            ["Subsidi", bln.subsidi] as const,
-            ["Hibah", bln.hibah] as const,
-            ["Bansos", bln.bansos] as const,
-            ["Belanja modal", bln.modal] as const,
-            ["Tak terduga", bln.takTerduga] as const,
-            ["Transfer bagi hasil", bln.bagiHasil] as const,
-            ["Bantuan keuangan", bln.bantuanKeuangan] as const,
-          ].map(([nama, x]) => [nama, pangkatRupiah(x.anggaran), pangkatRupiah(x.realisasi), d(x.persen, 2)]),
-          ["TOTAL", pangkatRupiah(bln.total.anggaran), pangkatRupiah(bln.total.realisasi), d(bln.total.persen, 2)],
-          ["SLPA (surplus/defisit)", "", pangkatRupiah(bln.slpa.realisasi), ""],
-        ]}
-      />
+      <Figur judul="Anggaran dan realisasi belanja menurut jenis" satuan="persen serapan dan realisasi">
+        <BulletH label="Anggaran dan realisasi belanja DIY 2023 menurut jenis" rows={barisBelanja} lebarLabel="12.5rem" />
+        <TabelAlt
+          slot="tabel"
+          judul="anggaran dan realisasi belanja menurut jenis"
+          kolom={[{ judul: "Jenis belanja" }, { judul: "Anggaran (Rp)", num: true }, { judul: "Realisasi (Rp)", num: true }, { judul: "%", num: true }]}
+          baris={[
+            ...barisBelanja.map((b) => [b.tingkat ? `  ${b.label}` : b.label, n(b.anggaran), n(b.realisasi), d((100 * b.realisasi) / b.anggaran, 2)]),
+            ["Jumlah belanja", n(bln.total.anggaran), n(bln.total.realisasi), d(bln.total.persen, 2)],
+            ["Surplus/defisit", n(bln.surplus.anggaran), n(bln.surplus.realisasi), null],
+            ["Pembiayaan netto", n(bln.pembiayaanNetto.anggaran), n(bln.pembiayaanNetto.realisasi), d(bln.pembiayaanNetto.persen, 2)],
+            ["SiLPA", null, n(bln.slpa.realisasi), null],
+          ]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="2-3"
-      pertanyaan="Bagaimana urusan-urusan wajib berpihak pada anggarannya?"
-      tafsir={`Realisasi belanja seluruh urusan <strong>${d(p2u.jumlah.persen, 2)}%</strong>. Kelompok dengan penyerapan paling tinggi ${urusanTinggi.nama} (${d(urusanTinggi.persen, 2)}%), paling rendah ${urusanRendah.nama} (${d(urusanRendah.persen, 2)}%). Panjang garis penghubung di grafik adalah selisih anggaran–realisasi tiap kelompok; angka lengkapnya di tabel.`}
+      pertanyaan="Urusan mana yang paling lambat menyerap anggarannya?"
+      tafsir={`Serapan rata-rata seluruh urusan <strong>${p(pilar2u.jumlah.persen, 2)}</strong>. Di antara urusan pelayanan dasar, ${NAMA_DASAR[urKes.id]!.toLowerCase()} tertinggal paling jauh: <strong>${p(urKes.persen, 2)}</strong>, menyisakan ${rp(urKes.anggaran - urKes.realisasi)} anggaran. ${NAMA_DASAR[urPend.id]}, urusan dengan anggaran terbesar (${rp(urPend.anggaran)}), terserap ${p(urPend.persen, 2)}.`}
       sumber={pilar2u.sumber}
     >
-      <DuaTitik
-        caption="Anggaran dan realisasi per kelompok urusan (rupiah)"
-        label="Anggaran dan realisasi per kelompok urusan"
-        rows={duoUrusan}
-        kiri="Anggaran"
-        kanan="Realisasi"
-        satuan="Rp"
-        digit={0}
-      />
-      <TabelAlt
-        judul="anggaran dan realisasi per kelompok urusan"
-        kolom={[
-          { judul: "Kelompok urusan" },
-          { judul: "Anggaran (Rp)", num: true },
-          { judul: "Realisasi (Rp)", num: true },
-          { judul: "%", num: true },
-        ]}
-        baris={[
-          ...p2u.kelompok.map((k) => [k.nama, pangkatRupiah(k.anggaran), pangkatRupiah(k.realisasi), d(k.persen, 2)]),
-          ["JUMLAH", pangkatRupiah(p2u.jumlah.anggaran), pangkatRupiah(p2u.jumlah.realisasi), d(p2u.jumlah.persen, 2)],
-        ]}
-      />
+      <Figur judul="Serapan anggaran per kelompok urusan dan urusan pelayanan dasar" satuan="persen realisasi terhadap anggaran">
+        <DotSerapan
+          label="Serapan anggaran per kelompok urusan dan urusan pelayanan dasar"
+          min={serapanMin}
+          max={100}
+          langkah={5}
+          acuan={{ nilai: pilar2u.jumlah.persen, label: `Seluruh urusan ${p(pilar2u.jumlah.persen, 2)}` }}
+          satuanBobot="besar anggaran"
+          bagian={[
+            { judul: "Kelompok urusan", rows: pilar2u.kelompok.map((u) => dotBaris(u, NAMA_KELOMPOK[u.id] ?? kalimat(u.nama), false)) },
+            { judul: "Urusan wajib pelayanan dasar", rows: urDasar.map((u) => dotBaris(u, NAMA_DASAR[u.id] ?? kalimat(u.nama), u === urKes)) },
+          ]}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="anggaran dan realisasi per urusan"
+          kolom={[{ judul: "Urusan" }, { judul: "Anggaran (Rp)", num: true }, { judul: "Realisasi (Rp)", num: true }, { judul: "%", num: true }]}
+          baris={[
+            ...pilar2u.kelompok.map((u) => [NAMA_KELOMPOK[u.id] ?? u.nama, n(u.anggaran), n(u.realisasi), d(u.persen, 2)]),
+            ...urDasar.map((u) => [`Pelayanan dasar: ${NAMA_DASAR[u.id] ?? u.nama}`, n(u.anggaran), n(u.realisasi), d(u.persen, 2)]),
+            ["Jumlah", n(pilar2u.jumlah.anggaran), n(pilar2u.jumlah.realisasi), d(pilar2u.jumlah.persen, 2)],
+          ]}
+        />
+      </Figur>
     </Adegan>
-  </Pilar>
+  </Bab>
 
-  {/* ═════════════════════════ 3. Pilar tiga ═════════════════════════ */}
-  <Pilar no={3} id={i.pilar[2].id} judul={i.pilar[2].judul} bidang={i.pilar[2].bidang} lead={i.pilar[2].lead}>
+  {/* ═════════════════════════ Bab 3 ═════════════════════════ */}
+  <Bab no={3} id={i.bab[2]!.id} judul={i.bab[2]!.judul} sub={i.bab[2]!.sub} lead={leadBab[2]!} ikon={i.bab[2]!.ikon} ikonNama={i.bab[2]!.ikonNama}>
     <Adegan
       id="3-1"
-      pertanyaan="Bagaimana capaian pembangunan manusia DIY?"
-      tafsir={`IPM DIY 2023 <strong>${d(ipm.nilai2023, 2)}</strong> — naik dari ${d(ipm.nilai2022, 2)} pada 2022, sudah memasuki klasifikasi tinggi. Semua komponennya juga naik; ${ipm.komponen.reduce((m, k) => (k.nilai.t2023 - k.nilai.t2020 > m.nilai.t2023 - m.nilai.t2020 ? k : m)).nama} menaikkan poin paling banyak sepanjang empat tahun terakhir.`}
-      sumber={SB(189, 1, "bab2-2_1_1_indeks-pembangunan-manusia-ipm.md")}
+      lebar
+      pertanyaan="Apa yang mendorong kenaikan indeks pembangunan manusia?"
+      tafsir={`IPM DIY naik dari ${d(ipm.nilai2022, 2)} menjadi <strong>${d(ipm.nilai2023, 2)}</strong>, ${ipm.nilai2023 >= IPM_SANGAT_TINGGI ? "dan berada dalam kategori sangat tinggi menurut klasifikasi BPS" : "mendekati kategori sangat tinggi"}. ${semuaNaik ? "Keempat komponennya naik sejak 2020." : ""} Dorongan paling terasa datang dari pengeluaran per kapita yang disesuaikan, yang tumbuh <strong>${p(pppTumbuh, 1)}</strong> dalam tiga tahun. Rata-rata lama sekolah bertambah ${d(kRLS.nilai.t2023 - kRLS.nilai.t2020, 2)} tahun pada periode yang sama.`}
+      sumber={[SB(189, 1, "bab2-2_1_1_indeks-pembangunan-manusia-ipm.md"), SB(188, 2, FM)]}
     >
-      <DuaTitik
-        caption="Komponen IPM, 2020 berbanding 2023"
-        label="Komponen IPM 2020 dan 2023"
-        rows={ipmKomponen}
-        kiri="2020"
-        kanan="2023"
-        satuan=""
-        digit={2}
-      />
-      <TabelAlt
-        judul="komponen IPM 2020–2023"
-        kolom={[
-          { judul: "Komponen" },
-          { judul: "2020", num: true },
-          { judul: "2021", num: true },
-          { judul: "2022", num: true },
-          { judul: "2023", num: true },
-        ]}
-        baris={ipm.komponen.map((k) => [k.nama, d(k.nilai.t2020, 2), d(k.nilai.t2021, 2), d(k.nilai.t2022, 2), d(k.nilai.t2023, 2)])}
-      />
+      <Figur judul="Empat komponen IPM, 2020–2023" satuan="setiap panel memakai skalanya sendiri">
+        <MultiKecil label="Komponen IPM DIY 2020 sampai 2023" x={[...tahunIpm]} panel={panelIpm} kolom={4} />
+        <TabelAlt
+          slot="tabel"
+          judul="komponen IPM 2020–2023"
+          kolom={[{ judul: "Komponen" }, { judul: "Satuan" }, ...tahunIpm.map((t) => ({ judul: t, num: true }))]}
+          baris={ipm.komponen.map((k) => [k.nama, k.satuan, ...nilaiIpm(k).map((v) => d(v, 2))])}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="3-2"
-      pertanyaan="Berapa orang yang masih hidup dalam kemiskinan?"
-      tafsir={`Maret 2023 kemiskinan <strong>${d(kem.perDaerah.find((k) => k.daerah === "Total" && k.periode === kemTerakhir)?.ribu ?? 0, 2)} ribu jiwa</strong> (${d(kem.perDaerah.find((k) => k.daerah === "Total" && k.periode === kemTerakhir)?.persen ?? 0, 2)}%) — pada ${kemSebelum} masih ${d(kem.perDaerah.find((k) => k.daerah === "Total" && k.periode === kemSebelum)?.ribu ?? 0, 2)} ribu jiwa. Sepanjang deret ini kemiskinan perkotaan selalu lebih rendah daripada perdesaan.`}
-      sumber={SB(191, 1, "bab2-2_1_2_angka-kemiskinan.md")}
+      pertanyaan="Berapa banyak penduduk yang masih hidup dalam kemiskinan?"
+      tafsir={`Pada ${perAkhir} terdapat <strong>${d(kemAkhir.ribu, 2)} ribu</strong> penduduk miskin, atau ${p(kemAkhir.persen, 2)} dari penduduk DIY, turun dari ${d(kemAwal.ribu, 2)} ribu pada ${perAwal}. ${desaSelaluLebih ? "Sepanjang periode ini kemiskinan di perdesaan selalu lebih tinggi" : "Kemiskinan di perdesaan lebih tinggi"}: <strong>${p(kemDesa.persen, 2)}</strong> berbanding ${p(kemKota.persen, 2)} di perkotaan.`}
+      sumber={[SB(191, 1, "bab2-2_1_2_angka-kemiskinan.md")]}
     >
-      <GarisTren
-        caption="Jumlah penduduk miskin (ribu jiwa), September 2021 – Maret 2023"
-        label="Penduduk miskin menurut periode"
-        labels={kemPeriod.map((pd) => (pd.startsWith("September") ? "Sep" : "Mar") + " " + pd.slice(-4))}
-        seri={[...kemSeri, kemTotalSeri]}
-        satuan="ribu jiwa"
-        digit={2}
-      />
-      <Legenda
-        items={[
-          { label: "Perkotaan", seri: "1" },
-          { label: "Perdesaan", seri: "2" },
-          { label: "DIY", seri: "highlight" },
+      <Figur
+        judul="Persentase penduduk miskin menurut daerah"
+        satuan="persen penduduk"
+        legenda={[
+          { label: "Perdesaan", warna: C.sorot, bentuk: "garis" },
+          { label: "Perkotaan", warna: C.tinta, bentuk: "garis" },
+          { label: "DIY", warna: C.dasar, bentuk: "putus" },
         ]}
-      />
-      <TabelAlt
-        judul="penduduk miskin menurut periode"
-        kolom={[
-          { judul: "Periode" },
-          { judul: "Perkotaan (ribu)", num: true },
-          { judul: "Perdesaan (ribu)", num: true },
-          { judul: "DIY (ribu)", num: true },
-          { judul: "% miskin (DIY)", num: true },
-        ]}
-        baris={kemPeriod.map((pd) => {
-          const ambil = (daerah: string) =>
-            kem.perDaerah.filter((k) => k.daerah === daerah && k.periode === pd).map((k) => d(k.ribu, 2))[0];
-          return [
-            pd,
-            ambil("Perkotaan"),
-            ambil("Perdesaan"),
-            ambil("Total"),
-            d(kem.perDaerah.filter((k) => k.daerah === "Total" && k.periode === pd).map((k) => k.persen)[0] ?? 0, 2),
-          ];
-        })}
-      />
+      >
+        <Garis label="Persentase penduduk miskin DIY menurut daerah dan periode" x={periode.map(pendek)} seri={kemSeri} min={kemMin} max={kemMax} tik={kemTik} />
+        <TabelAlt
+          slot="tabel"
+          judul="penduduk miskin menurut daerah dan periode"
+          kolom={[{ judul: "Periode" }, { judul: "Perkotaan (ribu)", num: true }, { judul: "Perdesaan (ribu)", num: true }, { judul: "DIY (ribu)", num: true }, { judul: "Perkotaan (%)", num: true }, { judul: "Perdesaan (%)", num: true }, { judul: "DIY (%)", num: true }]}
+          baris={periode.map((per) => [
+            per,
+            d(ambilKem("Perkotaan", per).ribu, 2),
+            d(ambilKem("Perdesaan", per).ribu, 2),
+            d(ambilKem("Total", per).ribu, 2),
+            d(ambilKem("Perkotaan", per).persen, 2),
+            d(ambilKem("Perdesaan", per).persen, 2),
+            d(ambilKem("Total", per).persen, 2),
+          ])}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="3-3"
       pertanyaan="Bagaimana keadaan pasar kerja DIY?"
-      tafsir={`Tingkat pengangguran terbuka turun menjadi <strong>${d(kk.tpt.t2023, 2)}%</strong> dari ${d(kk.tpt.t2022, 2)}% tahun sebelumnya. Himpunan baris menunjukkan angkatan kerja ${kk.baris[0].label ?? ""} bergerak dari ${n(kk.baris[0].t2022)} menjadi ${n(kk.baris[0].t2023)} ribu orang${kk.baris[0].t2023 < kk.baris[0].t2022 ? " — sedikit menyusut" : " — sedikit membesar"}; rincian baris lain ada di tabel.`}
+      tafsir={`Tingkat pengangguran terbuka ${arahKata(kk.tpt.t2023 - kk.tpt.t2022)} dari ${p(kk.tpt.t2022, 2)} menjadi <strong>${p(kk.tpt.t2023, 2)}</strong>. Jumlah penganggur ${kkPeng.t2023 < kkPeng.t2022 ? "berkurang" : "bertambah"} dari ${d(kkPeng.t2022, 2)} ribu menjadi <strong>${d(kkPeng.t2023, 2)} ribu orang</strong>. Penduduk usia kerja tercatat ${n(kkPUK.t2023)} ribu orang pada Agustus 2023, ${n(kkKerja.t2023)} ribu di antaranya bekerja.`}
       sumber={SB(192, 1, "bab2-2_1_2_angka-kemiskinan.md")}
     >
-      <DuaTitik
-        caption="Struktur ketenagakerjaan, Agustus 2022 berbanding 2023 (ribu orang)"
-        label="Struktur ketenagakerjaan 2022 dan 2023"
-        rows={kkDuo.map((b) => ({
-          ...b,
-          catatan: b.a === b.b ? "tetap" : b.b > b.a ? "naik" : "turun",
-        }))}
-        kiri="Agustus 2022"
-        kanan="Agustus 2023"
-        satuan="ribu orang"
-        digit={0}
-      />
-      <TabelAlt
-        judul="struktur ketenagakerjaan"
-        kolom={[
-          { judul: "Indikator" },
-          { judul: "Agustus 2022 (ribu)", num: true },
-          { judul: "Agustus 2023 (ribu)", num: true },
+      <Figur
+        judul="Penduduk usia kerja menurut kegiatan"
+        satuan="ribu orang, Agustus"
+        legenda={[
+          { label: "Bekerja", warna: C.tinta },
+          { label: "Pengangguran", warna: C.sorot },
+          { label: "Bukan angkatan kerja", warna: C.redup },
         ]}
-        baris={kk.baris.map((b) => [b.label, b.t2022, b.t2023])}
-      />
+      >
+        <Tumpuk label="Penduduk usia kerja menurut kegiatan, Agustus 2022 dan 2023" skala="mutlak" rows={rowKerja} lebarLabel="8.5rem" />
+        <TabelAlt
+          slot="tabel"
+          judul="struktur ketenagakerjaan"
+          kolom={[{ judul: "Indikator" }, { judul: "Agustus 2022 (ribu)", num: true }, { judul: "Agustus 2023 (ribu)", num: true }]}
+          baris={[...kk.baris.map((b) => [b.label.replace(/^-\s*/, ""), d(b.t2022, 2), d(b.t2023, 2)]), ["Tingkat pengangguran terbuka (%)", d(kk.tpt.t2022, 2), d(kk.tpt.t2023, 2)]]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="3-4"
-      pertanyaan="Bagaimana pemasukan berdampak pada ketimpangan?"
-      tafsir={`Rasio gini DIY 2023 <strong>${d(ktd.gini2023, 3)}</strong> — nyaris tak bergerak dari ${d(ktd.gini2022, 3)} setahun sebelumnya. Padahal bagian pengeluaran 40% terbawah antarwilayah: perkotaan ${d(ktdDuo[0]?.b ?? 0, 2)}% (${d(ktdDuo[0]?.a ?? 0, 2)}% pada 2022), perdesaan ${d(ktdDuo[1]?.b ?? 0, 2)}% (${d(ktdDuo[1]?.a ?? 0, 2)}%).`}
-      sumber={SB(198, 1, "bab2-2_1_6_ketimpangan-pendapatan.md")}
+      pertanyaan="Seberapa merata pengeluaran penduduk?"
+      tafsir={`Rasio gini turun tipis dari ${d(ktd.gini2022, 3)} menjadi <strong>${d(ktd.gini2023, 3)}</strong>. Menurut kriteria Bank Dunia, porsi pengeluaran 40% penduduk terbawah di perkotaan (${p(tKota.p40Bawah, 2)}) tergolong ketimpangan ${kategoriBD(tKota.p40Bawah)}, sedangkan di perdesaan (${p(tDesa.p40Bawah, 2)}) ${kategoriBD(tDesa.p40Bawah)}. Di perkotaan, 20% penduduk teratas menguasai <strong>${p(tKota.p20Atas, 2)}</strong> pengeluaran.`}
+      sumber={[SB(198, 1, "bab2-2_1_6_ketimpangan-pendapatan.md"), SB(188, 2, FM)]}
     >
-      <DuaTitik
-        caption="Bagian pengeluaran 40% terbawah, Maret 2022 berbanding 2023"
-        label="Bagian pengeluaran padi bawah terburuk"
-        rows={ktdDuo}
-        kiri="Maret 2022"
-        kanan="Maret 2023"
-        satuan="% pengeluaran"
-        digit={2}
-      />
-      <TabelAlt
-        judul="pembahagian pengeluaran menurut kelompok penduduk"
-        kolom={[
-          { judul: "Daerah" },
-          { judul: "Periode" },
-          { judul: "40% bawah (%)", num: true },
-          { judul: "40% tengah (%)", num: true },
-          { judul: "20% atas (%)", num: true },
+      <Figur
+        judul="Distribusi pengeluaran menurut kelompok penduduk, Maret 2023"
+        satuan={`garis putus: batas ${BD.tinggi}% dan ${BD.rendah}% kriteria Bank Dunia`}
+        legenda={[
+          { label: "40% terbawah", warna: C.sorot },
+          { label: "40% menengah", warna: C.dasar },
+          { label: "20% teratas", warna: C.tinta },
         ]}
-        baris={ktd.perDaerah.map((x) => [x.daerah, x.periode, d(x.p40Bawah, 2), d(x.p40Tengah, 2), d(x.p20Atas, 2)])}
-        gulir
-      />
+      >
+        <Tumpuk
+          label="Distribusi pengeluaran penduduk perkotaan, perdesaan, dan DIY, Maret 2023"
+          rows={rowTimpang}
+          acuan={[
+            { nilai: BD.tinggi, label: `${BD.tinggi}%` },
+            { nilai: BD.rendah, label: `${BD.rendah}%` },
+          ]}
+          lebarLabel="7rem"
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="distribusi pengeluaran menurut kelompok penduduk"
+          kolom={[{ judul: "Daerah" }, { judul: "Periode" }, { judul: "40% terbawah (%)", num: true }, { judul: "40% menengah (%)", num: true }, { judul: "20% teratas (%)", num: true }]}
+          baris={ktd.perDaerah.map((x) => [x.daerah === "Total" ? "DIY" : x.daerah, x.periode, d(x.p40Bawah, 2), d(x.p40Tengah, 2), d(x.p20Atas, 2)])}
+        />
+      </Figur>
     </Adegan>
-  </Pilar>
+  </Bab>
 
-  {/* ═════════════════════════ 4. Pilar empat ═════════════════════════ */}
-  <Pilar no={4} id={i.pilar[3].id} judul={i.pilar[3].judul} bidang={i.pilar[3].bidang} lead={i.pilar[3].lead}>
+  {/* ═════════════════════════ Bab 4 ═════════════════════════ */}
+  <Bab no={4} id={i.bab[3]!.id} judul={i.bab[3]!.judul} sub={i.bab[3]!.sub} lead={leadBab[3]!} ikon={i.bab[3]!.ikon} ikonNama={i.bab[3]!.ikonNama}>
     <Adegan
       id="4-1"
-      pertanyaan="Bagaimana partisipasi sekolah dan layanan ABK?"
-      tafsir={`APM ${d(ikkP.apm.rasio, 2)}% dan APK <strong>${d(ikkP.apk.rasio, 2)}%</strong> — APK melewati batas seratus karena penyebutnya memuat murid luar DIY yang bersekolah di Yogyakarta (${n(ikkP.apk.tambahanTanggungan)} murid tambahan). ABK terlayani ${d(ikkP.abk.persen, 2)}% dari ${n(ikkP.abk.total)} anak berkebutuhan khusus.`}
-      sumber={SB("333–334", "blok rasio partisipasi sekolah", F2)}
+      pertanyaan="Seberapa jauh layanan pendidikan menengah menjangkau penduduknya?"
+      tafsir={`Angka partisipasi kasar pendidikan menengah mencapai <strong>${p(ikkP.apk.rasio, 2)}</strong>. Angka ini melampaui 100% karena siswa yang bersekolah di DIY mencakup pelajar di luar kelompok usia sekolah dan pelajar dari luar daerah. Angka partisipasi murni ${p(ikkP.apm.rasio, 2)}. Layanan bagi anak berkebutuhan khusus menjangkau ${p(ikkP.abk.persen, 2)}: <strong>${n(abkBelum)} anak</strong> belum terlayani.`}
+      sumber={SB("333–335", "blok rasio partisipasi sekolah dan ABK", F2)}
     >
-      <StatCards
-        judul="Indikator kinerja kunci bidang pendidikan"
-        kartu={[
-          { label: "Partisipasi murni sekolah (APM)", nilai: d(ikkP.apm.rasio, 2) + "%", sub: `penduduk usia 16–18: ${n(ikkP.apm.penduduk)} jiwa`, sorot: true },
-          { label: "Partisipasi kasar sekolah (APK)", nilai: d(ikkP.apk.rasio, 2) + "%", sub: `termasuk ${n(ikkP.apk.tambahanTanggungan)} murid tambahan luar DIY` },
-          { label: "ABK terlayani", nilai: d(ikkP.abk.persen, 2) + "%", sub: `${n(ikkP.abk.terlayani)} dari ${n(ikkP.abk.total)} anak berkebutuhan khusus` },
-        ]}
-      />
-      <TabelAlt
-        judul="indikator pendidikan provinsi"
-        kolom={[
-          { judul: "Indikator" },
-          { judul: "Nilai", num: true },
-          { judul: "Rincian" },
-        ]}
-        baris={[
-          ["APM (rasio partisipasi murni)", d(ikkP.apm.rasio, 2), `${n(ikkP.apm.sma)} SMA · ${n(ikkP.apm.smk)} SMK · ${n(ikkP.apm.ma)} MA · tamat ${n(ikkP.apm.tamat)}`],
-          ["APK (rasio partisipasi kasar)", d(ikkP.apk.rasio, 2), `${n(ikkP.apk.sma)} SMA · ${n(ikkP.apk.smk)} SMK · ${n(ikkP.apk.ma)} MA`],
-          ["ABK terlayani", d(ikkP.abk.persen, 2), `SLB ${n(ikkP.abk.slb)} · inklusi ${n(ikkP.abk.inklusi)} · tidak diri ${n(ikkP.abk.tidakDiri)}`],
-          ["ABK total", n(ikkP.abk.total), "rasio per 1.000 penduduk"],
-        ]}
-      />
+      <Figur judul="Indikator kinerja kunci pendidikan" satuan="persen">
+        <BarH
+          label="Angka partisipasi sekolah dan layanan anak berkebutuhan khusus"
+          trek
+          maks={Math.ceil(ikkP.apk.rasio / 10) * 10}
+          acuan={{ nilai: 100, label: "100%" }}
+          lebarLabel="13rem"
+          rows={[
+            { label: "Angka partisipasi kasar", n: ikkP.apk.rasio, tampil: p(ikkP.apk.rasio, 2), sub: `${n(ikkP.apk.sma + ikkP.apk.smk + ikkP.apk.ma)} siswa` },
+            { label: "Angka partisipasi murni", n: ikkP.apm.rasio, tampil: p(ikkP.apm.rasio, 2), sub: `dari ${n(ikkP.apm.penduduk)} penduduk usia sekolah` },
+            { label: "Anak berkebutuhan khusus terlayani", n: ikkP.abk.persen, tampil: p(ikkP.abk.persen, 2), sub: `${n(ikkP.abk.terlayani)} dari ${n(ikkP.abk.total)} anak`, sorot: true },
+          ]}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="indikator kinerja kunci pendidikan"
+          kolom={[{ judul: "Indikator" }, { judul: "Nilai (%)", num: true }, { judul: "Rincian" }]}
+          baris={[
+            ["Angka partisipasi murni", d(ikkP.apm.rasio, 2), `SMA ${n(ikkP.apm.sma)} · SMK ${n(ikkP.apm.smk)} · MA ${n(ikkP.apm.ma)} · tamat ${n(ikkP.apm.tamat)} · penduduk usia sekolah ${n(ikkP.apm.penduduk)}`],
+            ["Angka partisipasi kasar", d(ikkP.apk.rasio, 2), `SMA ${n(ikkP.apk.sma)} · SMK ${n(ikkP.apk.smk)} · MA ${n(ikkP.apk.ma)}`],
+            ["Anak berkebutuhan khusus terlayani", d(ikkP.abk.persen, 2), `SLB ${n(ikkP.abk.slb)} · inklusi ${n(ikkP.abk.inklusi)} · belum terlayani ${n(ikkP.abk.tidakDiri)} · total ${n(ikkP.abk.total)}`],
+          ]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="4-2"
-      pertanyaan="Bagaimana layanan kesehatan dan infrastruktur dasar?"
-      tafsir={`Rasio tempat tidur RS rujukan <strong>${d(ikkH.rasioPerRibu, 2)}</strong> per 1.000 penduduk dari ${n(ikkH.tempatTidurRsRujukan)} ranjang. Jalan mantap ${d(ikkU.jalan.persen, 2)}%; SPAL melayani ${d(ikkU.spal.persen, 2)}% rumah; layanan air minum ${d(ikkU.airMinum.persen, 0)}% dari ${d(ikkU.airMinum.nilai, 2)} ${ikkU.airMinum.satuan}.`}
-      sumber={[
-        SB("335–337", "blok ABK & rumah sakit rujukan", F2),
-        SB("337–341", "blok infrastruktur dasar provinsi", F2),
-      ]}
+      pertanyaan="Bagaimana kondisi infrastruktur dasar dan layanan rujukan kesehatan?"
+      tafsir={`Kebutuhan air minum curah lintas kabupaten/kota sebesar ${d(ikkU.airMinum.nilai, 2)} liter per detik terpenuhi <strong>${p(ikkU.airMinum.persen, 0)}</strong>, dan ${p(ikkU.jalan.persen, 2)} jalan provinsi dalam kondisi mantap. Sistem pengolahan air limbah domestik regional baru terisi <strong>${p(ikkU.spal.persen, 2)}</strong> dari kapasitasnya. Untuk layanan rujukan tersedia ${n(ikkH.tempatTidurRsRujukan)} tempat tidur rumah sakit, atau <strong>${d(ikkH.rasioPerRibu, 2)} per seribu penduduk</strong>.`}
+      sumber={[SB("337–339", "blok infrastruktur dasar provinsi", F2), SB("335–337", "blok rumah sakit rujukan", F2)]}
     >
-      <StatCards
-        judul="Indikator kinerja kunci kesehatan dan PU"
-        kartu={[
-          { label: "Tempat tidur RS rujukan per 1.000 penduduk", nilai: d(ikkH.rasioPerRibu, 2), sub: `${n(ikkH.tempatTidurRsRujukan)} ranjang untuk ${n(ikkH.penduduk)} jiwa`, sorot: true },
-          { label: "Jalan mantap", nilai: d(ikkU.jalan.persen, 2) + "%", sub: `${d(ikkU.jalan.mantapKm, 3)} dari ${d(ikkU.jalan.totalKm, 3)} km` },
-          { label: "Rumah dilayani SPAL", nilai: d(ikkU.spal.persen, 2) + "%", sub: `${n(ikkU.spal.dilayani)} dari ${n(ikkU.spal.total)} rumah` },
-          { label: "Layanan air minum", nilai: d(ikkU.airMinum.persen, 0) + "%", sub: `${d(ikkU.airMinum.nilai, 2)} ${ikkU.airMinum.satuan}` },
-        ]}
-      />
-      <TabelAlt
-        judul="indikator kesehatan dan infrastruktur dasar"
-        kolom={[
-          { judul: "Indikator" },
-          { judul: "Nilai", num: true },
-          { judul: "Rincian" },
-        ]}
-        baris={[
-          ["Tempat tidur RS per 1.000 jiwa", d(ikkH.rasioPerRibu, 2), `${n(ikkH.tempatTidurRsRujukan)} ranjang · ${n(ikkH.penduduk)} penduduk`],
-          ["Jalan provinsi mantap", d(ikkU.jalan.persen, 2), `${d(ikkU.jalan.mantapKm, 3)} / ${d(ikkU.jalan.totalKm, 3)} km`],
-          ["Rumah dilayani SPAL", d(ikkU.spal.persen, 2), `${n(ikkU.spal.dilayani)} / ${n(ikkU.spal.total)}`],
-          ["Layanan air minum", d(ikkU.airMinum.persen, 0), `${d(ikkU.airMinum.nilai, 2)} ${ikkU.airMinum.satuan}`],
-        ]}
-      />
+      <Figur judul="Capaian infrastruktur dasar kewenangan provinsi" satuan="persen">
+        <Cincin
+          label="Capaian infrastruktur dasar: air minum, jalan, dan pengolahan air limbah"
+          items={[
+            { label: "Air minum curah lintas kabupaten/kota", nilai: ikkU.airMinum.persen, desimal: 0, tampil: d(ikkU.airMinum.persen, 0), sub: `${d(ikkU.airMinum.nilai, 2)} liter per detik terpenuhi` },
+            { label: "Kemantapan jalan provinsi", nilai: ikkU.jalan.persen, desimal: 2, tampil: d(ikkU.jalan.persen, 2), sub: `${d(ikkU.jalan.mantapKm, 2)} dari ${d(ikkU.jalan.totalKm, 2)} km mantap` },
+            { label: "Pemanfaatan SPAL domestik regional", nilai: ikkU.spal.persen, desimal: 2, tampil: d(ikkU.spal.persen, 2), sub: `volume limbah terolah ${n(ikkU.spal.dilayani)} dari kapasitas ${n(ikkU.spal.total)}`, sorot: true },
+          ]}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="indikator infrastruktur dasar dan rumah sakit rujukan"
+          kolom={[{ judul: "Indikator" }, { judul: "Nilai", num: true }, { judul: "Rincian" }]}
+          baris={[
+            ["Air minum curah lintas kabupaten/kota (%)", d(ikkU.airMinum.persen, 2), `${d(ikkU.airMinum.nilai, 2)} ${ikkU.airMinum.satuan}`],
+            ["Kemantapan jalan provinsi (%)", d(ikkU.jalan.persen, 2), `${d(ikkU.jalan.mantapKm, 3)} dari ${d(ikkU.jalan.totalKm, 3)} km`],
+            ["Pemanfaatan SPAL domestik regional (%)", d(ikkU.spal.persen, 2), `${n(ikkU.spal.dilayani)} dari ${n(ikkU.spal.total)}`],
+            ["Tempat tidur RS rujukan per seribu penduduk", d(ikkH.rasioPerRibu, 2), `${n(ikkH.tempatTidurRsRujukan)} tempat tidur · ${n(ikkH.penduduk)} penduduk`],
+          ]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="4-3"
-      pertanyaan="Berapa besar penanaman modal yang sudah terkumpul?"
-      tafsir={`Kumulatif penanaman modal s.d. 2023 <strong>${d(inv.seri[1].totalMiliar, 2)} miliar Rp</strong>, berbanding ${d(inv.seri[0].totalMiliar, 2)} miliar pada s.d. 2022 — pertumbuhan 2023 <strong>${d(inv.pertumbuhan.s2023, 2)}%</strong>, sedangkan laporan memotret +${d(inv.seri[1].pctStated, 0)}%. Selisih pembulatan ini dicatat pada penutup halaman.`}
+      pertanyaan="Seberapa besar penanaman modal yang sudah terkumpul?"
+      tafsir={`Nilai investasi kumulatif di DIY mencapai <strong>Rp${d(inv23.totalTriliun, 2)} triliun</strong> sampai 2023, naik <strong>${p(inv.pertumbuhan.s2023, 2)}</strong> dari Rp${d(inv22.totalTriliun, 2)} triliun setahun sebelumnya; laporan membulatkannya menjadi ${inv23.pctStated}%. Tambahan investasi sepanjang 2023 Rp${d(inv23.tambahanTriliun, 2)} triliun, ${inv23.tambahanTriliun > inv22.tambahanTriliun ? "lebih besar" : "lebih kecil"} daripada tambahan 2022 (Rp${d(inv22.tambahanTriliun, 2)} triliun). Penanaman modal dalam negeri membentuk ${p(pmdnShare, 1)} dari nilai kumulatif.`}
       sumber={SB(585, 1, FP)}
     >
-      <DuaTitik
-        caption="Penanaman modal kumulatif antartahun (miliar rupiah)"
-        label="Penanaman modal kumulatif s.d. 2022 dan s.d. 2023"
-        rows={invKumulatif}
-        kiri="s.d. 2022"
-        kanan="s.d. 2023"
-        satuan="miliar Rp"
-        digit={2}
-      />
-      <TabelAlt
-        judul="penanaman modal kumulatif dan pertumbuhan"
-        kolom={[
-          { judul: "Uraian" },
-          { judul: "s.d. 2022", num: true },
-          { judul: "s.d. 2023", num: true },
+      <Figur
+        judul="Nilai investasi kumulatif"
+        satuan="triliun rupiah"
+        legenda={[
+          { label: "Penanaman modal dalam negeri (PMDN)", warna: C.sorot },
+          { label: "Penanaman modal asing (PMA)", warna: C.tinta },
         ]}
-        baris={[
-          ["PMDN (miliar Rp)", d(inv.seri[0].pmdnMiliar, 2), d(inv.seri[1].pmdnMiliar, 2)],
-          ["PMA (miliar Rp)", d(inv.seri[0].pmaMiliar, 2), d(inv.seri[1].pmaMiliar, 2)],
-          ["Total (miliar Rp)", d(inv.seri[0].totalMiliar, 2), d(inv.seri[1].totalMiliar, 2)],
-          ["Tambahan pada tahun (miliar Rp)", d(inv.seri[0].tambahanMiliar, 2), d(inv.seri[1].tambahanMiliar, 2)],
-          ["Pertumbuhan (%)", d(inv.pertumbuhan.s2022, 2), d(inv.pertumbuhan.s2023, 2)],
-          ["Pertumbuhan yang dipotret laporan", `${d(inv.seri[0].pctStated, 0)}%`, `+${d(inv.seri[1].pctStated, 0)}%`],
-        ]}
-      />
+      >
+        <KolomTumpuk
+          label="Nilai investasi kumulatif PMDN dan PMA sampai 2022 dan 2023"
+          cols={[inv22, inv23].map((s) => ({
+            label: s.periode.replace("s.d", "Sampai"),
+            total: `Rp${d(s.totalTriliun, 2)} T`,
+            ruas: [
+              { label: "PMDN", n: s.pmdnTriliun, tampil: `Rp${d(s.pmdnTriliun, 2)} T`, warna: C.sorot },
+              { label: "PMA", n: s.pmaTriliun, tampil: `Rp${d(s.pmaTriliun, 2)} T`, warna: C.tinta },
+            ],
+          }))}
+          tumbuh={[`${sel2(inv.pertumbuhan.s2023, 2)}%`]}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="investasi kumulatif dan pertumbuhan"
+          kolom={[{ judul: "Uraian" }, { judul: inv22.periode, num: true }, { judul: inv23.periode, num: true }]}
+          baris={[
+            ["PMDN (Rp triliun)", d(inv22.pmdnTriliun, 2), d(inv23.pmdnTriliun, 2)],
+            ["PMA (Rp triliun)", d(inv22.pmaTriliun, 2), d(inv23.pmaTriliun, 2)],
+            ["Total kumulatif (Rp triliun)", d(inv22.totalTriliun, 2), d(inv23.totalTriliun, 2)],
+            ["Tambahan pada tahun berjalan (Rp triliun)", d(inv22.tambahanTriliun, 2), d(inv23.tambahanTriliun, 2)],
+            ["Pertumbuhan dihitung (%)", d(inv.pertumbuhan.s2022, 2), d(inv.pertumbuhan.s2023, 2)],
+            ["Pertumbuhan tertulis di laporan (%)", d(inv22.pctStated, 0), d(inv23.pctStated, 0)],
+          ]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="4-4"
-      pertanyaan="Bagaimana peta penanaman modal tiap kabupaten/kota?"
-      tafsir={`Kedua tujuan penanaman modal turun-temurun: Kulon Progo menautkan lonjakan pada 2019 (${d(inv.perKab[0].t2019, 2)} miliar) — lapangan udara internasional YIA — tersisa tempat pertumbuhan stabil pada 2023; Bantul dan Sleman meluas tanpa henti.`}
+      lebar
+      pertanyaan="Ke kabupaten/kota mana investasi mengalir?"
+      tafsir={`Pada 2023, ${invTerbesar.kabkota} menarik investasi terbesar: <strong>${rp(invTerbesar.t2023 * 1e9)}</strong>, ${p((100 * invTerbesar.t2023) / totalInv23, 1)} dari realisasi tahunan DIY. ${kp.kabkota} mencatat nilai tertinggi dalam ${kata(tahunInv.length)} tahun terakhir pada ${tahunInv[nilaiKab(kp).indexOf(Math.max(...nilaiKab(kp)))]} (${rp(kp.t2019 * 1e9)}), lalu ${kpTurunTerus ? "turun setiap tahun" : "menurun"} hingga ${rp(kp.t2023 * 1e9)} pada 2023. Investasi di ${bantul.kabkota} tumbuh ${d(bantulKali, 1)} kali lipat sejak 2021.`}
       sumber={SB(586, 1, FP)}
     >
-      <GarisTren
-        caption="Realisasi investasi per kabupaten/kota, 2019–2023 (miliar Rp)"
-        label="Realisasi investasi per kabupaten/kota"
-        labels={invTahun}
-        seri={invKabSeri}
-        satuan="miliar Rp"
-        digit={0}
-      />
-      <Legenda
-        items={invKabSeri.map((s) => ({ label: s.label, seri: s.seri }))}
-      />
-      <TabelAlt
-        judul="realisasi investasi per kabupaten/kota"
-        kolom={[
-          { judul: "Kabupaten/Kota" },
-          ...invTahun.map((y) => ({ judul: y, num: true })),
-        ]}
-        baris={inv.perKab.map((k) => [
-          k.kabkota,
-          d(k.t2019, 2),
-          d(k.t2020, 2),
-          d(k.t2021, 2),
-          d(k.t2022, 2),
-          d(k.t2023, 2),
-        ])}
-        gulir
-      />
+      <Figur judul="Realisasi investasi per kabupaten/kota, 2019–2023" satuan="miliar rupiah · skala sama di setiap panel; garis tipis: kabupaten/kota lain">
+        <MultiKecil
+          label="Realisasi investasi PMDN dan PMA per kabupaten/kota 2019 sampai 2023"
+          x={tahunInv}
+          skala="bersama"
+          dariNol
+          kolom={5}
+          tinggi={150}
+          fmtSumbu={(v) => fmtM(v)}
+          panel={kabInv.map((k) => ({
+            judul: k.kabkota,
+            ringkas: fmtM(k.t2023),
+            perubahan: `2019: ${fmtM(k.t2019)}`,
+            nilai: nilaiKab(k),
+            tampil: nilaiKab(k).map((v) => `Rp${d(v, 2)} miliar`),
+            sorot: k === invTerbesar,
+          }))}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="realisasi investasi per kabupaten/kota (Rp miliar)"
+          kolom={[{ judul: "Kabupaten/kota" }, ...tahunInv.map((t) => ({ judul: t, num: true }))]}
+          baris={[...kabInv.map((k) => [k.kabkota, ...nilaiKab(k).map((v) => d(v, 2))]), ["DIY", ...(["t2019", "t2020", "t2021", "t2022", "t2023"] as const).map((t) => d(jumlah(inv.perKab.map((k) => k[t])), 2))]]}
+        />
+      </Figur>
     </Adegan>
-  </Pilar>
+  </Bab>
 
-  {/* ═════════════════════════ 5. Pilar lima ═════════════════════════ */}
-  <Pilar no={5} id={i.pilar[4].id} judul={i.pilar[4].judul} bidang={i.pilar[4].bidang} lead={i.pilar[4].lead}>
+  {/* ═════════════════════════ Bab 5 ═════════════════════════ */}
+  <Bab no={5} id={i.bab[4]!.id} judul={i.bab[4]!.judul} sub={i.bab[4]!.sub} lead={leadBab[4]!} ikon={i.bab[4]!.ikon} ikonNama={i.bab[4]!.ikonNama}>
     <Adegan
       id="5-1"
-      pertanyaan="Seberapa tinggi nilai akhir penyelenggaraan keistimewaan?"
-      tafsir={`Nilai akhir 2023 <strong>${d(nA.total, 2)}</strong>. Aspeknya: capaian fisik-keuangan ${d(nA.baris[0].nilai, 2)} (bobot ${d(nA.baris[0].bobot, 0)}%, berjalan ${d(nA.baris[0].hasil, 2)}), kepuasan masyarakat ${d(nA.baris[1].nilai, 2)}, dan kepuasan masyarakat (paramparapraja) ${d(nA.baris[2].nilai, 2)}.`}
+      pertanyaan="Seberapa baik urusan keistimewaan dijalankan?"
+      tafsir={`Nilai akhir penyelenggaraan keistimewaan 2023 <strong>${d(nA.total, 2)}</strong> dari 100. Capaian fisik dan keuangan nyaris sempurna, ${d(nA.rerataCapaian, 2)}. Poin terbanyak hilang di ${(namaNA[naHilangIdx] ?? naHilang.nama).toLowerCase()}: skornya ${d(naHilang.nilai, 2)}, sehingga <strong>${d(naHilang.bobot - naHilang.hasil, 2)} poin</strong> dari bobotnya tidak teraih.`}
       sumber={SB(800, 1, FK)}
     >
-      <MeterRing
-        caption="Nilai akhir kinerja penyelenggaraan keistimewaan DIY 2023"
-        label="Nilai akhir kinerja keistimewaan"
-        nilai={nA.total}
-        besar={d(nA.total, 2)}
-        sub={`rerata capaian ${d(nA.rerataCapaian, 2)}`}
-        pembanding={100}
-        pembandingLabel="garis pembanding: skor penuh"
-      />
-      <TabelAlt
-        judul="rincian skor nilai akhir keistimewaan"
-        kolom={[
-          { judul: "Komponen" },
-          { judul: "Nilai", num: true },
-          { judul: "Bobot (%)", num: true },
-          { judul: "Hasil", num: true },
-        ]}
-        baris={[
-          ...nA.baris.map((b) => [b.nama, d(b.nilai, 2), d(b.bobot, 0), d(b.hasil, 2)]),
-          ["TOTAL", "", "", d(nA.total, 2)],
-        ]}
-        gulir
-      />
+      <Figur judul="Susunan nilai akhir kinerja keistimewaan" satuan="lebar ruas = bobot; isian = hasil yang diraih">
+        <SkorBobot label="Susunan nilai akhir kinerja penyelenggaraan keistimewaan DIY 2023" komponen={komponenNA} total={`Nilai akhir ${d(nA.total, 2)}`} totalNilai={nA.total} />
+        <TabelAlt
+          slot="tabel"
+          judul="rincian nilai akhir keistimewaan"
+          kolom={[{ judul: "Komponen" }, { judul: "Nilai", num: true }, { judul: "Bobot (%)", num: true }, { judul: "Hasil", num: true }]}
+          baris={[...nA.baris.map((b) => [b.nama, d(b.nilai, 2), d(b.bobot, 0), d(b.hasil, 2)]), ["Nilai akhir", null, null, d(nA.total, 2)]]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="5-2"
-      pertanyaan="Bagaimana urusan keistimewaan dijalankan?"
-      tafsir={`Empat urusan keistimewaan (${urK.baris.map((b) => b.nama).join(", ")}) diperhitungkan bersama: realisasi keuangan <strong>${d(urK.total.keuangan, 2)}%</strong> dan realisasi fisik <strong>${d(urK.total.fisik, 2)}%</strong>. Panjang garis penghubung adalah selisih anggaran–realisasi tiap urusan; angkanya di tabel.`}
+      pertanyaan="Ke mana Dana Keistimewaan dibelanjakan?"
+      tafsir={`Dana Keistimewaan 2023 dianggarkan <strong>${rp(urK.total.anggaran)}</strong>; ${p((100 * urKeb.anggaran) / urK.total.anggaran, 1)} di antaranya untuk urusan ${urKeb.nama.toLowerCase()}. Realisasi keuangannya ${p(urK.total.keuangan, 2)} dan fisiknya ${p(urK.total.fisik, 2)}. ${kalimat(urRendah.nama)} menjadi urusan dengan serapan keuangan terendah, <strong>${p(urRendah.keuangan, 2)}</strong>.`}
       sumber={SB(800, 2, FK)}
     >
-      <DuaTitik
-        caption="Anggaran dan realisasi urusan keistimewaan (rupiah)"
-        label="Anggaran dan realisasi urusan keistimewaan"
-        rows={duoKes}
-        kiri="Anggaran"
-        kanan="Realisasi"
-        satuan="Rp"
-        digit={0}
-      />
-      <TabelAlt
-        judul="realisasi urusan keistimewaan"
-        kolom={[
-          { judul: "Urusan" },
-          { judul: "Anggaran (Rp)", num: true },
-          { judul: "Realisasi (Rp)", num: true },
-          { judul: "% keuangan", num: true },
-          { judul: "% fisik", num: true },
-        ]}
-        baris={[
-          ...urK.baris.map((b) => [b.nama, pangkatRupiah(b.anggaran), pangkatRupiah(b.realisasi), d(b.keuangan, 2), d(b.fisik, 2)]),
-          ["TOTAL", pangkatRupiah(urK.total.anggaran), pangkatRupiah(urK.total.realisasi), d(urK.total.keuangan, 2), d(urK.total.fisik, 2)],
-        ]}
-      />
+      <Figur
+        judul="Komposisi anggaran Dana Keistimewaan"
+        satuan="persen dari total anggaran"
+        legenda={[...urK.baris].sort((a, b) => b.anggaran - a.anggaran).map((b) => ({ label: kalimat(b.nama), warna: warnaUrusan[b.nama] ?? C.dasar }))}
+      >
+        <Tumpuk
+          label="Komposisi anggaran Dana Keistimewaan 2023 menurut urusan"
+          lebarLabel="0rem"
+          tebal={44}
+          rows={[
+            {
+              label: "",
+              ruas: [...urK.baris]
+                .sort((a, b) => b.anggaran - a.anggaran)
+                .map((b) => ({
+                  label: kalimat(b.nama),
+                  n: b.anggaran,
+                  tampil: p((100 * b.anggaran) / urK.total.anggaran, 1),
+                  warna: warnaUrusan[b.nama] ?? C.dasar,
+                  teks: b.nama === "Pertanahan" ? "var(--ink)" : undefined,
+                })),
+            },
+          ]}
+        />
+      </Figur>
+      <Figur judul="Anggaran dan realisasi per urusan keistimewaan" satuan="persen serapan keuangan">
+        <BulletH label="Anggaran dan realisasi Dana Keistimewaan per urusan" rows={barisUrusanK} lebarLabel="8rem" />
+        <TabelAlt
+          slot="tabel"
+          judul="realisasi urusan keistimewaan"
+          kolom={[{ judul: "Urusan" }, { judul: "Anggaran (Rp)", num: true }, { judul: "Realisasi (Rp)", num: true }, { judul: "Keuangan (%)", num: true }, { judul: "Fisik (%)", num: true }]}
+          baris={[...urK.baris.map((b) => [b.nama, n(b.anggaran), n(b.realisasi), d(b.keuangan, 2), d(b.fisik, 2)]), ["Jumlah", n(urK.total.anggaran), n(urK.total.realisasi), d(urK.total.keuangan, 2), d(urK.total.fisik, 2)]]}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="5-3"
-      pertanyaan="Bagaimana bantuan keuangan khusus diturunkan ke kalurahan?"
-      tafsir={`BKK kalurahan dilaporkan baris demi baris: pagu <strong>${pangkatRupiah(bkk.jumlah.pagu)}</strong>, realisasi <strong>${pangkatRupiah(bkk.jumlah.realisasi)}</strong> — ${bkk.baris.length} jenis program seluruhnya keterangan fisik dan keuangannya <strong>${d(100, 0)}%</strong>. Selisih satu rupiah antara pembukuhan laporan dan penjumlahan baris dicatat pada penutup.`}
-      sumber={[
-        SB(739, 1, FB),
-        SB(740, 1, FB),
-      ]}
+      pertanyaan="Program apa saja yang dibiayai bantuan keuangan khusus kalurahan?"
+      tafsir={`Bantuan keuangan khusus kalurahan tersalur lewat ${n(bkk.baris.length)} program dengan pagu <strong>${rp(bkk.jumlah.pagu)}</strong> dan realisasi ${rp(bkk.jumlah.realisasi)} (${p((100 * bkk.jumlah.realisasi) / bkk.jumlah.pagu, 2)}). ${bkkFisikPenuh ? "Seluruh program melaporkan capaian fisik 100%. " : ""}Program terbesar adalah ${awalKecil(namaBkk(bkkTerbesar.jenis))} dengan pagu <strong>${rp(bkkTerbesar.pagu)}</strong>.`}
+      sumber={[SB(739, 1, FB), SB(740, 1, FB)]}
     >
-      <HorizontalBar
-        caption="Realisasi pagu BKK kalurahan menurut jenis (rupiah), diurut berdasarkan pagu"
-        label="Realisasi BKK kalurahan per jenis program"
-        rows={bkkRow}
-        satuan="Rp"
-        persen={true}
-        penyebutLabel="% keuangan"
-      />
-      <TabelAlt
-        judul="realisasi BKK kalurahan"
-        kolom={[
-          { judul: "Jenis" },
-          { judul: "Pagu (Rp)", num: true },
-          { judul: "Realisasi (Rp)", num: true },
-          { judul: "% keuangan", num: true },
-          { judul: "% fisik", num: true },
-        ]}
-        baris={bkk.baris.map((b) => [
-          b.jenis,
-          pangkatRupiah(b.pagu),
-          b.realisasi === null ? null : pangkatRupiah(b.realisasi),
-          b.keuangan === null ? null : d(b.keuangan, 2),
-          b.fisik === null ? null : d(b.fisik, 2),
-        ])}
-        gulir
-      />
+      <Figur judul="Pagu bantuan keuangan khusus kalurahan per program" satuan="rupiah, diurutkan dari pagu terbesar">
+        <BarH
+          label="Pagu BKK kalurahan per program"
+          rapat
+          lebarLabel="15rem"
+          rows={bkkUrut.map((b) => ({
+            label: namaBkk(b.jenis),
+            n: b.pagu,
+            tampil: rpS(b.pagu),
+            sorot: b === bkkTerbesar,
+            tip: [b.realisasi !== null ? `Realisasi ${rp(b.realisasi)}` : null, b.keuangan !== null ? `Keuangan ${p(b.keuangan, 2)}` : null, b.fisik !== null ? `Fisik ${p(b.fisik, 0)}` : null].filter((x): x is string => x !== null),
+          }))}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="realisasi BKK kalurahan"
+          kolom={[{ judul: "Program" }, { judul: "Pagu (Rp)", num: true }, { judul: "Realisasi (Rp)", num: true }, { judul: "Keuangan (%)", num: true }, { judul: "Fisik (%)", num: true }]}
+          baris={[
+            ...bkkUrut.map((b) => [b.jenis, n(b.pagu), b.realisasi === null ? null : n(b.realisasi), b.keuangan === null ? null : d(b.keuangan, 2), b.fisik === null ? null : d(b.fisik, 2)]),
+            ["Jumlah", n(bkk.jumlah.pagu), n(bkk.jumlah.realisasi), d((100 * bkk.jumlah.realisasi) / bkk.jumlah.pagu, 2), null],
+          ]}
+        />
+      </Figur>
     </Adegan>
-  </Pilar>
+  </Bab>
 
-  {/* ═════════════════════════ 6. Pilar enam ═════════════════════════ */}
-  <Pilar no={6} id={i.pilar[5].id} judul={i.pilar[5].judul} bidang={i.pilar[5].bidang} lead={i.pilar[5].lead}>
+  {/* ═════════════════════════ Bab 6 ═════════════════════════ */}
+  <Bab no={6} id={i.bab[5]!.id} judul={i.bab[5]!.judul} sub={i.bab[5]!.sub} lead={leadBab[5]!} ikon={i.bab[5]!.ikon} ikonNama={i.bab[5]!.ikonNama}>
     <Adegan
       id="6-1"
-      pertanyaan="Bagaimana pengakuan bidang standar pelayanan minimum?"
-      tafsir={`Enam bidang SPM menampilkan kategorinya: <strong>${paripurna.length}</strong> bidang berstatus PARIPURNA dengan indeks ${d(paripurna[0]?.indeks ?? 0, 0)}; Pendidikan berstatus UTAMA dengan indeks <strong>${d(kat[0].indeks, 2)}</strong> — satu-satunya bidang yang masih menuntaskan sisa kecil.`}
-      sumber={SB("1046–1105", "kategori & indikator SPM per bidang", FB4)}
+      pertanyaan="Bidang SPM mana yang sudah tuntas?"
+      tafsir={`${awalBesar(kata(paripurna.length))} dari ${kata(spmKat.length)} bidang SPM meraih kategori paripurna dengan indeks ${d(paripurna[0]?.indeks ?? 0, 0)}. ${nonParipurna.map((k) => `${k.bidang} berada satu tingkat di bawahnya, kategori ${k.kategori.toLowerCase()}, dengan indeks <strong>${d(k.indeks, 2)}</strong>`).join("; ")}.`}
+      sumber={SB("1046–1105", "kategori dan indikator SPM per bidang", FS)}
     >
-      <HorizontalBar
-        caption="Indeks SPM per bidang"
-        label="Indeks SPM per bidang"
-        rows={barKat.map((k) => ({ label: k.label, n: k.n }))}
-        satuan=""
-        persen={false}
-        sorot="Pendidikan"
-      />
-      <TabelAlt
-        judul="kategori dan indeks SPM per bidang"
-        kolom={[
-          { judul: "Bidang" },
-          { judul: "Kategori" },
-          { judul: "Indeks", num: true },
-        ]}
-        baris={kat.map((k) => [k.bidang, k.kategori, d(k.indeks, 2)])}
-      />
+      <Figur judul="Indeks pencapaian SPM per bidang" satuan="indeks, skor penuh 100">
+        <BarH
+          label="Indeks pencapaian SPM per bidang"
+          trek
+          maks={100}
+          lebarLabel="14rem"
+          rows={[...spmKat].sort((a, b) => a.indeks - b.indeks).map((k) => ({ label: k.bidang, n: k.indeks, tampil: d(k.indeks, 2), sub: kalimat(k.kategori), sorot: k.kategori !== "PARIPURNA" }))}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="kategori dan indeks SPM per bidang"
+          kolom={[{ judul: "Bidang" }, { judul: "Kategori" }, { judul: "Indeks", num: true }]}
+          baris={spmKat.map((k) => [k.bidang, kalimat(k.kategori), d(k.indeks, 2)])}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="6-2"
-      pertanyaan="Di mana bidang pendidikan tertinggal dari targetnya?"
-      tafsir={`Selisih capaian terhadap target untuk ${indSma.length} indikator jenjang SMA: terendah ${indSmaTerang.label} sebesar <strong>${d(indSmaTerang.delta, 2)} poin</strong> (${indSmaTerang.catatan}).${indSmaTembak > 0 ? ` ${indSmaTembak} indikator lain justru menembak target.` : ""} Rincian seluruh jenjang ada di tabel.`}
-      sumber={[
-        SB(1046, 1, FB4),
-        SB(1047, 1, FB4),
-      ]}
+      lebar
+      pertanyaan="Di mana layanan pendidikan belum mencapai targetnya?"
+      tafsir={`Dari ${n(pInd.length)} indikator SPM pendidikan yang terbaca, <strong>${n(indBelum.length)}</strong> belum mencapai target. Celah terbesar ada pada ${indTerendah.label.toLowerCase()} ${indTerendah.jenjang.toLowerCase()}: <strong>${p(indTerendah.pct, 2)}</strong> dari target. Di jenjang lain, indikator yang tertinggal meliputi ${gabungDan(labelBelumSmaSmk)}.`}
+      sumber={[SB(1046, 1, FS), SB(1047, 1, FS)]}
     >
-      <BatangSelisih
-        caption="Selisih capaian terhadap target, indikator SPM jenjang SMA (poin)"
-        label="Selisih capaian terhadap target indikator SMA"
-        rows={indSma}
-        satuan="poin"
-        digit={2}
-      />
-      <TabelAlt
-        judul="selisih capaian terhadap target, indikator SPM"
-        kolom={[
-          { judul: "Jenjang" },
-          { judul: "Indikator" },
-          { judul: "Target", num: true },
-          { judul: "Capaian", num: true },
-          { judul: "Selisih", num: true },
-        ]}
-        baris={pInd.map((x) => [x.jenjang, x.label, d(x.target, 2), d(x.capaian, 2), d(x.capaian - x.target, 2)])}
-        gulir
-      />
+      <Figur judul="Capaian indikator SPM pendidikan terhadap target" satuan="persen dari target; merah: belum mencapai target">
+        <DaftarCapaian label="Capaian indikator SPM pendidikan per jenjang" kelompok={kelompokSpm} />
+        <TabelAlt
+          slot="tabel"
+          judul="capaian dan target indikator SPM pendidikan"
+          kolom={[{ judul: "Jenjang" }, { judul: "Indikator" }, { judul: "Satuan" }, { judul: "Target", num: true }, { judul: "Capaian", num: true }, { judul: "% target", num: true }]}
+          baris={pInd.map((x) => [x.jenjang, x.label, x.satuan, d(x.target, 2), d(x.capaian, 2), d(x.pct, 2)])}
+        />
+      </Figur>
     </Adegan>
 
     <Adegan
       id="6-3"
-      pertanyaan="Berapa murid berkebutuhan khusus yang sudah terlayani?"
-      tafsir={`Pendidikan khusus di DIY terlayani <strong>${n(khus.terlayani)}</strong> dari ${n(khus.harusDilayani)} murid (${d(khus.persen, 2)}%), meninggalkan ${n(khus.belumTerlayani)} murid yang belum terlayani. Indeks khusus ${d(khus.indeksKhusus, 2)}; indeks penerima layanan ${d(khus.indeksPenerimaLD, 2)}.`}
-      sumber={SB(1047, 1, FB4)}
+      pertanyaan="Berapa anak berkebutuhan khusus yang sudah terlayani?"
+      tafsir={`Layanan pendidikan khusus menjangkau <strong>${n(khus.terlayani)}</strong> dari ${n(khus.harusDilayani)} anak yang harus dilayani (${p(khus.persen, 2)}). Masih ada <strong>${n(khus.belumTerlayani)} anak</strong> yang belum terlayani. Indeks pencapaian SPM pendidikan khusus ${d(khus.indeksKhusus, 2)}.`}
+      sumber={SB(1047, 1, FS)}
     >
-      <StatCards
-        judul="Pendidikan khusus dan proses layanannya"
-        kartu={[
-          { label: "Harus dilayani", nilai: n(khus.harusDilayani), sorot: true },
-          { label: "Terlayani", nilai: n(khus.terlayani), sub: `${d(khus.persen, 2)}%` },
-          { label: "Belum terlayani", nilai: n(khus.belumTerlayani), sub: `indeks khusus ${d(khus.indeksKhusus, 2)} · penerima LD ${d(khus.indeksPenerimaLD, 2)}` },
-        ]}
-      />
-      <TabelAlt
-        judul="pendidikan khusus"
-        kolom={[
-          { judul: "Uraian" },
-          { judul: "Nilai", num: true },
-        ]}
-        baris={[
-          ["Pendidik khusus yang harus dilayani", n(khus.harusDilayani)],
-          ["Terlayani", n(khus.terlayani)],
-          ["Belum terlayani", n(khus.belumTerlayani)],
-          ["Persen terlayani", d(khus.persen, 2)],
-          ["Indeks khusus", d(khus.indeksKhusus, 2)],
-          ["Indeks penerima layanan", d(khus.indeksPenerimaLD, 2)],
-        ]}
-      />
+      <Figur judul="Anak berkebutuhan khusus yang harus dilayani" satuan="satu kotak = satu persen">
+        <Waffle
+          label="Layanan pendidikan khusus: terlayani dan belum terlayani"
+          kat={[
+            { label: "Terlayani", n: khus.terlayani, tampil: `${n(khus.terlayani)} anak`, porsi: p(khus.persen, 2), warna: C.sorot },
+            { label: "Belum terlayani", n: khus.belumTerlayani, tampil: `${n(khus.belumTerlayani)} anak`, porsi: p(100 - khus.persen, 2), warna: C.redup },
+          ]}
+        />
+        <TabelAlt
+          slot="tabel"
+          judul="layanan pendidikan khusus"
+          kolom={[{ judul: "Uraian" }, { judul: "Nilai", num: true }]}
+          baris={[
+            ["Anak yang harus dilayani", n(khus.harusDilayani)],
+            ["Terlayani", n(khus.terlayani)],
+            ["Belum terlayani", n(khus.belumTerlayani)],
+            ["Persentase terlayani", d(khus.persen, 2)],
+            ["Indeks pencapaian SPM pendidikan khusus", d(khus.indeksKhusus, 2)],
+            ["Indeks penerima layanan", d(khus.indeksPenerimaLD, 2)],
+          ]}
+        />
+      </Figur>
     </Adegan>
-  </Pilar>
+  </Bab>
 
-  {/* ═════════════════════════ 7. Penutup ═════════════════════════ */}
-  <section class="babak" id="penutup" aria-labelledby="penutup-judul">
+  {/* ═════════════════════════ Penutup ═════════════════════════ */}
+  <section class="penutup" id="penutup" aria-labelledby="penutup-judul">
     <div class="wrap">
-      <div class="babak__label" aria-hidden="true">Penutup</div>
-      <h2 id="penutup-judul">{i.penutup.judul}</h2>
-      <hr class="rule-accent" />
-      <p class="babak__lead">{i.penutup.lead}</p>
+      <header class="jb" data-reveal>
+        <span class="jb__no">{i.penutup.label}</span>
+        <h2 class="jb__teks" id="penutup-judul">{i.penutup.judul}</h2>
+        <div class="jb__garis" aria-hidden="true"></div>
+      </header>
+      <p class="ringkasan__lead" data-reveal>{i.penutup.lead}</p>
+    </div>
 
-      <Adegan
-        id="7-1"
-        pertanyaan="Apa catatan celah data yang sudah direkam?"
-        tafsir={`Pipeline menjumlahkan ${celah.length} catatan celah — pembulatan antartabel, sel yang tak terbaca mesin, koreksi yang dicatat laporan, dan angka yang maknanya bukan persen. Catatan ini justru yang membuat halaman tetap tahu apa yang dibicarakannya: pembaca tahu tepat data mana yang sebaiknya tidak dijadikan dasar kesimpulan.`}
-        sumberTeks="Manifes catatan celah dihasilkan pipeline build_data.mjs dari pemeriksaan aritmetika dan pembacaan tabel LPPD DIY 2023 (bab 1–4)."
-      >
-        <ul class="daftar-celah" role="list">
-          {
-            celah.map((c) => (
-              <li data-anim="pudar">{c}</li>
-            ))
-          }
-        </ul>
-      </Adegan>
+    <Adegan
+      id="7-1"
+      pertanyaan="Catatan apa saja yang direkam selama pengolahan data?"
+      tafsir={`Pipeline merekam <strong>${n(celah.length)} catatan</strong>: pembulatan antartabel, sel yang tak terbaca mesin, ralat yang dicatat laporan sendiri, dan angka yang satuannya bukan persen. Sel yang rusak tidak pernah ditampilkan sebagai angka; ia dilaporkan di sini.`}
+      sumberTeks="manifes catatan celah, dihasilkan scripts/build_data.mjs dari pemeriksaan aritmetika atas tabel LPPD DIY 2023 (bab 1–4)."
+    >
+      <ol class="daftar-celah">
+        {celah.map((c) => <li data-anim="naik">{c}</li>)}
+      </ol>
+    </Adegan>
 
-      <Adegan
-        id="7-2"
-        pertanyaan="Bagaimana mengunduh dan memeriksa angka-angkanya?"
-        tafsir={`${unduhan.length} berkas CSV terbuka tanpa login, berisi tabel-tabel yang sudah melewati pemeriksaan aritmetika otomatis; setiap unduhan menunjuk kembali halaman dan tabel sumbernya. Formatnya CSV standar, siap dibuka di aplikasi lembar kerja apa pun.`}
-        sumberTeks="Unduhan dihasilkan pipeline dari tabel LPPD DIY 2023 (bab 1–4); berkas disajikan format CSV standar."
-      >
-        <ul class="unduhan" role="list">
-          {
-            unduhan.map((u) => (
-              <li>
-                <a href={`./data/${u.berkas}`} download>
-                  <b>{u.berkas}</b>
-                  <span>{u.tentang}</span>
-                  <small>{u.sumber}</small>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </Adegan>
+    <Adegan
+      id="7-2"
+      pertanyaan="Bagaimana mengunduh dan memeriksa angkanya?"
+      tafsir={`Tersedia <strong>${n(unduhan.length)} berkas CSV</strong> berisi tabel agregat yang sudah melewati pemeriksaan aritmetika otomatis. Setiap berkas menunjuk kembali halaman dan tabel sumbernya, dan dapat dibuka di aplikasi lembar kerja apa pun.`}
+      sumberTeks="berkas unduhan dihasilkan pipeline dari tabel LPPD DIY 2023 (bab 1–4), pemisah titik koma, desimal koma."
+    >
+      <ul class="unduhan">
+        {
+          unduhan.map((u) => (
+            <li data-anim="naik">
+              <a href={`./data/${u.berkas}`} download>
+                <b>{u.berkas}</b>
+                <span>{u.tentang}</span>
+                <small>{u.sumber}</small>
+                <em>Unduh CSV</em>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </Adegan>
 
-      <p class="kolofon">{i.penutup.kolofonLead}</p>
+    <div class="wrap">
+      <div class="kolofon" data-reveal>
+        <p><b>Data.</b> {i.penutup.kolofonData}</p>
+        <p>
+          <b>Desain.</b> {i.penutup.kolofonDesain}{" "}
+          <a href="./lisensi/Jogjakartype-EULA.pdf">Lisensi Jogjakartype</a> · <a href="./lisensi/SourceSans3-OFL.txt">Lisensi Source Sans 3</a>
+        </p>
+      </div>
     </div>
   </section>
-</Layout>
 
-<style>
-  .daftar-celah {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-3);
-  }
-  .daftar-celah li {
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-    background: var(--surface-card);
-    padding: var(--space-4) var(--space-5);
-    font-size: var(--size-body-sm);
-    color: var(--text-body);
-  }
-  .daftar-celah li::before {
-    content: "○";
-    color: var(--accent);
-    margin-inline-end: var(--space-3);
-    font-weight: var(--fw-bold);
-  }
-  .unduhan {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-3);
-  }
-  .unduhan a {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-4) var(--space-5);
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-    background: var(--surface-card);
-    text-decoration: none;
-    color: var(--text-body);
-    height: 100%;
-  }
-  .unduhan a:hover {
-    border-color: var(--accent);
-  }
-  .unduhan b {
-    font-family: var(--font-mono);
-    font-size: var(--size-body-sm);
-    color: var(--text-strong);
-    word-break: break-word;
-  }
-  .unduhan span {
-    font-size: var(--size-body-sm);
-  }
-  .unduhan small {
-    color: var(--text-muted);
-    font-size: var(--size-micro);
-  }
-  .kolofon {
-    margin-top: var(--space-8);
-    padding-top: var(--space-5);
-    border-top: 1px solid var(--border-hairline);
-    color: var(--text-muted);
-    font-size: var(--size-body-sm);
-    max-width: 74ch;
-  }
-</style>
+  {/* ═════════════════════════ Matur Nuwun ═════════════════════════ */}
+  <section class="akhir" id="akhir" data-reveal aria-label="Penutup">
+    <p class="akhir__kata" lang="jv">{i.akhir.kata}</p>
+    <p class="akhir__sub">{i.akhir.sub}</p>
+    <a class="akhir__atas" href="#sampul">{i.akhir.atas}</a>
+    <img class="deret" src="./brand/deret-ikon-emas.svg" alt="" width="842" height="141" loading="lazy" />
+  </section>
+</Layout>

@@ -1,0 +1,133 @@
+---
+/**
+ * Cincin — meteran lingkaran untuk capaian terhadap 100%. Busur tergambar
+ * saat digulir; angka di tengah berhitung naik. Rel abu-abu adalah sisa
+ * yang belum tercapai.
+ */
+import { kontainer, tip } from "../../lib/viz";
+import { q } from "../../lib/chart";
+
+interface Item {
+  label: string;
+  nilai: number;
+  desimal?: number;
+  tampil: string;
+  sub?: string;
+  sorot?: boolean;
+}
+interface Props {
+  label: string;
+  items: Item[];
+}
+
+const { label, items } = Astro.props;
+const R = 54;
+const K = q(2 * Math.PI * R);
+---
+
+<div class="viz cc" {...kontainer(label)}>
+  {
+    items.map((it) => {
+      const busur = q((K * Math.max(0, Math.min(100, it.nilai))) / 100);
+      return (
+        <div class:list={["cc__item", it.sorot && "is-sorot"]} {...tip({ judul: it.label, nilai: it.tampil, baris: [it.sub] })}>
+          <div class="cc__cincin">
+            <svg viewBox="0 0 128 128" aria-hidden="true">
+              <circle cx="64" cy="64" r={R} class="cc__rel" />
+              <circle
+                cx="64"
+                cy="64"
+                r={R}
+                class="cc__busur"
+                stroke-dasharray={`${busur} ${K}`}
+                data-anim="busur"
+                style={`--busur:${busur};--k:${K}`}
+                transform="rotate(-90 64 64)"
+              />
+            </svg>
+            <span class="cc__angka">
+              <span class="cc__isi"><span data-count={it.nilai} data-desimal={it.desimal ?? 0}>{it.tampil.replace("%", "")}</span><small>%</small></span>
+            </span>
+          </div>
+          <span class="cc__label">{it.label}</span>
+          {it.sub && <span class="cc__sub">{it.sub}</span>}
+        </div>
+      );
+    })
+  }
+</div>
+
+<style>
+  .cc {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-8) var(--space-6);
+  }
+  .cc__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-2);
+    cursor: default;
+  }
+  .cc__cincin {
+    position: relative;
+    width: 152px;
+    height: 152px;
+    margin-bottom: var(--space-2);
+  }
+  .cc__cincin svg {
+    width: 100%;
+    height: 100%;
+  }
+  .cc__rel {
+    fill: none;
+    stroke: var(--c-trek);
+    stroke-width: 9;
+  }
+  .cc__busur {
+    fill: none;
+    stroke: var(--c-tinta);
+    stroke-width: 9;
+    stroke-linecap: butt;
+  }
+  .is-sorot .cc__busur {
+    stroke: var(--c-sorot);
+  }
+  .cc__angka {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.125rem;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .cc__isi {
+    white-space: nowrap;
+  }
+  .cc__angka small {
+    font-size: 0.5em;
+    font-weight: 400;
+    margin-left: 2px;
+    vertical-align: 0.7em;
+  }
+  .is-sorot .cc__angka {
+    color: var(--red);
+  }
+  .cc__label {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    line-height: 1.3;
+    max-width: 16ch;
+  }
+  .cc__sub {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    line-height: 1.4;
+    max-width: 22ch;
+  }
+</style>

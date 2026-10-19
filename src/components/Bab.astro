@@ -1,0 +1,36 @@
+---
+/**
+ * Bab — pembatas merah penuh (SectionDivider pedoman: bidang `red`, judul
+ * Light putih rata tengah, deret ikon putih di tepi bawah), lalu pengantar
+ * bab dengan ikon Icon System sebagai penanda topik, lalu adegan-adegannya.
+ */
+interface Props {
+  no: number;
+  id: string;
+  judul: string;
+  sub: string;
+  lead: string;
+  ikon: string;
+  ikonNama: string;
+}
+
+const { no, id, judul, sub, lead, ikon, ikonNama } = Astro.props;
+---
+
+<section class="bab" id={id} aria-labelledby={`${id}-judul`}>
+  <div class="pembatas" data-reveal>
+    <p class="pembatas__no">Bab {no}</p>
+    <h2 id={`${id}-judul`}>{judul}</h2>
+    <p class="pembatas__sub">{sub}</p>
+    <img class="deret" src="./brand/deret-ikon-putih.svg" alt="" width="842" height="141" loading="lazy" decoding="async" />
+  </div>
+
+  <div class="wrap">
+    <div class="bab__pengantar" data-reveal>
+      <img src={`./brand/${ikon}.svg`} alt={`Ikon ${ikonNama}`} width="88" height="88" loading="lazy" />
+      <p>{lead}</p>
+    </div>
+  </div>
+
+  <slot />
+</section>

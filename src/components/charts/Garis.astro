@@ -1,0 +1,178 @@
+---
+/**
+ * Garis — beberapa seri waktu pada satu sumbu, label langsung di ujung garis.
+ * Garis digambar SVG yang meregang (preserveAspectRatio="none") dengan goresan
+ * tak berskala; titik dan seluruh teks adalah HTML, sehingga tetap tajam dan
+ * berukuran asli di layar sempit.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+import { q } from "../../lib/chart";
+
+interface Seri {
+  label: string;
+  nilai: number[];
+  tampil: string[];
+  warna: string;
+  putus?: boolean;
+  tebal?: number;
+}
+interface Props {
+  label: string;
+  x: string[];
+  seri: Seri[];
+  min: number;
+  max: number;
+  tik: { nilai: number; label: string }[];
+  tinggi?: number;
+}
+
+const { label, x, seri, min, max, tik, tinggi = 320 } = Astro.props;
+const px = (i: number) => (x.length === 1 ? 50 : 3 + (94 * i) / (x.length - 1));
+const py = (v: number) => 100 - (100 * (v - min)) / (max - min);
+const path = (s: Seri) => s.nilai.map((v, i) => `${i ? "L" : "M"}${q(px(i) * 10)} ${q(py(v) * 10)}`).join(" ");
+
+// Label ujung: urutkan menurut posisi, lalu dorong supaya tidak bertumpuk.
+const JARAK = (24 / tinggi) * 100;
+const ujung = seri
+  .map((s, i) => ({ i, y: py(s.nilai[s.nilai.length - 1]!) }))
+  .sort((a, b) => a.y - b.y);
+for (let k = 1; k < ujung.length; k++) {
+  if (ujung[k]!.y - ujung[k - 1]!.y < JARAK) ujung[k]!.y = ujung[k - 1]!.y + JARAK;
+}
+const yLabel = new Map(ujung.map((u) => [u.i, u.y]));
+---
+
+<div class="viz gr" style={`--h:${tinggi}px`} {...kontainer(label)}>
+  <div class="gr__plot">
+    {
+      tik.map((t) => (
+        <div class="gr__kisi" style={`top:${css(py(t.nilai))}`} aria-hidden="true">
+          <span>{t.label}</span>
+        </div>
+      ))
+    }
+    <svg class="gr__svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" data-anim="sapu">
+      {
+        seri.map((s) => (
+          <path
+            d={path(s)}
+            fill="none"
+            stroke={s.warna}
+            stroke-width={s.tebal ?? 2.5}
+            stroke-dasharray={s.putus ? "6 5" : undefined}
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            vector-effect="non-scaling-stroke"
+          />
+        ))
+      }
+    </svg>
+    {
+      seri.map((s, si) =>
+        s.nilai.map((v, i) => (
+          <span
+            class="gr__titik"
+            data-anim="titik"
+            data-g={`s${si}`}
+            style={`left:${css(px(i))};top:${css(py(v))};--w:${s.warna};--tunda-k:${300 + i * 160}ms`}
+            {...tip({ judul: `${s.label} · ${x[i]}`, nilai: s.tampil[i] ?? "", warna: s.warna })}
+          />
+        )),
+      )
+    }
+    {
+      seri.map((s, si) => (
+        <span class="gr__ujung" data-anim="pudar" style={`top:${css(yLabel.get(si) ?? 0)};--w:${s.warna};--tunda-k:1100ms`}>
+          <b>{s.tampil[s.tampil.length - 1]}</b> {s.label}
+        </span>
+      ))
+    }
+  </div>
+  <div class="gr__x" aria-hidden="true">
+    {x.map((l, i) => <span style={`left:${css(px(i))}`}>{l}</span>)}
+  </div>
+</div>
+
+<style>
+  .gr {
+    padding: 8px 9.5rem 0 3rem;
+  }
+  .gr__plot {
+    position: relative;
+    height: var(--h);
+    border-bottom: 1px solid var(--c-sumbu);
+  }
+  .gr__kisi {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--c-kisi);
+  }
+  .gr__kisi span {
+    position: absolute;
+    right: calc(100% + 8px);
+    top: -0.7em;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .gr__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .gr__titik {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    margin: -5.5px 0 0 -5.5px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 2.5px var(--w);
+    cursor: default;
+  }
+  .gr__titik::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+  }
+  .gr__ujung {
+    position: absolute;
+    left: calc(100% + 12px);
+    transform: translateY(-50%);
+    font-size: var(--fs-small);
+    line-height: 1.15;
+    white-space: nowrap;
+    color: var(--text);
+  }
+  .gr__ujung b {
+    color: var(--w);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .gr__x {
+    position: relative;
+    height: 2.2em;
+    margin-top: 8px;
+  }
+  .gr__x span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .gr {
+      padding: 8px 6.5rem 0 2.5rem;
+    }
+    .gr__ujung {
+      font-size: var(--fs-micro);
+      white-space: normal;
+      width: 6rem;
+    }
+  }
+</style>

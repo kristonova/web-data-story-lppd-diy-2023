@@ -113,10 +113,11 @@ export interface Ketimkabar {
 
 export interface InvestasiTahun {
   periode: string;
-  pmdnMiliar: number;
-  pmaMiliar: number;
-  totalMiliar: number;
-  tambahanMiliar: number;
+  /** Rp triliun (tabel sumber dalam Rp000). */
+  pmdnTriliun: number;
+  pmaTriliun: number;
+  totalTriliun: number;
+  tambahanTriliun: number;
   pctStated: number;
 }
 
@@ -194,7 +195,7 @@ export const pilar1 = pilar1Raw as {
     perempuanPersen: number;
     perKab: PendudukKab[];
   };
-  usia: { perKelompok: UsiaGroup[]; jenis?: unknown };
+  usia: { perKelompok: UsiaGroup[]; ikhtisar: { nama: string; jumlah: number; persen: number }[] };
 };
 
 export const pilar2 = pilar2Raw as {

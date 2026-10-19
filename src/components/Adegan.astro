@@ -1,10 +1,11 @@
 ---
 /**
- * Adegan — struktur tetap yang dipakai seluruh adegan bernomor:
- * satu pertanyaan → satu visual → satu kalimat tafsir → sumber.
+ * Adegan — struktur tetap seluruh adegan bernomor:
+ * judul bergaris (pertanyaan) → visual di kiri → tafsir dan sumber di kanan.
  *
- * Judul adegan selalu ditulis sebagai pertanyaan. Kalimat tafsir menyatakan
- * apa yang terlihat pada data; rekomendasi tidak muncul di adegan.
+ * Judul memakai pola SectionTitle pedoman Jogja Istimewa: judul `title`
+ * lalu garis aksen yang berawal dari tepi kiri layar. Kalimat tafsir
+ * menyatakan apa yang terlihat pada data; rekomendasi tidak muncul di sini.
  */
 import type { Sumber } from "../lib/data";
 import { prov } from "../lib/data";
@@ -14,41 +15,45 @@ interface Props {
   id: string;
   pertanyaan: string;
   tafsir: string;
-  /** Satu penunjuk sumber LPPD, atau beberapa bila adegan memakai lebih dari satu tabel. Diabaikan bila `sumberTeks` diisi. */
   sumber?: Sumber | Sumber[];
-  /** Teks sumber jadi-jadian (di luar LPPD); mem-override sumber[] bila diisi. */
   sumberTeks?: string;
+  /** Visual selebar wadah; tafsir pindah ke bawah dalam dua kolom. */
+  lebar?: boolean;
 }
 
-const { id, pertanyaan, tafsir, sumber = [], sumberTeks } = Astro.props;
+const { id, pertanyaan, tafsir, sumber = [], sumberTeks, lebar = false } = Astro.props;
 const daftar = Array.isArray(sumber) ? sumber : [sumber];
+const nomor = id.replace("-", ".");
+const ank = anchor(id);
 ---
 
-<section class="adegan" id={anchor(id)} data-reveal aria-labelledby={`${anchor(id)}-judul`}>
-  <div class="adegan__head">
-    <span class="adegan__no" aria-hidden="true">{id}</span>
-    <h3 id={`${anchor(id)}-judul`}>
-      <span class="sr-only">Adegan {id}. </span>{pertanyaan}
-    </h3>
-  </div>
+<section class:list={["adegan", lebar && "adegan--lebar"]} id={ank} aria-labelledby={`${ank}-judul`}>
+  <div class="wrap">
+    <header class="jb" data-reveal>
+      <span class="jb__no" aria-hidden="true">{nomor}</span>
+      <h3 class="jb__teks" id={`${ank}-judul`}><span class="sr-only">Adegan {id}. </span>{pertanyaan}</h3>
+      <div class="jb__garis" aria-hidden="true"></div>
+    </header>
 
-  <div class="adegan__body">
-    <slot />
+    <div class="adegan__isi">
+      <div class="adegan__visual" data-reveal>
+        <slot />
+      </div>
 
-    <p class="tafsir" set:html={tafsir} />
-
-    {
-      sumberTeks ? (
-        <p class="sumber">
-          <b>Sumber</b> {sumberTeks}
-        </p>
-      ) : (
-        daftar.map((s) => (
-          <p class="sumber">
-            <b>Sumber</b> {prov(s)}
-          </p>
-        ))
-      )
-    }
+      <div class="adegan__teks" data-reveal data-tunda="120">
+        <p class="tafsir" set:html={tafsir} />
+        <div class="sumber-daftar">
+          {
+            sumberTeks ? (
+              <p class="sumber"><b>Sumber</b> {sumberTeks}</p>
+            ) : (
+              daftar.map((s) => (
+                <p class="sumber"><b>Sumber</b> {prov(s)}</p>
+              ))
+            )
+          }
+        </div>
+      </div>
+    </div>
   </div>
 </section>

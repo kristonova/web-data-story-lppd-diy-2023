@@ -78,18 +78,18 @@
     "seri": [
       {
         "periode": "s.d 2022",
-        "pmdnMiliar": 24.97,
-        "pmaMiliar": 11.44,
-        "totalMiliar": 36.41,
-        "tambahanMiliar": 3.91,
+        "pmdnTriliun": 24.97,
+        "pmaTriliun": 11.44,
+        "totalTriliun": 36.41,
+        "tambahanTriliun": 3.91,
         "pctStated": 12
       },
       {
         "periode": "s.d 2023",
-        "pmdnMiliar": 29.98,
-        "pmaMiliar": 12.12,
-        "totalMiliar": 42.1,
-        "tambahanMiliar": 5.7,
+        "pmdnTriliun": 29.98,
+        "pmaTriliun": 12.12,
+        "totalTriliun": 42.1,
+        "tambahanTriliun": 5.7,
         "pctStated": 16
       }
     ],

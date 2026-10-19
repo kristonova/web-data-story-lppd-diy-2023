@@ -1,0 +1,42 @@
+---
+/**
+ * Figur — pembungkus setiap grafik: judul grafik dan satuan di atas,
+ * legenda opsional, grafik, lalu tabel angka alternatif (slot "tabel").
+ */
+interface Item {
+  label: string;
+  warna: string;
+  bentuk?: "titik" | "garis" | "putus" | "trek";
+}
+interface Props {
+  judul: string;
+  satuan?: string;
+  legenda?: Item[];
+}
+const { judul, satuan, legenda } = Astro.props;
+---
+
+<figure class="fig">
+  <figcaption class="fig__cap">
+    <span class="fig__judul">{judul}</span>
+    {satuan && <span class="fig__satuan">{satuan}</span>}
+  </figcaption>
+  {
+    legenda && legenda.length > 0 && (
+      <ul class="legenda" aria-label="Legenda">
+        {legenda.map((it) => (
+          <li>
+            <span
+              class:list={["legenda__sw", it.bentuk && it.bentuk !== "titik" && `legenda__sw--${it.bentuk}`]}
+              style={`--sw:${it.warna}`}
+              aria-hidden="true"
+            />
+            {it.label}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  <slot />
+  <slot name="tabel" />
+</figure>

@@ -1,0 +1,125 @@
+---
+/**
+ * DaftarCapaian — indikator dikelompokkan per kolom (mis. jenjang sekolah).
+ * Setiap baris: nama indikator, capaian/target, dan rel capaian terhadap
+ * target (dibatasi 100%). Yang belum mencapai target disorot merah.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Baris {
+  label: string;
+  persen: number;
+  tampil: string;
+  rinci: string;
+}
+interface Kelompok {
+  judul: string;
+  ringkas: string;
+  rows: Baris[];
+}
+interface Props {
+  label: string;
+  kelompok: Kelompok[];
+}
+
+const { label, kelompok } = Astro.props;
+---
+
+<div class="viz dc" style={`--n:${kelompok.length}`} {...kontainer(label)}>
+  {
+    kelompok.map((g) => (
+      <div class="dc__kol">
+        <div class="dc__kepala">
+          <span class="dc__judul">{g.judul}</span>
+          <span class="dc__ringkas">{g.ringkas}</span>
+        </div>
+        <ul data-anim-grup>
+          {g.rows.map((r) => (
+            <li class:list={[r.persen < 100 && "is-sorot"]} {...tip({ judul: `${g.judul} · ${r.label}`, nilai: `${r.tampil} dari target`, baris: [r.rinci] })}>
+              <span class="dc__nama">{r.label}</span>
+              <span class="dc__nilai">{r.tampil}</span>
+              <span class="dc__rel">
+                <span data-anim="x" style={`width:${css(Math.min(100, r.persen))}`} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .dc {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: var(--space-12) var(--space-8);
+  }
+  .dc__kol {
+    min-width: 0;
+  }
+  .dc__kepala {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--ink);
+  }
+  .dc__judul {
+    font-size: var(--fs-body);
+    font-weight: 600;
+  }
+  .dc__ringkas {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .dc ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .dc li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
+    row-gap: 5px;
+    padding-block: 9px;
+    border-bottom: 1px solid var(--hairline);
+    cursor: default;
+  }
+  .dc__nama {
+    font-size: var(--fs-micro);
+    line-height: 1.3;
+  }
+  .dc__nilai {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .is-sorot .dc__nilai {
+    color: var(--red);
+  }
+  .is-sorot .dc__nama {
+    font-weight: 600;
+  }
+  .dc__rel {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 4px;
+    background: var(--c-trek);
+  }
+  .dc__rel span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--c-dasar);
+  }
+  .is-sorot .dc__rel span {
+    background: var(--c-sorot);
+  }
+  @media (max-width: 900px) {
+    .dc {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

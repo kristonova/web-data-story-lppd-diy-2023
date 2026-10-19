@@ -87,7 +87,7 @@ cek("p4.abk", hampir(ikk.abk.persen, 90.42), String(ikk.abk?.persen));
 const inv = p4.investasi;
 cek("p4.inv.seri", inv.seri.length === 2, String(inv.seri.length));
 const sd23 = inv.seri[1];
-cek("p4.inv.tambahan23", hampir(sd23.totalMiliar, 42.1, 0.02), String(sd23?.totalMiliar));
+cek("p4.inv.tambahan23", hampir(sd23.totalTriliun, 42.1, 0.02), String(sd23?.totalTriliun));
 cek("p4.inv.perkab", inv.perKab.length === 5, String(inv.perKab.length));
 
 // ── Pilar5: nilai akhir berbobot & BKK ───────────────────────────────────────

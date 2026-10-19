@@ -1,0 +1,119 @@
+---
+/**
+ * Kolom — batang tegak dalam HTML dengan garis kisi bernilai bulat.
+ * Warna mengikuti kelompok (mis. anak, usia produktif, lansia), bukan
+ * peringkat. Label sumbu di bawah; di layar sempit hanya separuh yang tampil.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+import { kisi } from "../../lib/chart";
+import { n as fmt } from "../../lib/format";
+
+interface Kol {
+  label: string;
+  n: number;
+  tampil: string;
+  warna: string;
+  sub?: string;
+}
+interface Props {
+  label: string;
+  cols: Kol[];
+  tinggi?: number;
+  satuanKisi?: (v: number) => string;
+}
+
+const { label, cols, tinggi = 280, satuanKisi = (v: number) => fmt(v) } = Astro.props;
+const garis = kisi(Math.max(...cols.map((c) => c.n)));
+const atas = garis[garis.length - 1] ?? 1;
+---
+
+<div class="viz ko" style={`--h:${tinggi}px`} {...kontainer(label)}>
+  <div class="ko__area">
+    {
+      garis.map((g) => (
+        <div class="ko__kisi" style={`bottom:${css((100 * g) / atas)}`} aria-hidden="true">
+          <span>{satuanKisi(g)}</span>
+        </div>
+      ))
+    }
+    <div class="ko__kolom" style={`--n:${cols.length}`}>
+      {
+        cols.map((c) => (
+          <div class="ko__sel" {...tip({ judul: c.label, nilai: c.tampil, baris: [c.sub], warna: c.warna })}>
+            <span class="ko__batang" data-anim="y" style={`height:${css((100 * c.n) / atas)};background:${c.warna}`} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  <div class="ko__label" style={`--n:${cols.length}`} aria-hidden="true">
+    {cols.map((c, i) => <span class:list={[i % 2 === 1 && "ganjil"]}>{c.label}</span>)}
+  </div>
+</div>
+
+<style>
+  .ko {
+    padding-left: 3.25rem;
+  }
+  .ko__area {
+    position: relative;
+    height: var(--h);
+    border-bottom: 1px solid var(--c-sumbu);
+  }
+  .ko__kisi {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+    border-top: 1px solid var(--c-kisi);
+  }
+  .ko__kisi span {
+    position: absolute;
+    right: calc(100% + 8px);
+    top: -0.65em;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .ko__kolom {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    column-gap: clamp(2px, 0.6vw, 8px);
+    align-items: end;
+  }
+  .ko__sel {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    cursor: default;
+  }
+  .ko__batang {
+    display: block;
+    width: 100%;
+  }
+  .ko__label {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    column-gap: clamp(2px, 0.6vw, 8px);
+    margin-top: var(--space-2);
+  }
+  .ko__label span {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 720px) {
+    .ko__label span.ganjil {
+      visibility: hidden;
+    }
+    .ko {
+      padding-left: 2.75rem;
+    }
+  }
+</style>

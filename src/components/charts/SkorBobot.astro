@@ -1,0 +1,156 @@
+---
+/**
+ * SkorBobot — nilai akhir sebagai susunan komponen berbobot. Setiap ruas
+ * selebar bobotnya (kapasitas); isian di dalamnya adalah hasil yang diraih.
+ * Sisa kosong tiap ruas memperlihatkan dari mana poin yang hilang berasal.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Komponen {
+  label: string;
+  bobot: number;
+  hasil: number;
+  rincian: string;
+  sisa: string;
+  warna: string;
+}
+interface Props {
+  label: string;
+  komponen: Komponen[];
+  total: string;
+  totalNilai: number;
+}
+
+const { label, komponen, total, totalNilai } = Astro.props;
+const penuh = komponen.reduce((s, k) => s + k.bobot, 0);
+---
+
+<div class="viz sb" {...kontainer(label)}>
+  <div class:list={["sb__penanda", totalNilai / penuh > 0.72 && "sb__penanda--kanan"]} style={`left:${css((100 * totalNilai) / penuh)}`} aria-hidden="true">
+    <span data-anim="naik">{total}</span>
+  </div>
+  <div class="sb__batang">
+    {
+      komponen.map((k) => (
+        <div
+          class="sb__ruas"
+          style={`width:${css((100 * k.bobot) / penuh)}`}
+          {...tip({ judul: k.label, nilai: k.rincian, baris: [k.sisa], warna: k.warna })}
+          data-g={k.label}
+        >
+          <span class="sb__isi" data-anim="x" style={`width:${css((100 * k.hasil) / k.bobot)};background:${k.warna}`} />
+        </div>
+      ))
+    }
+  </div>
+  <div class="sb__skala" aria-hidden="true"><span>0</span><span>{penuh}</span></div>
+  <ol class="sb__daftar">
+    {
+      komponen.map((k) => (
+        <li data-g={k.label}>
+          <span class="sb__sw" style={`background:${k.warna}`} aria-hidden="true" />
+          <span class="sb__nama">{k.label}</span>
+          <span class="sb__rinci">{k.rincian}</span>
+          <span class="sb__sisa">{k.sisa}</span>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .sb {
+    position: relative;
+    padding-top: 44px;
+  }
+  .sb__penanda {
+    position: absolute;
+    top: 0;
+    bottom: auto;
+    height: 44px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .sb__penanda--kanan {
+    transform: translateX(-100%);
+    align-items: flex-end;
+  }
+  .sb__penanda--kanan::after {
+    margin-right: -0.75px;
+  }
+  .sb__penanda span {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: var(--red);
+    white-space: nowrap;
+  }
+  .sb__penanda::after {
+    content: "";
+    flex: 1;
+    width: 0;
+    border-left: 1.5px solid var(--red);
+    margin-top: 2px;
+  }
+  .sb__batang {
+    display: flex;
+    height: 48px;
+  }
+  .sb__ruas {
+    position: relative;
+    height: 100%;
+    background: var(--c-trek);
+    border-right: 3px solid var(--surface);
+    cursor: default;
+  }
+  .sb__ruas:last-child {
+    border-right: 0;
+  }
+  .sb__isi {
+    position: absolute;
+    inset: 0 auto 0 0;
+  }
+  .sb__skala {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .sb__daftar {
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sb__daftar li {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
+    row-gap: 2px;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--hairline);
+    align-items: baseline;
+  }
+  .sb__sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    align-self: center;
+  }
+  .sb__nama {
+    font-size: var(--fs-small);
+  }
+  .sb__rinci {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .sb__sisa {
+    grid-column: 2 / -1;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+</style>

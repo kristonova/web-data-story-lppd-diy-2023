@@ -1,0 +1,53 @@
+---
+/**
+ * Angka — angka kunci tanpa kartu: tipografi Light besar, label, dan
+ * perbandingan dengan tahun sebelumnya. Dipisah garis rambut, bukan kotak.
+ */
+interface Item {
+  awalan?: string;
+  nilai: number;
+  desimal: number;
+  tampil: string;
+  satuan?: string;
+  label: string;
+  sub?: string;
+  /** Arah perubahan dan apakah arah itu membaik. */
+  arah?: "naik" | "turun";
+  baik?: boolean;
+  sorot?: boolean;
+}
+interface Props {
+  items: Item[];
+  kolom?: number;
+  label: string;
+}
+
+const { items, kolom = 3, label } = Astro.props;
+---
+
+<ul class="angka-baris" style={`--kolom:${kolom}`} aria-label={label} data-reveal>
+  {
+    items.map((it) => (
+      <li class:list={["angka-item", it.sorot && "sorot"]}>
+        <span class="angka-item__nilai">
+          {it.awalan}<span data-count={it.nilai} data-desimal={it.desimal}>{it.tampil}</span>{it.satuan && <span class="angka-item__satuan">{it.satuan}</span>}
+        </span>
+        <span class="angka-item__label">{it.label}</span>
+        {it.sub && (
+          <span class="angka-item__sub">
+            {it.arah && (
+              <svg class="panah" viewBox="0 0 10 10" aria-hidden="true">
+                {it.arah === "naik" ? (
+                  <path d="M5 1 L9 8 L1 8 Z" fill={it.baik ? "var(--ink)" : "var(--red)"} />
+                ) : (
+                  <path d="M5 9 L9 2 L1 2 Z" fill={it.baik ? "var(--ink)" : "var(--red)"} />
+                )}
+              </svg>
+            )}
+            {it.sub}
+          </span>
+        )}
+      </li>
+    ))
+  }
+</ul>

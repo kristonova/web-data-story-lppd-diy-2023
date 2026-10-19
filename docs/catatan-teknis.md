@@ -53,12 +53,24 @@ pembulatannya dicatat di manifes.
 4. Idiom grafik
 ---------------
 
-- Token warna: `--chart-grid`, `--chart-axis`, `--surface-card`, `--text-subtle/strong/body/muted`.
-- Kelas sumbu tetap: `.grid line`, `.tick`, `.satuan`, `.nama`, `.nilai`, `.judul-sumbu`.
-- `data-anim` menandai animasi yang dipagari kelas `.js` di layout:
-  `x`, `x-balik`, `titik`, `pudar`, `garis`, `busur`, `kartu`.
-- Semua svg pembawa data: `role="img"` + `aria-label`, terbungkus `div.viz` dari
-  `kontainer()` (`tabindex=0`, `data-t`/`data-v`/`data-s`, grup `data-g`).
+- **Grafik HTML lebih dahulu.** Batang, ruas, titik, dan seluruh teks adalah elemen HTML
+  yang diposisikan dengan persen, sehingga label tetap berukuran asli di layar ponsel.
+  SVG hanya dipakai untuk garis (`preserveAspectRatio="none"` + `vector-effect:
+  non-scaling-stroke`) dan busur cincin.
+- **Warna grafik** (`src/styles/tokens.css`): `--c-sorot` (merah resmi, satu angka yang
+  dibicarakan), `--c-tinta` / `--c-dasar` / `--c-redup` (turunan `ink`), `--c-trek` (rel
+  dan bayangan anggaran), `--c-emas` (aksen). Satu grafik paling banyak memakai merah dan
+  satu warna pendukung, sesuai pedoman.
+- **Gerak** (`data-anim`, dipagari `.js`, bergerak sesudah bloknya `[data-reveal]` mendapat
+  `.is-in`): `x`, `x-kanan`, `y`, `titik`, `pudar`, `naik`, `sapu` (garis tergambar kiri ke
+  kanan), `angkat` (kolom naik dari dasar), `busur` (cincin). Jenjang waktunya dipasang
+  skrip lewat `--tunda-k`; komponen boleh menetapkannya sendiri (gelombang waffle).
+  Jangan memberi `data-anim` pada elemen yang memakai `transform` untuk posisinya —
+  `naik`, `x`, dan `titik` mengganti `transform` dan menggeser elemen itu.
+- Angka bertanda `data-count` menghitung naik; teks akhirnya dipulihkan persis seperti
+  yang ditulis server.
+- Setiap grafik terbungkus `div.viz` dari `kontainer()` (`tabindex=0`, `aria-label`,
+  `data-t`/`data-v`/`data-s`, grup `data-g`), lalu tabel angka di `<details class="tabel-alt">`.
 - Pembulatan koordinat konsisten `q()` (2 desimal) supaya HTML tetap ramping.
 
 5. Pitfall yang pernah memakan waktu
@@ -74,6 +86,16 @@ pembulatannya dicatat di manifes.
 - **Ralat ABK**: laporan memuat 6.132 lalu dikoreksi menjadi 7.232; pipeline memakai
   angka ralat, catatan celah melaporkan keduanya.
 - **Investasi +15,65% vs +16%**: laporan menuliskan pembulatan; dua versi hadir berdampingan.
+- **Satuan investasi kumulatif**: tabel hal. 585 tertulis dalam Rp000, jadi
+  24.967.647.193 berarti Rp24,97 **triliun**, bukan miliar. Pipeline kini menulis
+  `pmdnTriliun` dst. dan `investasi-tren.csv` berkolom `*_triliun`. Tabel per kab/kota
+  hal. 586 tertulis dalam rupiah penuh dan tetap disajikan dalam miliar.
+- **SPAL bukan cakupan rumah tangga**: indikator hal. 338–339 adalah rasio volume limbah
+  domestik yang masuk SPAL regional terhadap kapasitas olahnya (27.205 / 75.000). Naskah
+  menyebutnya pemanfaatan kapasitas, bukan "rumah terlayani".
+- **Nama kelas bertabrakan**: komponen bergaya terlingkup tetap mewarisi kelas global.
+  Kelas `.akhir` milik bagian penutup sempat terpasang pada titik grafik dan membuatnya
+  sebesar layar; pakai nama berawalan komponen (`mk__titik--akhir`).
 
 6. Kontrak pemeriksa build
 --------------------------
@@ -88,8 +110,33 @@ bersih — angka di tabel alternatif dinilai terpisah (wadah
 -------------------------
 
     src/lib/data.ts        satu layer: tipe + ekspor JSON + prov()/anchor()
-    src/i18n/id.ts         label & lead tanpa angka; angka disusun di halaman
-    src/components/Adegan.astro   struktur per-adegan (pertanyaan→visual→tafsir→sumber)
-    src/components/Pilar.astro    kulit pilar + chip bidang
-    src/components/charts/       HorizontalBar, KolomLolipop, DuaTitik, GarisTren,
-                                 BatangSelisih, MeterRing, StatCards, DataGapCard, dll.
+    src/lib/format.ts      angka Indonesia, rp()/rpS() rupiah ringkas, kata(), namaKab()
+    src/i18n/id.ts         judul, label & lead tanpa angka; angka disusun di halaman
+    src/layouts/Cerita.astro      kepala halaman, gerak gulir, hitung naik, service worker
+    src/components/Bab.astro      pembatas merah (SectionDivider) + pengantar bab berikon
+    src/components/Adegan.astro   judul bergaris (SectionTitle) → visual → tafsir → sumber
+    src/components/Figur.astro    judul grafik, satuan, legenda, slot tabel angka
+    src/components/charts/        Angka, BarH, BulletH, Kupu, UnitTitik, Kolom, Tumpuk,
+                                  Treemap, DotSerapan, Garis, MultiKecil, Cincin,
+                                  KolomTumpuk, SkorBobot, Waffle, DaftarCapaian
+
+8. Identitas visual Jogja Istimewa
+----------------------------------
+
+Halaman memakai design system **Jogja Istimewa**. Aset resminya disalin apa adanya ke
+`public/brand/` (logo merah dan putih, deret ikon putih dan emas, latar sampul, ikon
+Icon System). Aturan yang dijaga:
+
+- Merah resmi `#d82128` di atas putih; putih di atas merah. Emas `#dab96b` hanya ornamen.
+- Logo tidak pernah diketik: selalu berkas SVG resmi, putih di atas sampul, merah sesudah
+  kepala halaman memadat.
+- Sampul dan penutup: latar sampul resmi, judul Light putih rata tengah, deret ikon emas.
+  Pembatas bab: bidang merah penuh, judul Light putih, deret ikon putih di tepi bawah.
+- Judul adegan mengikuti SectionTitle: judul Regular, lalu garis 2,27 px yang berawal
+  dari tepi kiri layar — ruas merah terang 62,53 px disusul garis abu.
+- Huruf Source Sans 3 (pengganti Myriad Pro di web) Light/Regular/Semibold, di-host
+  sendiri. Jogjakartype hanya untuk "Matur Nuwun"; berkasnya dibagikan utuh bersama
+  lisensinya di `public/lisensi/`.
+- Tanpa kartu, bayangan, sudut membulat, huruf kapital semua, atau emoji. Pemisah adalah
+  ruang putih dan garis rambut. Pil hanya untuk tombol dan penanda pertumbuhan.
+- Tidak ada mode gelap: pedoman hanya mengenal tema putih dan tema merah.

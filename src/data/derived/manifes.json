@@ -1,5 +1,5 @@
 {
-  "dibuat": "2026-10-17T13:12:25.010Z",
+  "dibuat": "2026-10-19T05:12:25.650Z",
   "sumber": {
     "dokumen": "Laporan Penyelenggaraan Pemerintahan Daerah (LPPD) DIY Tahun 2023",
     "teks": "data-story/source/*.md dan markdown-per-bab/*.md (konversi PDF asli)"
@@ -76,7 +76,7 @@
     },
     {
       "berkas": "investasi-tren.csv",
-      "tentang": "Realisasi investasi PMDN-PMA kumulatif DIY (Rp miliar)",
+      "tentang": "Realisasi investasi PMDN-PMA kumulatif DIY (Rp triliun)",
       "sumber": "LPPD DIY 2023, halaman 585, tabel ke-1"
     },
     {

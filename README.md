@@ -17,9 +17,21 @@ Cara kerja singkat
     scripts/build_data.mjs     ← ekstraksi tabel + asersi silang → JSON + CSV + manifes
     src/data/derived/*.json    ← 9 JSON turunan (pembuka, pilar1–6, manifes)
     public/data/*.csv          ← 18 CSV agregat yang ikut diterbitkan
-    src/pages/index.astro      ← satu halaman: pembuka + 6 pilar + penutup (23 adegan)
-    src/components/            ← grafik SVG tanpa-dependensi (semuanya pakai idiom sama)
+    src/pages/index.astro      ← satu halaman: sampul, ringkasan, 6 bab, penutup (23 adegan)
+    src/components/charts/     ← 16 komponen grafik HTML/SVG tanpa pustaka charting
+    public/brand/              ← aset resmi Jogja Istimewa (logo, deret ikon, latar, ikon)
     scripts/check_build.mjs    ← gerbang akhir atas hasil build di dist/
+
+Tampilan
+--------
+
+Halaman memakai design system **Jogja Istimewa**: merah resmi di atas putih, emas sebagai
+ornamen, huruf Source Sans 3 (pengganti Myriad Pro di web) yang di-host sendiri. Sampul dan
+penutup memakai latar sampul resmi dengan deret ikon emas; setiap bab dibuka pembatas merah
+penuh dengan deret ikon putih; setiap adegan berjudul dengan garis aksen pedoman. Grafik
+digambar dalam HTML lebih dahulu supaya label tetap terbaca di ponsel, bergerak halus saat
+digulir (batang tumbuh, garis tergambar, cincin menyapu, angka berhitung), dan menghormati
+pengaturan *reduced motion*. Rincian aturan ada di `docs/catatan-teknis.md` bagian 4 dan 8.
 
 Seluruh angka diaduk dari `src/lib/data.ts` (tipis di atas JSON turunan) — **tidak ada
 angka hasil pengukuran yang diketik manual** di naskah. Kalimat yang memuat angka disusun

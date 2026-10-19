@@ -1,0 +1,192 @@
+---
+/**
+ * DotSerapan — plot titik Cleveland: posisi titik = persentase serapan,
+ * luas titik = besar anggaran. Garis acuan tegak menandai serapan seluruh
+ * belanja. Sumbu sengaja tidak mulai dari nol karena yang dibaca adalah
+ * posisi, bukan panjang.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Baris {
+  label: string;
+  persen: number;
+  tampil: string;
+  bobot: number;
+  sub?: string;
+  sorot?: boolean;
+}
+interface Bagian {
+  judul: string;
+  rows: Baris[];
+}
+interface Props {
+  label: string;
+  bagian: Bagian[];
+  min: number;
+  max: number;
+  langkah: number;
+  acuan: { nilai: number; label: string };
+  satuanBobot: string;
+}
+
+const { label, bagian, min, max, langkah, acuan, satuanBobot } = Astro.props;
+const x = (v: number) => css((100 * (v - min)) / (max - min));
+const tik: number[] = [];
+for (let v = min; v <= max + 1e-9; v += langkah) tik.push(Math.round(v * 100) / 100);
+const bobotMaks = Math.max(...bagian.flatMap((b) => b.rows.map((r) => r.bobot)));
+const diameter = (b: number) => Math.round((8 + 30 * Math.sqrt(b / bobotMaks)) * 10) / 10;
+---
+
+<div class="viz ds" {...kontainer(label)}>
+  <div class="ds__baris ds__sumbu" aria-hidden="true">
+    <span />
+    <span class="ds__rel">
+      {tik.map((t) => <span class="ds__tik" style={`left:${x(t)}`}>{t}%</span>)}
+      <span class="ds__acuan-label" style={`left:${x(acuan.nilai)}`}>{acuan.label}</span>
+    </span>
+  </div>
+  {
+    bagian.map((b) => (
+      <>
+        <div class="ds__bagian" aria-hidden="true">{b.judul}</div>
+        {b.rows.map((r) => (
+          <div class:list={["ds__baris", r.sorot && "is-sorot"]} {...tip({ judul: r.label, nilai: `${r.tampil} terserap`, baris: [r.sub] })}>
+            <span class="ds__nama">{r.label}</span>
+            <span class="ds__rel">
+              {tik.map((t) => <span class="ds__kisi" style={`left:${x(t)}`} aria-hidden="true" />)}
+              <span class="ds__acuan" style={`left:${x(acuan.nilai)}`} aria-hidden="true" />
+              <span class="ds__garis" data-anim="x" style={`width:${x(Math.max(min, r.persen))}`} aria-hidden="true" />
+              <span class="ds__titik" data-anim="titik" style={`left:${x(Math.max(min, r.persen))};--d:${diameter(r.bobot)}px`} />
+              <span class="ds__nilai" style={`left:${x(Math.max(min, r.persen))};--d:${diameter(r.bobot)}px`}>{r.tampil}</span>
+            </span>
+          </div>
+        ))}
+      </>
+    ))
+  }
+  <p class="ds__catatan">Luas titik sebanding dengan {satuanBobot}.</p>
+</div>
+
+<style>
+  .ds {
+    display: grid;
+    gap: 0;
+  }
+  .ds__baris {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    column-gap: var(--space-6);
+    align-items: center;
+    min-height: 46px;
+    cursor: default;
+  }
+  .ds__sumbu {
+    min-height: 34px;
+    border-bottom: 1px solid var(--hairline);
+    align-items: end;
+    padding-bottom: 6px;
+  }
+  .ds__bagian {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    color: var(--text-muted);
+    padding-top: var(--space-4);
+    padding-bottom: 2px;
+  }
+  .ds__nama {
+    font-size: var(--fs-small);
+    line-height: 1.25;
+  }
+  .is-sorot .ds__nama {
+    font-weight: 600;
+  }
+  .ds__rel {
+    position: relative;
+    height: 100%;
+    min-height: 22px;
+    margin-right: 3.5rem;
+  }
+  .ds__sumbu .ds__rel {
+    min-height: 18px;
+  }
+  .ds__tik {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .ds__acuan-label {
+    position: absolute;
+    bottom: 22px;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .ds__kisi {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid var(--c-kisi);
+  }
+  .ds__acuan {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1.5px dashed var(--ink);
+  }
+  .ds__garis {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--c-redup);
+  }
+  .ds__titik {
+    position: absolute;
+    top: 50%;
+    width: var(--d);
+    height: var(--d);
+    margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+    border-radius: 50%;
+    background: var(--c-dasar);
+    opacity: 0.92;
+  }
+  .is-sorot .ds__titik {
+    background: var(--c-sorot);
+  }
+  .ds__nilai {
+    position: absolute;
+    top: 50%;
+    transform: translate(calc(var(--d) / 2 + 6px), -50%);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .is-sorot .ds__nilai {
+    color: var(--red);
+  }
+  .ds__catatan {
+    margin-top: var(--space-4);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  @media (max-width: 600px) {
+    .ds__baris {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 4px;
+      padding-block: 6px;
+    }
+    .ds__sumbu > :first-child {
+      display: none;
+    }
+    .ds__rel {
+      min-height: 32px;
+      margin-right: 3rem;
+      margin-left: 1rem;
+    }
+  }
+</style>

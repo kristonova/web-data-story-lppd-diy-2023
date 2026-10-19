@@ -1,0 +1,104 @@
+---
+/**
+ * UnitTitik — satu titik untuk satu satuan (mis. satu kalurahan). Jumlah
+ * terbaca sebagai luas kumpulan titik; jenis satuan dibedakan warna dan
+ * dijelaskan di legenda. Cocok untuk hitungan bulat yang tidak terlalu besar.
+ */
+import { kontainer, tip } from "../../lib/viz";
+
+interface Jenis {
+  n: number;
+  label: string;
+  warna: string;
+}
+interface Baris {
+  label: string;
+  jenis: Jenis[];
+  ringkas: string;
+  sub?: string;
+}
+interface Props {
+  label: string;
+  rows: Baris[];
+}
+
+const { label, rows } = Astro.props;
+---
+
+<div class="viz ut" {...kontainer(label)}>
+  {
+    rows.map((r) => (
+      <div class="ut__baris" {...tip({ judul: r.label, nilai: r.ringkas, baris: [r.sub, ...r.jenis.filter((j) => j.n > 0).map((j) => `${j.n} ${j.label}`)] })}>
+        <div class="ut__kepala">
+          <span class="ut__nama">{r.label}</span>
+          <span class="ut__jumlah">{r.ringkas}</span>
+          {r.sub && <span class="ut__sub">{r.sub}</span>}
+        </div>
+        <div class="ut__titik" data-anim-grup aria-hidden="true">
+          {r.jenis.flatMap((j) => Array.from({ length: j.n }, () => <i data-anim="titik" style={`background:${j.warna}`} />))}
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .ut {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .ut__baris {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: start;
+    cursor: default;
+  }
+  .ut__kepala {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ut__nama {
+    font-size: var(--fs-small);
+  }
+  .ut__jumlah {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .ut__sub {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  .ut__titik {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding-top: 4px;
+  }
+  .ut__titik i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: block;
+  }
+  @media (max-width: 600px) {
+    .ut__baris {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-2);
+    }
+    .ut__kepala {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    .ut__sub {
+      margin-left: auto;
+      margin-right: var(--space-3);
+    }
+    .ut__titik i {
+      width: 7px;
+      height: 7px;
+    }
+  }
+</style>

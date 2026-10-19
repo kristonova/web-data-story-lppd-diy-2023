@@ -1,0 +1,122 @@
+---
+/**
+ * Waffle — seratus kotak, satu kotak satu persen. Kotak dibagi dengan metode
+ * sisa terbesar sehingga jumlahnya selalu tepat seratus. Kotak muncul
+ * bergelombang diagonal saat digulir.
+ */
+import { kontainer, tip, sisaTerbesar } from "../../lib/viz";
+
+interface Kat {
+  label: string;
+  n: number;
+  tampil: string;
+  porsi: string;
+  warna: string;
+}
+interface Props {
+  label: string;
+  kat: Kat[];
+}
+
+const { label, kat } = Astro.props;
+const unit = sisaTerbesar(kat.map((k) => k.n), 100);
+const sel: { k: number }[] = [];
+unit.forEach((u, k) => {
+  for (let i = 0; i < u; i++) sel.push({ k });
+});
+---
+
+<div class="viz wf" {...kontainer(label)}>
+  <div class="wf__kisi" aria-hidden="true">
+    {
+      sel.map((s, i) => {
+        const r = Math.floor(i / 10);
+        const c = i % 10;
+        return (
+          <i
+            data-anim="titik"
+            data-g={`k${s.k}`}
+            style={`background:${kat[s.k]!.warna};--tunda-k:${(r + c) * 34}ms`}
+          />
+        );
+      })
+    }
+  </div>
+  <ul class="wf__legenda">
+    {
+      kat.map((k, i) => (
+        <li data-g={`k${i}`} {...tip({ judul: k.label, nilai: k.tampil, baris: [k.porsi], warna: k.warna })}>
+          <span class="wf__sw" style={`background:${k.warna}`} aria-hidden="true" />
+          <span class="wf__porsi">{k.porsi}</span>
+          <span class="wf__nama">{k.label}</span>
+          <span class="wf__n">{k.tampil}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .wf {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    gap: var(--space-12);
+    align-items: center;
+  }
+  .wf__kisi {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 4px;
+    aspect-ratio: 1;
+  }
+  .wf__kisi i {
+    display: block;
+    aspect-ratio: 1;
+  }
+  .wf__legenda {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-6);
+  }
+  .wf__legenda li {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: var(--space-3);
+    cursor: default;
+  }
+  .wf__sw {
+    width: 14px;
+    height: 14px;
+    margin-top: 0.5em;
+  }
+  .wf__porsi {
+    font-size: var(--fs-angka);
+    font-weight: 300;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .wf__legenda li:first-child .wf__porsi {
+    color: var(--red);
+  }
+  .wf__nama {
+    grid-column: 2;
+    font-size: var(--fs-small);
+    margin-top: 6px;
+  }
+  .wf__n {
+    grid-column: 2;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+  @media (max-width: 600px) {
+    .wf {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+    .wf__kisi {
+      max-width: 280px;
+    }
+  }
+</style>

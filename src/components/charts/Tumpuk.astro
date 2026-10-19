@@ -1,0 +1,183 @@
+---
+/**
+ * Tumpuk — batang mendatar bertumpuk. `skala="persen"` membuat setiap baris
+ * penuh 100% (komposisi); `skala="mutlak"` memakai satu skala bersama.
+ * Label ruas tampil di dalam ruas bila cukup lebar; selebihnya lewat tooltip
+ * dan tabel angka. Garis acuan tegak opsional (mis. kriteria Bank Dunia).
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Ruas {
+  label: string;
+  n: number;
+  tampil: string;
+  warna: string;
+  teks?: string;
+}
+interface Baris {
+  label: string;
+  ruas: Ruas[];
+  total?: string;
+  sub?: string;
+}
+interface Acuan {
+  nilai: number;
+  label: string;
+}
+interface Props {
+  label: string;
+  rows: Baris[];
+  skala?: "persen" | "mutlak";
+  acuan?: Acuan[];
+  lebarLabel?: string;
+  tebal?: number;
+}
+
+const { label, rows, skala = "persen", acuan = [], lebarLabel = "9rem", tebal = 40 } = Astro.props;
+const jumlah = (r: Baris) => r.ruas.reduce((s, x) => s + x.n, 0);
+const m = Math.max(...rows.map(jumlah));
+---
+
+<div class:list={["viz tp", rows.every((r) => !r.label) && "tp--polos"]} style={`--lbl:${lebarLabel};--tebal:${tebal}px`} {...kontainer(label)}>
+  {
+    acuan.length > 0 && (
+      <div class="tp__baris tp__kepala" aria-hidden="true">
+        <span />
+        <span class="tp__rel tp__rel--kosong">
+          {acuan.map((a, j) => (
+            <span class="tp__acuan-label" style={`left:${css(a.nilai)};--j:${j}`}>{a.label}</span>
+          ))}
+        </span>
+      </div>
+    )
+  }
+  {
+    rows.map((r) => {
+      const t = jumlah(r);
+      const dasar = skala === "persen" ? t : m;
+      return (
+        <div class="tp__baris">
+          <span class="tp__nama">
+            {r.label}
+            {r.total && <small>{r.total}</small>}
+          </span>
+          <span class="tp__rel" data-anim-grup>
+            <span class="tp__isi" data-anim="sapu" style={`width:${css((100 * t) / dasar)}`}>
+              {r.ruas.map((x) => {
+                const w = (100 * x.n) / t;
+                return (
+                  <span
+                    class="tp__ruas"
+                    style={`width:${css(w)};background:${x.warna};color:${x.teks ?? "var(--white)"}`}
+                    {...tip({ judul: `${r.label} · ${x.label}`, nilai: x.tampil, warna: x.warna, baris: [r.sub] })}
+                  >
+                    <span class:list={["tp__lbl", w < 9 && "tp__lbl--sembunyi", w < 16 && "tp__lbl--sempit"]}>{x.tampil}</span>
+                  </span>
+                );
+              })}
+            </span>
+            {acuan.map((a) => (
+              <span class="tp__acuan" style={`left:${css(a.nilai)}`} aria-hidden="true" />
+            ))}
+          </span>
+        </div>
+      );
+    })
+  }
+</div>
+
+<style>
+  .tp {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .tp__baris {
+    display: grid;
+    grid-template-columns: var(--lbl) minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: center;
+  }
+  .tp--polos .tp__baris {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tp--polos .tp__nama,
+  .tp--polos .tp__kepala > :first-child {
+    display: none;
+  }
+  .tp__nama {
+    font-size: var(--fs-small);
+    line-height: 1.25;
+  }
+  .tp__nama small {
+    display: block;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .tp__rel {
+    position: relative;
+    height: var(--tebal);
+  }
+  .tp__isi {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: flex;
+  }
+  .tp__ruas {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-inline: 8px;
+    border-right: 2px solid var(--surface);
+    overflow: hidden;
+    cursor: default;
+  }
+  .tp__ruas:last-child {
+    border-right: 0;
+  }
+  .tp__lbl {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .tp__lbl--sembunyi {
+    display: none;
+  }
+  .tp__acuan {
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    border-left: 1.5px dashed var(--ink);
+    pointer-events: none;
+  }
+  .tp__kepala {
+    margin-bottom: -4px;
+  }
+  .tp__rel--kosong {
+    height: 20px;
+  }
+  .tp__acuan-label {
+    position: absolute;
+    bottom: 2px;
+    transform: translateX(calc(-50% + (var(--j, 0) * 2 - 1) * 14px));
+    font-size: var(--fs-micro);
+    white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .tp__baris {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 6px;
+    }
+    .tp__kepala > :first-child {
+      display: none;
+    }
+    .tp__lbl--sempit {
+      display: none;
+    }
+    .tp__ruas {
+      padding-inline: 6px;
+    }
+  }
+</style>

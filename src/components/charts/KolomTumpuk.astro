@@ -1,0 +1,133 @@
+---
+/**
+ * KolomTumpuk — kolom tegak bertumpuk untuk dua sampai lima periode, total di
+ * puncak kolom, dan anak panah pertumbuhan di antara kolom berurutan.
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Ruas {
+  label: string;
+  n: number;
+  tampil: string;
+  warna: string;
+}
+interface Kol {
+  label: string;
+  ruas: Ruas[];
+  total: string;
+}
+interface Props {
+  label: string;
+  cols: Kol[];
+  tumbuh?: string[];
+  tinggi?: number;
+}
+
+const { label, cols, tumbuh = [], tinggi = 300 } = Astro.props;
+const jml = (c: Kol) => c.ruas.reduce((s, r) => s + r.n, 0);
+const m = Math.max(...cols.map(jml)) * 1.12;
+---
+
+<div class="viz kt" style={`--h:${tinggi}px;--n:${cols.length}`} {...kontainer(label)}>
+  <div class="kt__area">
+    {
+      cols.map((c, ci) => (
+        <div class="kt__sel">
+          <span class="kt__total" data-anim="naik" style={`bottom:${css((100 * jml(c)) / m)};--tunda-k:${700 + ci * 200}ms`}>{c.total}</span>
+          <div class="kt__kolom" data-anim="angkat" style={`height:${css((100 * jml(c)) / m)};--tunda-k:${ci * 200}ms`}>
+            {[...c.ruas].reverse().map((r) => (
+              <span
+                class="kt__ruas"
+                style={`height:${css((100 * r.n) / jml(c))};background:${r.warna}`}
+                {...tip({ judul: `${c.label} · ${r.label}`, nilai: r.tampil, warna: r.warna })}
+              >
+                <span>{r.tampil}</span>
+              </span>
+            ))}
+          </div>
+          {ci > 0 && tumbuh[ci - 1] && (
+            <span class="kt__tumbuh" data-anim="pudar" style={`--tunda-k:${1100 + ci * 200}ms`}>
+              {tumbuh[ci - 1]}
+            </span>
+          )}
+        </div>
+      ))
+    }
+  </div>
+  <div class="kt__x" aria-hidden="true">
+    {cols.map((c) => <span>{c.label}</span>)}
+  </div>
+</div>
+
+<style>
+  .kt__area {
+    position: relative;
+    height: var(--h);
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    column-gap: clamp(32px, 8vw, 120px);
+    align-items: end;
+    border-bottom: 1px solid var(--c-sumbu);
+    padding-inline: clamp(8px, 4vw, 48px);
+  }
+  .kt__sel {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .kt__kolom {
+    width: min(100%, 140px);
+    display: flex;
+    flex-direction: column;
+  }
+  .kt__ruas {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 8px;
+    color: var(--white);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    border-top: 2px solid var(--surface);
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    overflow: hidden;
+  }
+  .kt__total {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .kt__tumbuh {
+    position: absolute;
+    right: calc(100% + 4px);
+    top: 22%;
+    transform: translateX(50%);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--red);
+    color: var(--white);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .kt__x {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    column-gap: clamp(32px, 8vw, 120px);
+    padding-inline: clamp(8px, 4vw, 48px);
+    margin-top: 8px;
+  }
+  .kt__x span {
+    text-align: center;
+    font-size: var(--fs-small);
+  }
+</style>

@@ -1,0 +1,179 @@
+---
+/**
+ * BarH — batang mendatar dalam HTML, sehingga label tetap berukuran asli di
+ * layar ponsel. Satu batang disorot merah; sisanya netral. Pilihan:
+ *  · `trek`  : rel abu-abu sampai `maks` (untuk capaian terhadap skor penuh)
+ *  · `acuan` : garis acuan tegak (mis. 100%) dengan label
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Baris {
+  label: string;
+  n: number;
+  tampil: string;
+  sub?: string;
+  sorot?: boolean;
+  redup?: boolean;
+  tip?: string[];
+}
+interface Props {
+  label: string;
+  rows: Baris[];
+  maks?: number;
+  trek?: boolean;
+  acuan?: { nilai: number; label: string };
+  lebarLabel?: string;
+  rapat?: boolean;
+}
+
+const { label, rows, maks, trek = false, acuan, lebarLabel = "11rem", rapat = false } = Astro.props;
+const m = maks ?? Math.max(...rows.map((r) => r.n), acuan?.nilai ?? 0);
+---
+
+<div
+  class:list={["viz bh", rapat && "bh--rapat", trek && "bh--trek"]}
+  style={`--lbl:${lebarLabel}`}
+  {...kontainer(label)}
+>
+  {
+    acuan && (
+      <div class="bh__baris bh__kepala" aria-hidden="true">
+        <span />
+        <span class="bh__rel bh__rel--kosong">
+          <span class="bh__acuan-label" style={`left:${css((100 * acuan.nilai) / m)}`}>{acuan.label}</span>
+        </span>
+        <span />
+      </div>
+    )
+  }
+  {
+    rows.map((r) => (
+      <div
+        class:list={["bh__baris", r.sorot && "is-sorot", r.redup && "is-redup-tetap"]}
+        {...tip({ judul: r.label, nilai: r.tampil, baris: [r.sub, ...(r.tip ?? [])] })}
+      >
+        <span class="bh__nama">{r.label}</span>
+        <span class="bh__rel">
+          <span class="bh__batang" data-anim="x" style={`width:${css(Math.max(0.4, (100 * r.n) / m))}`} />
+          {acuan && <span class="bh__acuan" style={`left:${css((100 * acuan.nilai) / m)}`} aria-hidden="true" />}
+        </span>
+        <span class="bh__nilai">
+          {r.tampil}
+          {r.sub && <small>{r.sub}</small>}
+        </span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .bh {
+    position: relative;
+    display: grid;
+    gap: 2px;
+  }
+  .bh__baris {
+    display: grid;
+    grid-template-columns: var(--lbl) minmax(0, 1fr) minmax(5.5rem, auto);
+    align-items: center;
+    column-gap: var(--space-4);
+    min-height: 40px;
+    padding-block: 4px;
+    cursor: default;
+  }
+  .bh--rapat .bh__baris {
+    min-height: 32px;
+  }
+  .bh__nama {
+    font-size: var(--fs-small);
+    line-height: 1.25;
+  }
+  .bh__rel {
+    position: relative;
+    height: 14px;
+  }
+  .bh--trek .bh__rel {
+    background: var(--c-trek);
+  }
+  .bh--rapat .bh__rel {
+    height: 10px;
+  }
+  .bh__batang {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: var(--c-dasar);
+  }
+  .is-sorot .bh__batang {
+    background: var(--c-sorot);
+  }
+  .is-redup-tetap .bh__batang {
+    background: var(--c-redup);
+  }
+  .is-sorot .bh__nama {
+    font-weight: 600;
+  }
+  .bh__nilai {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .is-sorot .bh__nilai {
+    color: var(--red);
+  }
+  .bh__nilai small {
+    display: block;
+    font-size: var(--fs-micro);
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  .bh__acuan {
+    position: absolute;
+    top: -7px;
+    bottom: -7px;
+    width: 0;
+    border-left: 1.5px dashed var(--ink);
+    pointer-events: none;
+  }
+  .bh__kepala {
+    min-height: 0;
+    padding-block: 0 2px;
+  }
+  .bh__rel--kosong {
+    height: 18px;
+    background: none !important;
+  }
+  .bh__acuan-label {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    font-size: var(--fs-micro);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .bh__baris {
+      grid-template-columns: minmax(0, 1fr) auto;
+      row-gap: 6px;
+    }
+    .bh__nama {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .bh__nilai {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .bh__rel {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .bh__kepala .bh__rel {
+      grid-row: 1;
+    }
+  }
+</style>

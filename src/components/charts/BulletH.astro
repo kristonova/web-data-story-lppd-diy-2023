@@ -1,0 +1,181 @@
+---
+/**
+ * BulletH — anggaran (rel muda) berbanding realisasi (batang) per baris,
+ * dengan persentase serapan di kolom kanan. Baris bertingkat: tingkat 0
+ * adalah kelompok (tebal), tingkat 1 rinciannya (menjorok).
+ */
+import { kontainer, tip, css } from "../../lib/viz";
+
+interface Baris {
+  label: string;
+  anggaran: number;
+  realisasi: number;
+  tampilA: string;
+  tampilR: string;
+  serapan: string;
+  tingkat?: 0 | 1;
+  sorot?: boolean;
+}
+interface Props {
+  label: string;
+  rows: Baris[];
+  lebarLabel?: string;
+}
+
+const { label, rows, lebarLabel = "12rem" } = Astro.props;
+const m = Math.max(...rows.map((r) => Math.max(r.anggaran, r.realisasi)));
+---
+
+<div class="viz bl" style={`--lbl:${lebarLabel}`} {...kontainer(label)}>
+  <div class="bl__kepala" aria-hidden="true">
+    <span />
+    <span class="bl__kunci"><i class="k-trek" />Anggaran <i class="k-real" />Realisasi</span>
+    <span>Serapan</span>
+  </div>
+  {
+    rows.map((r) => (
+      <div
+        class:list={["bl__baris", `t${r.tingkat ?? 0}`, r.sorot && "is-sorot"]}
+        {...tip({
+          judul: r.label,
+          nilai: `${r.serapan} terserap`,
+          baris: [`Realisasi ${r.tampilR}`, `Anggaran ${r.tampilA}`],
+        })}
+      >
+        <span class="bl__nama">{r.label}</span>
+        <span class="bl__rel">
+          <span class="bl__ang" data-anim="x" style={`width:${css(Math.max(0.3, (100 * r.anggaran) / m))}`} />
+          <span class="bl__real" data-anim="x" style={`width:${css(Math.max(0.3, (100 * r.realisasi) / m))}`} />
+        </span>
+        <span class="bl__nilai">
+          {r.serapan}
+          <small>{r.tampilR}</small>
+        </span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .bl {
+    display: grid;
+    gap: 2px;
+  }
+  .bl__kepala,
+  .bl__baris {
+    display: grid;
+    grid-template-columns: var(--lbl) minmax(0, 1fr) 6.5rem;
+    column-gap: var(--space-4);
+    align-items: center;
+  }
+  .bl__kepala {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    padding-bottom: var(--space-2);
+  }
+  .bl__kepala > :last-child {
+    text-align: right;
+  }
+  .bl__kunci {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bl__kunci i {
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+  }
+  .bl__kunci .k-trek {
+    background: var(--c-trek);
+    box-shadow: inset 0 0 0 1px var(--c-redup);
+  }
+  .bl__kunci .k-real {
+    height: 6px;
+    background: var(--c-dasar);
+    margin-left: var(--space-3);
+  }
+  .bl__baris {
+    min-height: 40px;
+    padding-block: 4px;
+  }
+  .bl__baris.t0 {
+    border-top: 1px solid var(--hairline);
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+  }
+  .bl__baris.t0:first-of-type {
+    border-top: 0;
+  }
+  .bl__nama {
+    font-size: var(--fs-small);
+    line-height: 1.25;
+  }
+  .t0 .bl__nama {
+    font-weight: 600;
+  }
+  .t1 .bl__nama {
+    padding-left: var(--space-4);
+    color: var(--text);
+  }
+  .bl__rel {
+    position: relative;
+    height: 16px;
+  }
+  .bl__ang {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--c-trek);
+    box-shadow: inset 0 0 0 1px var(--c-redup);
+  }
+  .bl__real {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    background: var(--c-dasar);
+  }
+  .t0 .bl__real {
+    background: var(--c-tinta);
+  }
+  .is-sorot .bl__real {
+    background: var(--c-sorot);
+  }
+  .bl__nilai {
+    text-align: right;
+    font-size: var(--fs-small);
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .is-sorot .bl__nilai {
+    color: var(--red);
+  }
+  .bl__nilai small {
+    display: block;
+    font-size: var(--fs-micro);
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  @media (max-width: 600px) {
+    .bl__baris {
+      grid-template-columns: minmax(0, 1fr) auto;
+      row-gap: 6px;
+    }
+    .bl__kepala {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .bl__kepala > :first-child {
+      display: none;
+    }
+    .bl__rel {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .bl__nilai {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+</style>

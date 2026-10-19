@@ -1023,6 +1023,8 @@ for (const b of isi(tabelN(F4b, 585, 1))) {
 }
 cek("pilar4.inv.seri-urut", invSeri.length === 2 && /2022/.test(invSeri[0]?.periode ?? "") && /2023/.test(invSeri[1]?.periode ?? ""), JSON.stringify(invSeri.map((r) => r.periode)));
 const miliar = (v) => (v == null ? null : Math.round((v / 1e9) * 100) / 100);
+// Tabel kumulatif hal. 585 tertulis dalam Rp000: 24.967.647.193 (Rp000) = Rp24,97 triliun.
+const triliunDariRibu = (v) => (v == null ? null : Math.round((v / 1e9) * 100) / 100);
 for (const r of invSeri) cek(`pilar4.inv.jumlah.${r.periode}`, Math.abs(r.pmdn + r.pma - r.total) < 5, String(r.total)); // pembulatan Rp000 pada majemuk
 cek("pilar4.inv.tambah", invSeri.length === 2 && Math.abs(invSeri[1].total - (invSeri[0].total + invSeri[1].tambahan)) < 1, "s.d.2022+tambah = s.d.2023");
 const growth22 = invSeri[0] ? Math.round((invSeri[0].tambahan / (invSeri[0].total - invSeri[0].tambahan)) * 10000) / 100 : null;
@@ -1128,16 +1130,16 @@ tulisJson("pilar4", {
     airMinum: { nilai: airDipakai, satuan: "liter/detik", persen: airPct },
   },
   investasi: {
-    seri: invSeri.map((r) => ({ periode: r.periode, pmdnMiliar: miliar(r.pmdn), pmaMiliar: miliar(r.pma), totalMiliar: miliar(r.total), tambahanMiliar: miliar(r.tambahan), pctStated: r.pctStated })),
+    seri: invSeri.map((r) => ({ periode: r.periode, pmdnTriliun: triliunDariRibu(r.pmdn), pmaTriliun: triliunDariRibu(r.pma), totalTriliun: triliunDariRibu(r.total), tambahanTriliun: triliunDariRibu(r.tambahan), pctStated: r.pctStated })),
     pertumbuhan: { s2022: growth22, s2023: growth23 },
     perKab: perKabInv.map((x) => ({ kabkota: x.kabkota, t2019: x.t2019, t2020: x.t2020, t2021: x.t2021, t2022: x.t2022, t2023: x.t2023 })),
   },
 });
 tulisCsv(
   "investasi-tren.csv",
-  ["periode", "pmdn_miliar", "pma_miliar", "total_miliar", "tambahan_miliar", "pertumbuhan_persen"],
-  invSeri.map((r, i) => [r.periode, miliar(r.pmdn), miliar(r.pma), miliar(r.total), miliar(r.tambahan), i === 0 ? growth22 : growth23]),
-  "Realisasi investasi PMDN-PMA kumulatif DIY (Rp miliar)",
+  ["periode", "pmdn_triliun", "pma_triliun", "total_triliun", "tambahan_triliun", "pertumbuhan_persen"],
+  invSeri.map((r, i) => [r.periode, triliunDariRibu(r.pmdn), triliunDariRibu(r.pma), triliunDariRibu(r.total), triliunDariRibu(r.tambahan), i === 0 ? growth22 : growth23]),
+  "Realisasi investasi PMDN-PMA kumulatif DIY (Rp triliun)",
   "LPPD DIY 2023, halaman 585, tabel ke-1"
 );
 tulisCsv(

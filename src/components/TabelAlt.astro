@@ -1,9 +1,7 @@
 ---
 /**
  * Tabel angka alternatif. Setiap grafik memilikinya, dan ia terbuka tanpa
- * JavaScript karena memakai <details> (PRD §10, §11.1).
- *
- * Sel yang tidak tersedia ditulis "–" — kosong bukan nol.
+ * JavaScript karena memakai <details>. Sel yang tidak tersedia ditulis "–".
  */
 interface Kolom {
   judul: string;
@@ -15,20 +13,19 @@ interface Props {
   keterangan?: string;
   kolom: Kolom[];
   baris: (string | number | null)[][];
-  gulir?: boolean;
 }
 
-const { judul, keterangan, kolom, baris, gulir = false } = Astro.props;
+const { judul, keterangan, kolom, baris } = Astro.props;
 ---
 
 <details class="tabel-alt">
   <summary>Tabel angka: {judul}</summary>
-  <div class={gulir ? "tabel-scroll" : ""}>
+  <div class="tabel-wadah">
     <table>
       <caption>{keterangan ?? judul}</caption>
       <thead>
         <tr>
-          {kolom.map((k) => <th scope="col" class={k.num ? "num" : ""}>{k.judul}</th>)}
+          {kolom.map((k) => <th scope="col" class={k.num ? "num" : undefined}>{k.judul}</th>)}
         </tr>
       </thead>
       <tbody>
@@ -37,12 +34,10 @@ const { judul, keterangan, kolom, baris, gulir = false } = Astro.props;
             <tr>
               {r.map((sel, i) => {
                 const num = kolom[i]?.num ?? false;
-                const kosong = sel === null;
-                const kelas = `${num ? "num" : ""}${kosong ? " kosong" : ""}`.trim();
-                if (i === 0) {
-                  return <th scope="row" class={kelas}>{sel ?? "–"}</th>;
-                }
-                return <td class={kelas}>{sel ?? "–"}</td>;
+                const kosong = sel === null || sel === "";
+                const kelas = [num ? "num" : "", kosong ? "kosong" : ""].filter(Boolean).join(" ") || undefined;
+                if (i === 0) return <th scope="row" class={kelas}>{sel ?? "–"}</th>;
+                return <td class={kelas}>{kosong ? "–" : sel}</td>;
               })}
             </tr>
           ))
